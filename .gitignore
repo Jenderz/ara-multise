@@ -1,0 +1,91 @@
+# ===================================
+# ARA E-COMMERCE MULTISEDE - GITIGNORE
+# ===================================
+
+# --- ARCHIVOS SENSIBLES (¡NUNCA SUBIR!) ---
+.env
+.env.local
+.env.production
+.env.*.local
+*.key
+*.pem
+config.local.php
+
+# Credenciales y API Keys
+**/config.php
+public/lib/config.php
+
+# --- NODE / NPM ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# --- BUILD / DIST ---
+dist/
+dist-ssr/
+build/
+.cache/
+*.tsbuildinfo
+
+# --- LOGS ---
+logs/
+*.log
+*.log.*
+
+# --- SISTEMA OPERATIVO ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# --- EDITORES / IDEs ---
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*~
+
+# --- TEMPORAL / CACHE ---
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.vite/
+
+# --- PHP / BACKEND ---
+vendor/
+composer.lock
+*.php~
+.phpunit.result.cache
+
+# --- BASE DE DATOS ---
+*.sql
+*.sqlite
+*.db
+
+# --- UPLOADS / ASSETS (Opcional - comentar si quieres versionarlos) ---
+# public/uploads/
+# public/assets/images/
+
+# --- TESTING ---
+coverage/
+.nyc_output/
+*.lcov
+
+# --- OTROS ---
+*.local
+.env.backup
+.vercel
+.netlify

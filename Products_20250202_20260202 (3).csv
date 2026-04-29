@@ -1,0 +1,1867 @@
+"Código","Nombre","Categoria","Unid / Frac.","Stock Actual","Stock Minimo","Costo","Precio","Valor Stock Actual","Valor Stock Custo","Valor vendido","Cantidad Vendida","Ganancia"
+"LD01","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD30","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD03","Leggins deportivo","ROPA DEPORTIVA","unidad","2",0,"8","18","36","16",0,0,0
+"LD05","Leggins deportivo","ROPA DEPORTIVA","unidad","3",0,"8","18","54","24",0,0,0
+"LD02","Leggins deportivo","ROPA DEPORTIVA","unidad","2",0,"8","18","36","16",0,0,0
+"LD06","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD07","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD08","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD09","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD10","Leggins deportivo","ROPA DEPORTIVA","unidad","2",0,"8","18","36","16",0,0,0
+"LD11","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD12","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD13","Leggins deportivo ","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0","18","1","10"
+"LD14","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD15","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD16","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0","18","1","10"
+"LD17","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD18","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD19","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0","18","1","10"
+"LD20","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD21","Leggins deportivo","ROPA DEPORTIVA","unidad","2",0,"8","18","36","16",0,0,0
+"LD22","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD23","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD24","Leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD25","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD26","Leggins deportivo ","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD27","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"LD28","Leggins deportivo","ROPA DEPORTIVA","unidad","0",0,"8","18","0","0",0,0,0
+"LD29","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8","18","18","8",0,0,0
+"SD01","Short deportivo","ROPA DEPORTIVA","unidad","0",0,"8","12","0","0",0,0,0
+"SD02","Short deportivo ","ROPA DEPORTIVA","unidad","0",0,"5","12","0","0",0,0,0
+"SD03","Short deportivo","ROPA DEPORTIVA","unidad","0",0,"5","12","0","0",0,0,0
+"SD04","Short deportivo","ROPA DEPORTIVA","unidad","0",0,"5","12","0","0",0,0,0
+"SD05","Short deportivo","ROPA DEPORTIVA","unidad","1",0,"7","15","15","7",0,0,0
+"SD06","Short deportivo","ROPA DEPORTIVA","unidad","1",0,"7","15","15","7",0,0,0
+"SD07","Short deportivo","ROPA DEPORTIVA","unidad","0",0,"5","12","0","0",0,0,0
+"MEDIAS01","Medias nike","ROPA DEPORTIVA","unidad","2",0,"2","5","10","4","10","2","6"
+"MEDIAS02","Medias panties ","ROPA DEPORTIVA","unidad","-1",0,"4","9","-9","-4","125","14","69,59"
+"SETD01","Set deportivo de top y leggins bota campana","ROPA DEPORTIVA","unidad","7",0,"14","45","315","98","308,25","7","210,25"
+"SETD02","Braga deportiva","ROPA DEPORTIVA","unidad","1",0,"13,13","32","32","13,13","160","5","94,35"
+"CHD01","Chaleco denim","BLUSAS/TOPS/CHALECOS","unidad","3",0,"12,5","20","60","37,5",0,0,0
+"CHD13","Chaleco denim ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"11","22","88","44","22","1","11"
+"CHD02","Chaleco denim ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","20","20","9","20","1","11"
+"7453072765347","Chaleco denim","BLUSAS/TOPS/CHALECOS","unidad","10",0,"14","24","240","140",0,0,0
+"CHD10","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","5",0,"8","25","125","40","361","13","241,25"
+"CHD11","Chaleco denim","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","24","0","0","24","1","10"
+"CHD03","Chaleco denim ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9,3","25","50","18,6","75","3","47,1"
+"CHD04","Chaleco corto","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","20","0","0","105","5","49,3"
+"CHD12","Chaleco denim","BLUSAS/TOPS/CHALECOS","unidad","1",0,"22","22","22","22","22","1",0
+"TD02","Top denim","BLUSAS/TOPS/CHALECOS","unidad","3",0,"3,5","12","36","10,5",0,0,0
+"CHD06","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10,3","22","22","10,3","44","2","23,4"
+"CHD07","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","11",0,"8,8","27","297","96,800","277","11","158,2"
+"CHD08","Chaleco tejido","BLUSAS/TOPS/CHALECOS","unidad","2",0,"14","25","50","28","43","2","13,3"
+"TD01","Top denim ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"12","25","25","12","25","1","13"
+"CHD09","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","25","25","8","399","15","255"
+"TD03","Top denim ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","22","22","9","22","1","13"
+"TD04","Top denim","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,73","19","0","0","19","1","10,27"
+"TD05","Top denim ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"9","22","88","36","22","1","13"
+"TD06","Top denim","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","22","22","6,5","22","1","15,5"
+"TD07","Top denim ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","21","0","0",0,0,0
+"TD08","Blusa gris","BLUSAS/TOPS/CHALECOS","unidad","5",0,"10","20","100","50","287","15","128"
+"7450113440140","Jeans cargo","JEANS","unidad","2",0,"12","27","54","24","54","2","30"
+"1941FN","Jeans ","JEANS","unidad","0",0,"18","27","0","0","108","4","36"
+"7453130348543","Jeans palazzo","JEANS","unidad","1",0,"19","32","32","19","748","25","316"
+"0718819017408","Jeans bota campana","JEANS","unidad","0",0,"16","27","0","0","189","7","77"
+"7453130367186","Jeans bota ancha","JEANS","unidad","2",0,"17","32","64","34","676","23","279"
+"0718819015268","Jeans cargo","JEANS","unidad","0",0,"16,6","27","0","0","54","2","20,8"
+"7453128397713","Jeans palazzo","JEANS","unidad","0",0,"20","30","0","0","594","20","194"
+"7450113422986","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"7450113458770","Jeans cargo","JEANS","unidad","5",0,"21","31","155","105","87","3","24"
+"7450113438345","Jeans cargo","JEANS","unidad","5",0,"12","27","135","60","135","5","75"
+"7453119115647","Jeans cargo","JEANS","unidad","1",0,"21","31","31","21","217","7","70"
+"7451001526595","Jeans cargo","JEANS","unidad","0",0,"17","28","0","0",0,0,0
+"7453119115616","Jeans cargo","JEANS","unidad","1",0,"21","31","31","21","155","5","50"
+"4773SEBUSCA","Jeans bota campana ","JEANS","unidad","1",0,"16,5","27","27","16,5","272,6","10","100,28"
+"7453084912258","Jeans cargo","JEANS","unidad","1",0,"16,67","27","27","16,67",0,0,0
+"7450194046835","Jeans cargo","JEANS","unidad","2",0,"17","27","54","34","54","2","20"
+"7453130348468","Jeans palazzo","JEANS","unidad","0",0,"20","32","0","0","1.145","37","429,02"
+"7453133910341","Jeans de brillos","JEANS","unidad","3",0,"18,5","32","96","55,5","322","11","131,5"
+"7450194046927","Jeans cargo","JEANS","unidad","1",0,"27","27","27","27",0,0,0
+"0718819006518","Jeans cargo","JEANS","unidad","11",0,"20","28","308","220","56","2","16"
+"7450117463954","Jeans cargo","JEANS","unidad","2",0,"17","27","54","34","54","2","20"
+"7453066588723","Jeans skinny","JEANS","unidad","0",0,"15","25","0","0",0,0,0
+"7453124794066","Jeans cargo","JEANS","unidad","1",0,"20","30","30","20","180","6","60"
+"JC03","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"JC04","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"7453116955086","Jeans cargo ","JEANS","unidad","2",0,"17","27","54","34",0,0,0
+"0718819006532","Jeans cargo","JEANS","unidad","8",0,"20","28","224","160",0,0,0
+"0718819006402","Jeans cargo","JEANS","unidad","2",0,"17","27","54","34","54","2","20"
+"7450117466900","Jeans cargo","JEANS","unidad","1",0,"18","27","27","18",0,0,0
+"0718819006549","Jeans cargo","JEANS","unidad","5",0,"20","28","140","100","28","1","8"
+"7453130333808","Jeans palazzo","JEANS","unidad","0",0,"17","32","0","0","900","30","421,5"
+"7453120390552","Jeans ancho","JEANS","unidad","1",0,"14,9","27","27","14,9","502,2","19","208,6"
+"7450113422795","Jeans ancho","JEANS","unidad","2",0,"16","26","52","32",0,0,0
+"JA01","Jeans ancho","JEANS","unidad","2",0,"10","26","52","20",0,0,0
+"90250MEDIUM","Jeans ancho","JEANS","unidad","0",0,"14,5","26","0","0","98,8","4","40,8"
+"JA02","Jeans ancho","JEANS","unidad","0",0,"16","26","0","0","156","6","60"
+"7453121511451","Jeans cargo","JEANS","unidad","0",0,"18,33","28","0","0",0,0,0
+"7453130367711","Jeans palazzo","JEANS","unidad","5",0,"18","32","160","90","610","20","261,5"
+"7453131914648","Jeans de brillo ","JEANS","unidad","9",0,"18,3","32","288","164,700","511","18","211,5"
+"7453133911614","Jeans de brillo","JEANS","unidad","1",0,"20","32","32","20","630","22","260,6"
+"7453000123294","Jeans bota ancha","JEANS","unidad","1",0,"16,3","30","30","16,3","764","25","328,5"
+"7453128323026","Jeans bota recta","JEANS","unidad","5",0,"17","27","135","85","318,6","12","109,4"
+"7453130332726","Jeans bota ancha ","JEANS","unidad","1",0,"15,6","28","28","15,6","670","24","280,2"
+"7453130302569","Jeans bota ancha ","JEANS","unidad","0",0,"16,5","28","0","0","522","19","209"
+"7453130302484","Jeans bota ancha","JEANS","unidad","0",0,"18","28","0","0","190,4","7","62,9"
+"7453105876736","Jeans bota campana","JEANS","unidad","2",0,"16","26","52","32",0,0,0
+"7453100320180","Jeans ancho","JEANS","unidad","3",0,"10","26","78","30","26","1","16"
+"0718819001810","Jeans con pretina blanca ","JEANS","unidad","1",0,"15,83","26","26","15,83","26","1","10,17"
+"SCV094","Jeans ancho","JEANS","unidad","0",0,"17","28","0","0","470,4","17","181,4"
+"7453105894365","Jeans bota campana","JEANS","unidad","0",0,"16","26","0","0","26","1","10"
+"0718874333918","Jeans brillante","JEANS","unidad","5",0,"18,5","32","160","92,5","412,6","14","162,6"
+"7453122307848","Jeans ancho","JEANS","unidad","0",0,"11","26","0","0","52","2","30"
+"0718819017385","Jeans bota campana","JEANS","unidad","1",0,"14,17","27","27","14,17","322","12","151,13"
+"7450113473377","Jeans ancho","JEANS","unidad","5",0,"20","30","150","100","540","18","180"
+"7453100313786","Jeans bota ancha","JEANS","unidad","3",0,"16","20","60","48","20","1","4"
+"JA07","Jeans bota ancha","JEANS","unidad","3",0,"15","26","78","45","15","1",0
+"7453130331835","Jeans bota ancha","JEANS","unidad","1",0,"16,5","28","28","16,5","386,4","14","155,4"
+"7453130366950","Jeans palazzo","JEANS","unidad","6",0,"19","32","192","114","392","13","157"
+"0718819002718","Jeans cargo","JEANS","unidad","0",0,"17,25","28","0","0","28","1","10,75"
+"7453130300275","Jeans bota campana","JEANS","unidad","2",0,"16,5","28","56","33","300,4","11","119,4"
+"7453130333839","Jeans palazzo","JEANS","unidad","0",0,"18","32","0","0","494","16","216"
+"7453105890121","Jeans cargo","JEANS","unidad","2",0,"17,5","27","54","35",0,0,0
+"7453084916478","Jeans bota ancha","JEANS","unidad","1",0,"17","27","27","17","588,6","22","214,6"
+"7453119116347","Jeans bota ancha","JEANS","unidad","5",0,"15,6","28","140","78","494","18","209,2"
+"0718819017415","Jeans bota campana","JEANS","unidad","2",0,"16","27","54","32","243","9","99"
+"7453130333846","Jeans palazzo","JEANS","unidad","1",0,"17,5","32","32","17,5","562","18","260,34"
+"7450117216758","Jeans mom","JEANS","unidad","1",0,"16","26","26","16","36","2","4"
+"7453072765156","Jeans bota ancha","JEANS","unidad","9",0,"16,66","27","243","149,94","81","3","31,02"
+"7451001527844","Jeans bota ancha","JEANS","unidad","6",0,"16","26","156","96","52","2","20"
+"7453066588716","Jeans skinny","JEANS","unidad","1",0,"15","25","25","15",0,0,0
+"7453130348840","Jeans ancho","JEANS","unidad","2",0,"20","30","60","40","219","8","74"
+"7453130367803","Jeans palazzo","JEANS","unidad","5",0,"20","32","160","100","561","19","226"
+"0718819024482","Jeans bota recta","JEANS","unidad","2",0,"15","27","54","30","81","3","36"
+"7453130367100","Jeans palazzo","JEANS","unidad","0",0,"18","32","0","0","644","22","274"
+"7453130322031","Jeans palazzo","JEANS","unidad","0",0,"18","31","0","0","465","15","195"
+"JM01","Jeans mom","JEANS","unidad","0",0,"15,5","23","0","0",0,0,0
+"0718819033743","Jeans skinny","JEANS","unidad","5",0,"13,4","25","125","67","173","7","79,6"
+"4634SEBUSCA","Jeans skinny","JEANS","unidad","2",0,"14,2","25","50","28,4","270","11","113,6"
+"JEANSSHEIN01","Jeans ancho","JEANS","unidad","0",0,"24","35","0","0","508","15","152"
+"7453105804401","Jeans skinny","JEANS","unidad","1",0,"13","23","23","13",0,0,0
+"7453105878952","Jeans mom","JEANS","unidad","3",0,"15","20","60","45",0,0,0
+"0718819014575","Jeans skinny","JEANS","unidad","4",0,"15","25","100","60","125","5","44,8"
+"0718819014667","Jeans skinny","JEANS","unidad","6",0,"15","25","150","90","125","5","50"
+"7450113422870","Jeans cargo","JEANS","unidad","1",0,"12","27","27","12",0,0,0
+"7453128395177","Jeans bota ancha","JEANS","unidad","2",0,"16,7","28","56","33,4","380,4","14","148,3"
+"7450113473346","Jeans ancho","JEANS","unidad","4",0,"17","29","116","68","275","10","112"
+"0718819033439","Jeans skinny","JEANS","unidad","8",0,"12,5","25","200","100","150","6","72,5"
+"7453105877191","Jeans skinny","JEANS","unidad","2",0,"15","25","50","30",0,0,0
+"7450117246267","Jeans mom","JEANS","unidad","13",0,"16","26","338","208",0,0,0
+"0718819014612","Jeans skinny","JEANS","unidad","4",0,"15","25","100","60","25","1","10"
+"7450113451696","Jeans bota ancha","JEANS","unidad","1",0,"17","27","27","17","243","9","90"
+"7450117482566","Jeans skinny","JEANS","unidad","1",0,"14","25","25","14",0,0,0
+"7453130368206","Jeans bota ancha","JEANS","unidad","6",0,"19","32","192","114","475","16","188"
+"7453105890916","Jeans bota ancha","JEANS","unidad","6",0,"17","27","162","102",0,0,0
+"9767VERDE","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17","27","1","10"
+"7453084916430","Jeans bota campana","JEANS","unidad","5",0,"16","27","135","80","432","16","176"
+"7453066588747","Jeans skinny makara","JEANS","unidad","1",0,"14","25","25","14",0,0,0
+"7453128323170","Jeans bota recta","JEANS","unidad","0",0,"18","28","0","0","392","14","140"
+"7453072765095","Jeans skinny","JEANS","unidad","5",0,"16","25","125","80",0,0,0
+"0718819026042","Jeans bota ancha","JEANS","unidad","7",0,"16","27","189","112","102,6","4","38,6"
+"4787FALDASHORT","Falda short","SHORTS","unidad","0",0,"13","25","0","0","368","14","158,6"
+"7453120368391","Jeans de brillos ","JEANS","unidad","0",0,"18","35","0","0","525","15","253,5"
+"PANTCS01","Pantalon de cuerina skinny","PANTS","unidad","2",0,"14","25","50","28","25","1","11"
+"JS08","Jeans skinny","JEANS","unidad","0",0,"15","25","0","0",0,0,0
+"JC07","Jeans bota ancha","JEANS","unidad","2",0,"16","26","52","32",0,0,0
+"7451001515858","Jeans bota ancha","JEANS","unidad","2",0,"16","26","52","32","20","1","4"
+"PANTC01","Pantalon cargo","PANTS","unidad","0",0,"13","26","0","0","20","1","7"
+"PANTC02","Pantalon de encaje","PANTS","unidad","1",0,"17","28","28","17","138","5","51,78"
+"PANTC03","Pantalon cargo","PANTS","unidad","1",0,"13","26","26","13",0,0,0
+"3629BLANCO","Pantalon con correa","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"3629MARRON","Pantalon con correa","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"7450102921261","Pantalon cargo","PANTS","unidad","2",0,"13","26","52","26",0,0,0
+"CAM01","Camisa crop top","CAMISAS","unidad","0",0,"13","22","0","0","22","1","9"
+"CORSET01","Corset ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9,15","19","38","18,3","76","4","39,4"
+"SET01","Set de top y falda larga","SETS","unidad","1",0,"20","28","28","20","88","3","31,22"
+"SET02","Set de top y falda","SETS","unidad","2",0,"14","27","54","28","160","6","82,68"
+"TOP01","Top  ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","72","4","40"
+"TD09","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","10",0,"7,29","17","170","72,9","84","7","32,97"
+"CAM02","Camisa crop top","CAMISAS","unidad","0",0,"15","25","0","0","25","1","10"
+"VEST01","Vestido","VESTIDOS","unidad","2",0,"8,56","22","44","17,12","44","2","26,88"
+"VEST02","Vestido manga larga","VESTIDOS","unidad","14",0,"16","27","378","224","231","9","101,26"
+"TOP02","Top manga larga ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","126","7","71,38"
+"FALD01","Falda cargo prelavada","FALDAS","unidad","0",0,"17,98","28","0","0","192","7","82,1"
+"SETD03","Braga deportiva ","ROPA DEPORTIVA","unidad","5",0,"13,13","32","160","65,65","320","10","188,7"
+"SETD04","Enterizo deportivo","ROPA DEPORTIVA","unidad","2",0,"12","22","44","24","66","3","16,4"
+"SETD05","Set deportivo ","ROPA DEPORTIVA","unidad","1",0,"15,2","25","25","15,2",0,0,0
+"SETD06","Set deportivo de leggins y top","ROPA DEPORTIVA","unidad","0",0,"11","26","0","0","52","2","30"
+"SETD07","Set deportivo de top y leggins ","ROPA DEPORTIVA","unidad","12",0,"16,43","45","540","197,16","45","1","28,57"
+"SETD08","Set deportivo de top y leggins bota campana","ROPA DEPORTIVA","unidad","9",0,"13,93","40","360","125,37","120","3","78,21"
+"SETD09","Set deportivo de top manga larga y leggins bota campana ","ROPA DEPORTIVA","unidad","11",0,"17","45","495","187","180","4","112"
+"SETD10","Chaqueta deportiva","ROPA DEPORTIVA","unidad","1",0,"9,5","25","25","9,5","375","15","232,5"
+"SETD11","Set deportivo top y leggins bota campana","ROPA DEPORTIVA","unidad","9",0,"13,93","40","360","125,37","120","3","78,21"
+"SETD12","Set deportivo de top y leggins bota campana","ROPA DEPORTIVA","unidad","5",0,"17","45","225","85","135","3","84"
+"SD08","Short deportivo c/u precio publicado","ROPA DEPORTIVA","unidad","0",0,"4","12","0","0",0,0,0
+"CORSET02","Corset plateado","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,78","17","17","6,78",0,0,0
+"TOP03","Top estilo chaleco","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","25","0","0","315","14","98,5"
+"TOP04","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","22","0","0","152","7","68"
+"TOP05","Top básico","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6,5","17","34","13","226","12","107,68"
+"BODY01","Body","BODIES","unidad","1",0,"9,5","18","18","9,5","118","6","61,24"
+"BODY02","Body halter","BODIES","unidad","0",0,"6,32","17","0","0","17","1","10,68"
+"CORSET03","Corset  ","BLUSAS/TOPS/CHALECOS","unidad","5",0,"15,26","25","125","76,3","300","12","116,88"
+"CORSET04","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7","25","75","21","400","16","263,1"
+"BODY03","Body","BODIES","unidad","3",0,"8","19","57","24","323","17","187"
+"CORSET05","Corset ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"13","25","50","26","225","9","108"
+"TOP06","Top","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7,5","20","60","22,5","20","1","12,5"
+"TOP07","Top","BLUSAS/TOPS/CHALECOS","unidad","5",0,"6","18","90","30","468","25","278"
+"TOP08","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","17","17","9","85","5","55"
+"1522ROJO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"11,25","25","75","33,75","355","15","186,25"
+"1218AZUL","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"4,1","17","17","4,1","17","1","12,9"
+"1526ROJO","Body","BODIES","unidad","23",0,"13","25","575","299","83","4","46"
+"1291VINO","Body manga larga","BODIES","unidad","0",0,"10,5","25","0","0","318","14","176,6"
+"1291VERDE","Body ","BODIES","unidad","4",0,"10,5","25","100","42","186","8","105,5"
+"1470NEGRO","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,67","17","0","0","17","1","9,33"
+"1004NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9,25","19","0","0","95","5","48,75"
+"1256NEGRO","Body","BODIES","unidad","0",0,"15,5","25","0","0","1.365","58","519,34"
+"1081BLANCO","Top ","BLUSAS/TOPS/CHALECOS","unidad","10",0,"10","20","200","100","221","11","107,25"
+"397NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","3",0,"11,25","21","63","33,75","192,9","10","86,65"
+"1292MARRON","Body","BODIES","unidad","8",0,"14","25","200","112","380","18","193,8"
+"1255MARRON","Body","BODIES","unidad","3",0,"13","25","75","39","286","12","140"
+"1253BLANCO","Body ","BODIES","unidad","4",0,"12,5","22","88","50","312","15","147"
+"397BEIGE","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","5",0,"11","22","110","55","17","1","8,25"
+"1432NEGRO","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8,75","17","34","17,5",0,0,0
+"397BLANCO","Top básico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10,5","20","0","0","266","14","122,5"
+"579BLANCO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","9",0,"11","20","180","99","20","1","9"
+"1095VERDE","Body","BODIES","unidad","3",0,"11","22","66","33","102","5","56"
+"1252NEGRO","Body","BODIES","unidad","0",0,"13,5","22","0","0","420","20","189,95"
+"1440ROJO","Body","BODIES","unidad","8",0,"13","25","200","104","447","21","203,75"
+"1253NEGRO","Body","BODIES","unidad","2",0,"12,5","22","44","25","366","18","186"
+"1291BLANCO","Body","BODIES","unidad","4",0,"10,5","25","100","42","186","8","107"
+"1440MARRON","Body","BODIES","unidad","5",0,"10,5","25","125","52,5","229","10","131,5"
+"1422CELESTE","Body","BODIES","unidad","5",0,"9","18","90","45",0,0,0
+"1280NEGRO","Body","BODIES","unidad","2",0,"8","25","50","16","160","7","104"
+"1291MARRON","Body","BODIES","unidad","9",0,"10,5","25","225","94,5","161","7","92,5"
+"1054NEGRO","Body","BODIES","unidad","1",0,"8,75","18","18","8,75","18","1","9,25"
+"1095NEGRO","Body","BODIES","unidad","5",0,"11,75","22","110","58,75","388","19","184"
+"ZARC01","Zarcillos de gota","ACCESORIOS","unidad","-1",0,"3","6","-6","-3","6","1","3"
+"ZARC02","Zarcillos tipo argolla","ACCESORIOS","unidad","0",0,"2,5","6","0","0",0,0,0
+"ZARC03","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","12","2","6"
+"SD09","Shorts deportivos el precio es c/u","ROPA DEPORTIVA","unidad","0",0,"6","12","0","0",0,0,0
+"SD10","Shorts deportivos precio c/u","ROPA DEPORTIVA","unidad","0",0,"6","12","0","0",0,0,0
+"PANTC04","Pantalon de vestir","PANTS","unidad","8",0,"10","28","224","80","278","10","176,78"
+"PANT01","Parachute pant","PANTS","unidad","0",0,"10,5","26","0","0",0,0,0
+"PANTC05","Pantalon cargo","PANTS","unidad","16",0,"10,3","27","432","164,8","297","11","183,7"
+"PANTC06","Pantalón de vestir","PANTS","unidad","-1",0,"9,1","26","-26","-9,1","130","5","84,5"
+"PANTC07","Pantalon parachute","PANTS","unidad","1",0,"10","26","26","10",0,0,0
+"PANTC08","Pantalon de cuerina","PANTS","unidad","1",0,"18","30","30","18","26","1","9,8"
+"PANTC09","Pantalon cargo","PANTS","unidad","2",0,"17","26","52","34","26","1","9"
+"PANTC10","Pantalon cargo","PANTS","unidad","3",0,"16","26","78","48",0,0,0
+"PANTC11","Pantalon cargo","PANTS","unidad","1",0,"16","26","26","16",0,0,0
+"PANT02","Pantalon de pretina blanca ","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"PANT03","Pantalon de pretina ","PANTS","unidad","0",0,"16,18","27","0","0","27","1","10,82"
+"PANT04","Pantalon cargo","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"PANTC12","Pantalon cargo ","PANTS","unidad","2",0,"15","26","52","30",0,0,0
+"PANT05","Parachute pant","PANTS","unidad","0",0,"14","26","0","0","26","1","12"
+"PANT06","Pantalon de cebra","PANTS","unidad","2",0,"12","15","30","24",0,0,0
+"PANTC13","Pantalon de líneas ","PANTS","unidad","0",0,"31","42","0","0",0,0,0
+"PANTC14","Pantalon cargo","PANTS","unidad","2",0,"12","26","52","24",0,0,0
+"PANTC15","Pantalon cargo","PANTS","unidad","0",0,"10","26","0","0",0,0,0
+"PANTC16","Pantalon cargo","PANTS","unidad","2",0,"14","26","52","28",0,0,0
+"PANTC17","Pantalon cargo ","PANTS","unidad","3",0,"12","26","78","36",0,0,0
+"PANTC18","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANTC19","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANTC20","Pantalon cargo","PANTS","unidad","0",0,"15","26","0","0","20","1","5"
+"PANTC21","Pantalon cargo","PANTS","unidad","0",0,"15","26","0","0","20","1","5"
+"7800114488572","Pantalon parachute ","PANTS","unidad","1",0,"10","26","26","10",0,0,0
+"PANT07","Pantalon doble pretina","PANTS","unidad","1",0,"17,37","26","26","17,37","26","1","8,63"
+"PANT08","Pantalon de cuerina ","PANTS","unidad","1",0,"18","30","30","18","274","9","80"
+"PANTC23","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANT09","Parachute pants","PANTS","unidad","1",0,"14","26","26","14",0,0,0
+"PANTC24","Pantalon cargo ","PANTS","unidad","2",0,"12","26","52","24",0,0,0
+"PANTC25","Pantalon cargo","PANTS","unidad","1",0,"15,5","26","26","15,5",0,0,0
+"PANTC26","Pantalon pretina blanca","PANTS","unidad","0",0,"15","27","0","0","27","1","12"
+"PANTC27","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANT10","Pantalon de vestir","PANTS","unidad","1",0,"15","26","26","15",0,0,0
+"PANTC28","Pantalon de encaje","PANTS","unidad","2",0,"12","28","56","24","82","3","46"
+"PANT11","Pantalón de vestir con correa","PANTS","unidad","5",0,"10","28","140","50","336","12","216"
+"PANTC29","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANT12","Pantalon cargo","PANTS","unidad","2",0,"15","26","52","30",0,0,0
+"PANT13","Pantalon de vestir ","PANTS","unidad","8",0,"10","28","224","80","56","2","36"
+"PANT14","Pantalon cargo","PANTS","unidad","1",0,"10","26","26","10",0,0,0
+"PANT15","Pantalon ","PANTS","unidad","3",0,"9,41","26","78","28,23","26","1","16,59"
+"PANTC30","Pantalon cargo de seda","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"PANT16","Pantalon de vestir ","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANT17","Pantalon cargo","PANTS","unidad","0",0,"12","26","0","0",0,0,0
+"PANTC31","Pantalon cargo ","PANTS","unidad","7",0,"15","26","182","105",0,0,0
+"PANTC32","Pantalon cargo","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"PANTC33","Pantalon cargo","PANTS","unidad","4",0,"10,3","27","108","41,2","81","3","50,1"
+"PANT18","Pantalon de brillos","PANTS","unidad","5",0,"11","30","150","55","112","4","67"
+"PANT19","Pantalon de cuerina","PANTS","unidad","3",0,"15","26","78","45",0,0,0
+"7453121501490","Pantalon de cuerina","PANTS","unidad","0",0,"20","32","0","0","187","6","71"
+"7453112117037","Jeans skinny","JEANS","unidad","5",0,"15","25","125","75","50","2","20"
+"7453112117013","Jeans skinny","JEANS","unidad","3",0,"15","25","75","45","50","2","20"
+"CORSET06","Corset ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","25","0","0",0,0,0
+"CORSET07","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","3",0,"15,3","25","75","45,900","300","12","116,4"
+"CORSET08","Corset de encaje ","BLUSAS/TOPS/CHALECOS","unidad","7",0,"16,5","25","175","115,5","150","6","51"
+"CORSET09","Corset","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15","25","0","0","500","20","221,65"
+"CORSET10","Corset de encaje ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"15,3","25","150","91,800","575","23","223,1"
+"CORSET11","Corset ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","20","40","16",0,0,0
+"CORSET12","Corset ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","25","0","0","317","13","141"
+"CORSET13","Corset ","BLUSAS/TOPS/CHALECOS","unidad","8",0,"13","25","200","104","300","12","144"
+"CORSET14","Corset  ","BLUSAS/TOPS/CHALECOS","unidad","5",0,"10,5","22","110","52,5","88","4","46"
+"8329BLANCO","Body","BODIES","unidad","2",0,"8","20","40","16","300","15","168"
+"BODY17","Body manga larga","BODIES","unidad","1",0,"10","23","23","10","74","4","43"
+"LAZO01","Lazo para el cabello","ACCESORIOS","unidad","0",0,"2,5","4,5","0","0",0,0,0
+"LAZO02","Lazo para el cabello","ACCESORIOS","unidad","1",0,"2,5","4,5","4,5","2,5",0,0,0
+"LAZO03","Lazo para el cabello","ACCESORIOS","unidad","1",0,"2,5","4,5","4,5","2,5","4,5","1","2"
+"LAZO04","Lazo para el cabello","ACCESORIOS","unidad","0",0,"2,5","4,5","0","0",0,0,0
+"LAZO05","Lazo para el cabello","ACCESORIOS","unidad","3",0,"2,5","4,5","13,5","7,5",0,0,0
+"LAZO06","Lazo para el cabello","ACCESORIOS","unidad","0",0,"2,5","4,5","0","0",0,0,0
+"CADENA01","Cadena de corazón ","ACCESORIOS","unidad","2",0,"3,5","6","12","7","6","1","2,5"
+"CADENA02","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA03","Cadena de corazón","ACCESORIOS","unidad","-1",0,"3,5","6","-6","-3,5","12","2","5"
+"CADENA04","Cadena de corazón","ACCESORIOS","unidad","3",0,"3,3","6","18","9,899","6","1","2,7"
+"CADENA05","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA06","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA07","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA08","Cadena de corazón ","ACCESORIOS","unidad","-1",0,"3,5","6","-6","-3,5","12","2","5"
+"CADENA09","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA10","Cadena de ojo turco","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA11","Cadena de luna con estrella","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA12","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA13","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA14","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,3","6","0","0","12","2","5,4"
+"CADENA15","Cadena de ojo turco","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA16","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA17","Cadena de corazón ","ACCESORIOS","unidad","-1",0,"3,5","6","-6","-3,5","18","3","7,5"
+"CADENA18","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA19","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA20","Cadena de corazon","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA21","Cadena de cruz","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA22","Cadena de corazon","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA23","Cadena de mariposa","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"CADENA24","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA25","Cadena de corazón ","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","6","1","2,5"
+"CADENA26","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA27","Cadena de corazón","ACCESORIOS","unidad","0",0,"3,5","6","0","0",0,0,0
+"CADENA28","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA29","Cadena de corazón ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA30","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA31","Cadena de corazoncito","ACCESORIOS","unidad","0",0,"3,5","6","0","0","30","5","12,5"
+"CADENA32","Cadena de amuleto de cornetto o cuerno","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","18","3","7,5"
+"CADENA33","Cadena de carta ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA34","Cadena de flor","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA35","Cadena de dijes de cuadros","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA36","Cadena de dijes de circulos","ACCESORIOS","unidad","0",0,"3","6","0","0","30","5","15"
+"CADENA37","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"EARCUFF01","Earcuff","ACCESORIOS","unidad","-1",0,"2","5","-5","-2",0,0,0
+"EARCUFF02","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0",0,0,0
+"EARCUFF03","Earcuff","ACCESORIOS","unidad","-1",0,"3","5","-5","-3","5","1","2"
+"EARCUFF4","Earcuff","ACCESORIOS","unidad","0",0,"3","5","0","0",0,0,0
+"EARCUFF05","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0","25","5","15"
+"EARCUFF06","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0","20","4","12"
+"EARCUFF07","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0",0,0,0
+"EARCUFF08","Earcuff","ACCESORIOS","unidad","0",0,"3","5","0","0",0,0,0
+"EARCUFF09","Earcuff ","ACCESORIOS","unidad","-1",0,"2","5","-5","-2",0,0,0
+"EARCUFF10","Earcuff","ACCESORIOS","unidad","0",0,"3","5","0","0",0,0,0
+"EARCUFF11","Earcuff ","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"EARCUFF12","Earcuff","ACCESORIOS","unidad","0",0,"2,5","5","0","0","5","1","2,5"
+"EARCUFF13","Earcuff ","ACCESORIOS","unidad","0",0,"2","5","0","0","10","2","6"
+"EARCUFF14","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0","10","2","6"
+"EARCUFF15","Earcuff ","ACCESORIOS","unidad","0",0,"2","5","0","0",0,0,0
+"EARCUFF16","Earcuff","ACCESORIOS","unidad","4",0,"2","5","20","8",0,0,0
+"EARCUFF17","Earcuff","ACCESORIOS","unidad","4",0,"2","5","20","8",0,0,0
+"EARCUFF18","Earcuff","ACCESORIOS","unidad","6",0,"2","5","30","12",0,0,0
+"EARCUFF19","Earcuff","ACCESORIOS","unidad","2",0,"2","5","10","4","5","1","3"
+"EARCUFF20","Earcuff","ACCESORIOS","unidad","0",0,"2","5","0","0","20","4","12"
+"EARCUFF21","Earcuff","ACCESORIOS","unidad","0",0,"3","5","0","0",0,0,0
+"EARCUFF22","Earcuff","ACCESORIOS","unidad","3",0,"2","5","15","6","5","1","3"
+"ANILLO01","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO02","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO03","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO04","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO05","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO06","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO07","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO08","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ANILLO09","Anillo","ACCESORIOS","unidad","0",0,"2","4","0","0",0,0,0
+"ZARC04","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC05","Zarcillos","ACCESORIOS","unidad","0",0,"2","5","0","0",0,0,0
+"ZARC06","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC07","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC08","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","18","3","9"
+"ZARC09","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","6","0","0",0,0,0
+"ZARC10","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC11","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","6","0","0","6","1","3,5"
+"ZARC12","Zarcillos","ACCESORIOS","unidad","1",0,"3","6","6","3","6","1","3"
+"ZARC13","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","6","0","0","6","1","3,5"
+"ZARC14","Zarcillos","ACCESORIOS","unidad","-1",0,"2","6","-6","-2","18","3","12"
+"ZARC15","Zarcillos","ACCESORIOS","unidad","0",0,"2","6","0","0","12","2","8"
+"ZARC16","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC17","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC18","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"PULSERA01","Set de pulseras","ACCESORIOS","unidad","0",0,"4","7,5","0","0",0,0,0
+"PULSERA02","Pulsera","ACCESORIOS","unidad","0",0,"3","6","0","0","18","3","9"
+"PULSERA03","Set de pulseras","ACCESORIOS","unidad","-1",0,"3","6","-6","-3","36","6","18"
+"PULSERA04","Pulsera ajustable","ACCESORIOS","unidad","0",0,"3","6","0","0","36","6","18"
+"PULSERA05","Pulsera ajustable","ACCESORIOS","unidad","0",0,"3","6","0","0","30","5","15"
+"PULSERA06","Pulsera ajustable. Desliza para ver los colores","ACCESORIOS","unidad","0",0,"3","6","0","0","36","6","17,6"
+"PULSERA07","Pulsera ajustable","ACCESORIOS","unidad","0",0,"3","6","0","0","30","5","15"
+"PULSERA08","Pulsera ","ACCESORIOS","unidad","0",0,"3","6","0","0","36","6","18"
+"PULSERA09","Pulsera","ACCESORIOS","unidad","1",0,"3","6","6","3","30","5","15"
+"BODY04","Body","BODIES","unidad","1",0,"6","16","16","6","48","3","30"
+"BODY05","Body ","BODIES","unidad","2",0,"10","20","40","20","209","10","91"
+"BODY06","Body ","BODIES","unidad","3",0,"9,5","20","60","28,5","360","18","194,2"
+"BODY07","Body halter","BODIES","unidad","4",0,"7","17","68","28","34","2","20"
+"BODY08","Body manga larga","BODIES","unidad","3",0,"10","25","75","30","561","25","307,4"
+"BODY09","Body","BODIES","unidad","0",0,"10","22","0","0","101","5","55,56"
+"TOP09","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","10","10","6",0,0,0
+"TOP10","Blusa con broche","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10","22","44","20","292","15","155"
+"TOP11","Top straple ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8","19","57","24","95","5","53,76"
+"TOP12","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","322","16","173,72"
+"CORSET15","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","12",0,"16,5","25","300","198","875","35","323,1"
+"TOP14","Corset negro","BLUSAS/TOPS/CHALECOS","unidad","5",0,"17","27","135","85","286","15","159,38"
+"CORSET16","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","1",0,"15,3","25","25","15,3","250","10","97"
+"TOP13","Blusa manga larga tejida ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","25","0","0","353","17","172,6"
+"TOP15","Top","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","20","0","0","349","18","182,04"
+"TOP16","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6","18","0","0","349","19","215,51"
+"TOP17","Straple","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10,35","20","60","31,049","75","4","37,95"
+"BANDANA01","Bandana","ACCESORIOS","unidad","0",0,"4,68","6","0","0",0,0,0
+"BANDANA02","Bandana","ACCESORIOS","unidad","0",0,"4,29","8","0","0",0,0,0
+"BANDANA03","Bandana","ACCESORIOS","unidad","0",0,"4,57","8","0","0",0,0,0
+"BANDANA04","Bandana","ACCESORIOS","unidad","1",0,"4,57","8","8","4,57",0,0,0
+"BANDANA05","Bandana","ACCESORIOS","unidad","0",0,"4,66","8","0","0",0,0,0
+"BANDANA06","Bandana","ACCESORIOS","unidad","0",0,"4,38","6","0","0",0,0,0
+"BANDANA07","Bandana","ACCESORIOS","unidad","0",0,"4,57","6","0","0",0,0,0
+"BANDANA08","Bandana","ACCESORIOS","unidad","0",0,"4,57","6","0","0",0,0,0
+"TDB01","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"11,7","20","0","0","80","4","33,2"
+"TDB02","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"13","23","0","0","23","1","10"
+"TDB03","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"12,12","22","0","0","66","3","29,64"
+"TDB04","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"12,5","22","0","0","110","5","47,5"
+"TDB05","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"9,61","20","0","0","20","1","10,39"
+"TDB06","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","1",0,"9,41","20","20","9,41",0,0,0
+"TDB07","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"9","20","0","0","120","6","66"
+"TDB08","Traje de baño enterizo","TRAJES DE BAÑO","unidad","1",0,"9,41","22","22","9,41","22","1","12,59"
+"TDB09","Traje de baño ","TRAJES DE BAÑO","unidad","0",0,"10,12","20","0","0","220","11","108,68"
+"TDB10","Traje de baño 3 piezas","TRAJES DE BAÑO","unidad","0",0,"15","25","0","0","150","6","60"
+"TDB11","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","1",0,"11","20","20","11","60","3","27"
+"TDB12","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"9,5","22","0","0","144","7","77,5"
+"TDB13","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"13,13","24","0","0","24","1","10,87"
+"TOP18","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,2","17","0","0","68","4","39,2"
+"TOP19","Top espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","-1",0,"7","18","-18","-7","73","6","39,72"
+"ZARC19","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC20","Zarcillos","ACCESORIOS","unidad","1",0,"3","6","6","3","18","3","9"
+"BANDANA09","Bandana","ACCESORIOS","unidad","0",0,"4,19","8","0","0","8","1","3,81"
+"BANDANA10","Bandana","ACCESORIOS","unidad","0",0,"4,19","8","0","0",0,0,0
+"BANDANA11","Bandana","ACCESORIOS","unidad","0",0,"4,19","8","0","0",0,0,0
+"BANDANA12","Bandana","ACCESORIOS","unidad","0",0,"4,67","8","0","0",0,0,0
+"LENTES01","Lentes de sol","ACCESORIOS","unidad","0",0,"4,5","12","0","0","84","7","52,5"
+"LENTES02","Lentes de sol","ACCESORIOS","unidad","0",0,"4,2","12","0","0","132","11","85,8"
+"6931611300262","Rubor sheglam","MAQUILLAJE","unidad","0",0,"6","9","0","0",0,0,0
+"6931611300194","Rubor sheglam","MAQUILLAJE","unidad","0",0,"6","9","0","0",0,0,0
+"TOP20","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","202","11","114,36"
+"TOP21","Top espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6","17","0","0","51","3","33"
+"TOP22","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","25","0","0","67","3","35,58"
+"TOP23","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,3","17","17","6,3",0,0,0
+"TOP25","Top Straple","BLUSAS/TOPS/CHALECOS","unidad","7",0,"5,6","18","126","39,199","179","9","94,9"
+"TOP26","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","17","17","6",0,0,0
+"SHORT01","Short de cuerina ","SHORTS","unidad","0",0,"13,6","24","0","0","96","4","41,6"
+"VEST03","Vestido  ","VESTIDOS","unidad","-1",0,"17","30","-30","-17","313","11","138"
+"VEST04","Vestido ","VESTIDOS","unidad","0",0,"9,47","25","0","0","244","10","146,24"
+"VEST05","Vestido vinotinto","VESTIDOS","unidad","2",0,"12","25","50","24","249","9","105"
+"VEST06","Vestido marrón","VESTIDOS","unidad","5",0,"12","25","125","60","47","2","22"
+"BANDANA12","Bandana","ACCESORIOS","unidad","0",0,"4","8","0","0",0,0,0
+"LD04","Leggins deportivos c/u el precio indicado","ROPA DEPORTIVA","unidad","2",0,"6,5","18","36","13",0,0,0
+"7453128397478","Jeans bota campana","JEANS","unidad","0",0,"17","27","0","0","297","11","110"
+"VEST07","Vestido","VESTIDOS","unidad","1",0,"9","18","18","9","18","1","9"
+"VEST08","Vestido ","VESTIDOS","unidad","3",0,"9","18","54","27","36","2","18"
+"VEST09","Vestido largo","VESTIDOS","unidad","8",0,"12","25","200","96","229","10","109"
+"VEST10","Vestido","VESTIDOS","unidad","1",0,"12","25","25","12","25","1","13"
+"SET03","Set de chaleco y falda short de jeans","SETS","unidad","0",0,"13,5","37","0","0","693","19","423,5"
+"VEST11","Vestido manga larga","VESTIDOS","unidad","2",0,"14","27","54","28","162","6","81"
+"VEST12","Vestido manga larga","VESTIDOS","unidad","3",0,"16","27","81","48","243","9","98"
+"VEST13","Vestido largo","VESTIDOS","unidad","2",0,"10","25","50","20","25","1","15"
+"VEST14","Vestido vinotinto","VESTIDOS","unidad","1",0,"13","25","25","13","194","8","90"
+"VEST15","Vestido largo","VESTIDOS","unidad","0",0,"5,5","16","0","0","32","2","21"
+"BRAGA01","Enterizo","BRAGAS","unidad","9",0,"10,3","35","315","92,7","105","3","74,1"
+"VEST16","Vestido","VESTIDOS","unidad","1",0,"11","25","25","11","75","3","41"
+"VEST17","Vestido marrón ","VESTIDOS","unidad","3",0,"15","27","81","45","95,8","4","39,8"
+"VEST18","Vestido globo manga larga ","VESTIDOS","unidad","0",0,"17","30","0","0","180","6","78"
+"BRAGA02","Braga de jeans","BRAGAS","unidad","16",0,"17","35","560","272","291","9","110"
+"BRAGA03","Braga denim","BRAGAS","unidad","1",0,"13","35","35","13","105","3","66"
+"VEST19","Vestido denim","VESTIDOS","unidad","0",0,"12","24","0","0","72","3","36"
+"VEST20","Vestido ","VESTIDOS","unidad","1",0,"12","22","22","12",0,0,0
+"VEST21","Vestido manga larga marrón ","VESTIDOS","unidad","5",0,"9","27","135","45","159","6","81"
+"SET04","Set de chaleco y pantalon ","SETS","unidad","11",0,"13","37","407","143","860","24","562"
+"VEST22","Vestido manga larga","VESTIDOS","unidad","0",0,"8","27","0","0","128","5","87,77"
+"VEST23","Vestido","VESTIDOS","unidad","0",0,"19","29","0","0","136","5","52,84"
+"VEST24","Vestido","VESTIDOS","unidad","1",0,"10,5","22","22","10,5",0,0,0
+"VEST25","Vestido","VESTIDOS","unidad","1",0,"10,5","22","22","10,5",0,0,0
+"VEST26","Vestido","VESTIDOS","unidad","0",0,"20","32","0","0","236","8","94,5"
+"VEST27","Vestido","VESTIDOS","unidad","1",0,"10,5","25","25","10,5",0,0,0
+"VEST28","Vestido","VESTIDOS","unidad","0",0,"17","29","0","0","153","6","63"
+"VEST29","Vestido","VESTIDOS","unidad","3",0,"12","25","75","36",0,0,0
+"VEST30","Vestido","VESTIDOS","unidad","2",0,"12","25","50","24",0,0,0
+"VEST31","Vestido negro acanalado","VESTIDOS","unidad","2",0,"12","22","44","24","28","1",0
+"VEST32","Vestido manga larga","VESTIDOS","unidad","0",0,"13","27","0","0","241","9","125"
+"VEST33","Vestido","VESTIDOS","unidad","3",0,"13","22","66","39","44","2","18"
+"VEST34","Vestido","VESTIDOS","unidad","1",0,"14","22","22","14",0,0,0
+"VEST35","Vestido verde","VESTIDOS","unidad","2",0,"9","26","52","18","52","2","34"
+"SET05","Set de top y falda","SETS","unidad","0",0,"15","25","0","0",0,0,0
+"SET06","Set de top y falda","SETS","unidad","0",0,"12","25","0","0",0,0,0
+"VEST36","Vestido polo. Desliza para ver los colores disponibles ","VESTIDOS","unidad","1",0,"12","25","25","12","50","2","26"
+"VEST37","Vestido","VESTIDOS","unidad","5",0,"12","25","125","60","97","4","49"
+"LAZO07","Lazo coquette","ACCESORIOS","unidad","1",0,"2,5","4,5","4,5","2,5",0,0,0
+"LAZO08","Lazo coquette","ACCESORIOS","unidad","0",0,"2,5","4,5","0","0",0,0,0
+"CHAQUETA01","Chaqueta denim con brillantes ","CHAQUETAS","unidad","0",0,"15","28","0","0","56","2","26"
+"CHAQUETA02","Chaqueta Denim ","CHAQUETAS","unidad","7",0,"11,2","29","203","78,399","639","23","386,2"
+"CAM03","Camisa tipo cargo. Desliza para ver los tonos","CAMISAS","unidad","0",0,"18","25","0","0","25","1","7"
+"FALD03","Falda cargo","FALDAS","unidad","2",0,"15","25","50","30",0,0,0
+"FALD04","Falda cargo","FALDAS","unidad","3",0,"15","25","75","45",0,0,0
+"SHORT02","Short de vestir","SHORTS","unidad","0",0,"5","24","0","0","24","1","19"
+"SHORT03","Short de vestir ","SHORTS","unidad","2",0,"11","22","44","22",0,0,0
+"SHORT04","Short de vestir","SHORTS","unidad","0",0,"5","24","0","0","96","4","76"
+"SHORT05","Short de vestir","SHORTS","unidad","2",0,"12","24","48","24",0,0,0
+"SHORT06","Short de vestir ","SHORTS","unidad","1",0,"14","25","25","14","25","1","11"
+"FALD02","Falda cargo ","FALDAS","unidad","1",0,"17","25","25","17","75","3","24"
+"SHORT07","Short de cuerina con correa","SHORTS","unidad","2",0,"14","29","58","28","73","3","37"
+"SET07","Set de sweater y jogger","SETS","unidad","-1",0,"17,5","29","-29","-17,5","324","11","114"
+"SET08","Set de top y falda larga","SETS","unidad","2",0,"16","28","56","32","364","13","163"
+"SET09","Set de top y jogger ","SETS","unidad","1",0,"15","25","25","15",0,0,0
+"SET10","Set de top y falda larga","SETS","unidad","2",0,"18","28","56","36","56","2","20"
+"SET13","Set de top y pantalon ","SETS","unidad","2",0,"15,21","28","56","30,42","84","3","38,37"
+"LAZO09","Lazos c/u el precio indicado","ACCESORIOS","unidad","1",0,"2","4","4","2",0,0,0
+"TDB14","Traje de baño ","TRAJES DE BAÑO","unidad","0",0,"11","22","0","0","66","3","33"
+"TDB15","Traje de baño dos piezas ","TRAJES DE BAÑO","unidad","1",0,"9","25","25","9","75","3","45"
+"TDB16","Traje de baño ","TRAJES DE BAÑO","unidad","0",0,"12","22","0","0","66","3","30"
+"TDB18","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","2",0,"10","22","44","20","22","1","12"
+"TDB19","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","1",0,"11,8","22","22","11,8","88","4","40,8"
+"TDB20","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"10","20","0","0","20","1","10"
+"TDB21","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","2",0,"9,4","20","40","18,8","40","2","21,2"
+"TDB22","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"10","20","0","0","20","1","10"
+"TDB23","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","1",0,"10","20","20","10",0,0,0
+"TDB24","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","2",0,"11","22","44","22","66","3","33"
+"TDB25","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"13,21","23","0","0","23","1","9,79"
+"TDB26","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"12","22","0","0","110","5","50"
+"TDB27","Traje de baño ","TRAJES DE BAÑO","unidad","1",0,"10","20","20","10","80","4","40"
+"TDB28","Traje de baño dos piezas ","TRAJES DE BAÑO","unidad","0",0,"8","15","0","0","15","1","7"
+"TDB29","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","0",0,"10","22","0","0","110","5","60"
+"TDB30","Traje de baño 3 piezas ","TRAJES DE BAÑO","unidad","1",0,"13","25","25","13","116","5","57"
+"TDB31","Traje de baño dos piezas ","TRAJES DE BAÑO","unidad","2",0,"8","15","30","16",0,0,0
+"TDB32","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"8","20","0","0","20","1","12"
+"TDB33","Traje de baño dos piezas","TRAJES DE BAÑO","unidad","1",0,"10,5","20","20","10,5","80","4","38"
+"TDB34","Traje de baño enterizo","TRAJES DE BAÑO","unidad","2",0,"10","22","44","20","88","4","48"
+"TDB35","Traje de baño enterizo","TRAJES DE BAÑO","unidad","1",0,"10","20","20","10","15","1","5"
+"BANDOLERO01","Bandolero","CARTERAS/BANDOLEROS","unidad","3",0,"18","28","84","54","212","8","87"
+"BANDOLERO02","Bandolero con strap","CARTERAS/BANDOLEROS","unidad","0",0,"6","17","0","0","15","1","9"
+"BANDOLERO03","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"7,38","27","0","0","351","13","232,2"
+"BANDOLERO04","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"17","27","27","17","81","3","30"
+"CARTERA01","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"15","25","0","0",0,0,0
+"CARTERA02","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"7","22","0","0",0,0,0
+"CARTERA03","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"CARTERA04","Cartera grande ","CARTERAS/BANDOLEROS","unidad","3",0,"10,63","31","93","31,89","403","13","264,81"
+"BANDOLERO05","Monedero doble cierre con strap ","CARTERAS/BANDOLEROS","unidad","0",0,"4","12","0","0","10","1","6"
+"BANDOLERO06","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"15","27","0","0","108","4","48"
+"BANDOLERO07","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"7,4","27","0","0","351","13","232"
+"CARTERA05","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0","20","1","10"
+"BANDOLERO08","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"15","27","27","15","108","4","48"
+"BANDOLERO09","Bandolero con strap","CARTERAS/BANDOLEROS","unidad","0",0,"6","15","0","0","15","1","9"
+"CARTERA06","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"BANDOLERO10","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"7,3","28","0","0","555","20","370,5"
+"BANDOLERO11","Bandolero grande","CARTERAS/BANDOLEROS","unidad","0",0,"17,26","28","0","0","165","6","68,22"
+"BANDOLERO12","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"18","28","0","0","182","7","64,96"
+"BANDOLERO13","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"15","27","27","15","135","5","60"
+"CARTERA07","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"BANDOLERO14","Bandolero con strap","CARTERAS/BANDOLEROS","unidad","2",0,"6","17","34","12",0,0,0
+"BANDOLERO15","Bandolero","CARTERAS/BANDOLEROS","unidad","2",0,"16","27","54","32","81","3","49"
+"BANDOLERO16","Bandolero","CARTERAS/BANDOLEROS","unidad","3",0,"15","28","84","45","165","6","75"
+"BANDOLERO17","Bandolero con strap","CARTERAS/BANDOLEROS","unidad","0",0,"6","17","0","0","15","1","9"
+"TOP27","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","17","17","10",0,0,0
+"TOP28","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10","17","51","30","34","2","14"
+"TOP29","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,89","17","17","6,89",0,0,0
+"TOP30","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","18","18","8","162","9","99,48"
+"TOP31","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10,2","19","19","10,2","74,1","4","33,3"
+"TOP32","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9,24","19","19","9,24","36","2","18,76"
+"CORSET17","Corset","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","17","17","8","17","1","9"
+"BLUSA01","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,5","20","20","7,5","48","3","25,5"
+"TOP33","Top","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","20","40","18","345","18","191,82"
+"TOP34","Top espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","19","0","0","379","21","219,7"
+"TOP35","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"11","21","0","0","313","17","182,21"
+"CORSET18","Corset","BLUSAS/TOPS/CHALECOS","unidad","8",0,"8","25","200","64","150","6","102"
+"BLUSA02","Blusa de encaje","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7,38","18","36","14,76","161","9","82,62"
+"CHALECO01","Chaleco de vestir","BLUSAS/TOPS/CHALECOS","unidad","2",0,"15","25","50","30","125","5","50"
+"BODY10","Body negro","BODIES","unidad","2",0,"12","22","44","24","127","6","68,5"
+"TOP36","Top con tirantes brillantes ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7","16","32","14",0,0,0
+"TOP37","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","256","13","137,6"
+"CORSET19","Corset ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"9","19","57","27","38","2","20"
+"BLUSA03","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","20","1","10"
+"TOP38","Top strapless ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"7,3","17","102","43,8","164","10","92,2"
+"BLUSA04","Blusa tejida talla única ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","15","15","6","15","1","9"
+"TOP39","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"12","22","22","12","136","8","84,36"
+"TOP40","Top","BLUSAS/TOPS/CHALECOS","unidad","5",0,"5","15","75","25","15","1","10"
+"CHALECO02","Blazer estilo chaleco","BLUSAS/TOPS/CHALECOS","unidad","5",0,"12","25","125","60","25","1","13"
+"CORSET20","Corset","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","17","17","8","34","2","26"
+"TOP41","Top","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","21","0","0","120","6","57"
+"TOP42","Corset ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","25","25","8","470","20","299,68"
+"TOP43","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"11","22","0","0","330","16","170"
+"CAM04","Camisa","CAMISAS","unidad","0",0,"9,32","20","0","0","40","2","21,36"
+"CORSET21","Corset","BLUSAS/TOPS/CHALECOS","unidad","4",0,"13","25","100","52",0,0,0
+"TOP44","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"5","15","15","5",0,0,0
+"BLUSA05","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,3","18","18","7,3","71","4","44,1"
+"TOP45","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","20","0","0","114","6","68"
+"TOP46","Top ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6","18","72","24","177","9","89,1"
+"BLUSA06","Franela","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8","15","45","24","8","1",0
+"TOP47","Top estilo chaleco gris","BLUSAS/TOPS/CHALECOS","unidad","3",0,"15","25","75","45","636","28","287,16"
+"TOP48","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15","25","0","0","181","9","75,75"
+"CORSET22","Corset de encaje ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"16,5","25","50","33","275","11","93,5"
+"BODY11","Body","BODIES","unidad","8",0,"9,5","20","160","76","114","6","62"
+"CHALECO03","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","6",0,"8","26","156","48","275,5","11","191,5"
+"TOP49","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"11","19","19","11","95","5","39,5"
+"TOP50","Top","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","102","6","60"
+"TOP51","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","19","19","9","209","11","109,3"
+"CORSET23","Corset ","BLUSAS/TOPS/CHALECOS","unidad","5",0,"15,25","25","125","76,25","300","12","126,75"
+"BLUSA07","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","18","36","16","584","31","352,49"
+"TOP52","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","18","18","8","196","10","102,5"
+"TOP53","Top ","BLUSAS/TOPS/CHALECOS","unidad","7",0,"8","17","119","56","52","3","27,2"
+"BLUSA08","Blusa manga larga roja","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","24","0","0","80","4","36"
+"BLUSA09","Franela","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","8","0","0","16","2",0
+"TOP54","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","20","40","18","246","12","126,1"
+"TOP55","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","108","6","62"
+"BLAZER01","Blazer","CHAQUETAS","unidad","2",0,"12","22","44","24",0,0,0
+"TOP56","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"4","12","24","8",0,0,0
+"BLUSA10","Chemise","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8","18","54","24","34","3","10"
+"TOP57","Top","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","18","36","16","365","19","181,9"
+"TOP58","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","15","15","8",0,0,0
+"BLUSA11","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","-1",0,"5,5","17","-17","-5,5","119","7","80,5"
+"TOP59","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7","12","24","14",0,0,0
+"CORSET24","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","1",0,"16,5","25","25","16,5","150","6","51"
+"CORSET25","Corset de encaje ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"15,3","25","100","61,2","1.004","40","412,14"
+"TOP60","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","15","15","7",0,0,0
+"TOP61","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,1","18","0","0","279","16","168,58"
+"TOP62","Top espalda descubierta ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","20","20","9","225","12","127"
+"BLUSA12","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","17","17","6",0,0,0
+"BLUSA13","Blusa vino","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","351","18","214"
+"BLUSA14","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","15","15","7",0,0,0
+"TOP63","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","211","11","116"
+"7453072761387","Short de jeans","SHORTS","unidad","0",0,"13,5","25","0","0","194","8","91"
+"BODY12","Body","BODIES","unidad","2",0,"8","17","34","16","34","2","18"
+"7453116841846","Falda short Denim","FALDAS","unidad","0",0,"12","25","0","0",0,0,0
+"FALD14","Falda cargo denim","FALDAS","unidad","1",0,"17","27","27","17",0,0,0
+"BLUSA15","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","160","8","79"
+"TOP64","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","68","4","44"
+"TOP65","Top (3 colores disponibles)","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8,33","20","60","24,990","120","6","70,02"
+"TOP66","Blusa manga larga de malla","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","20","0","0","350","18","205,12"
+"CORSET26","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","25","0","0","125","5","47"
+"SWEATER03","Sweater","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","25","0","0",0,0,0
+"TOP67","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","18","18","6","53","3","33"
+"TOP68","Top de cuerina","BLUSAS/TOPS/CHALECOS","unidad","0",0,"13","25","0","0","222","11","129"
+"TOP69","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","17","17","10",0,0,0
+"TOP70","Corset","BLUSAS/TOPS/CHALECOS","unidad","6",0,"12","26","156","72","377","18","198,24"
+"TOP71","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","17","17","8",0,0,0
+"CORSET28","Corset","BLUSAS/TOPS/CHALECOS","unidad","2",0,"16,5","25","50","33","75","3","25,5"
+"8299BEIGE","Body ","BODIES","unidad","1",0,"8","19","19","8","75","4","43"
+"BLUSA16","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8,77","19","19","8,77","92","5","52,38"
+"CORSET29","Corset gris","BLUSAS/TOPS/CHALECOS","unidad","4",0,"20","29","116","80","70","3","22"
+"BODY14","Body","BODIES","unidad","3",0,"4","15","45","12",0,0,0
+"CORSET30","Corset","BLUSAS/TOPS/CHALECOS","unidad","11",0,"8","25","275","88","125","5","85"
+"CORSET31","Corset","BLUSAS/TOPS/CHALECOS","unidad","8",0,"8","25","200","64","250","10","155"
+"TOP72","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","17","34","16","192","11","104"
+"CORSET32","Corset","BLUSAS/TOPS/CHALECOS","unidad","1",0,"15","25","25","15","125","5","52,46"
+"BLUSA17","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","20","0","0","100","5","56"
+"TOP73","Top","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8,5","18","54","25,5","100","5","62,5"
+"TOP74","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6","18","0","0","177","10","109,1"
+"CORSET33","Corset","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15","25","0","0","325","13","130"
+"TOP75","Blusa straple ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"8","17","102","48","157","8","67,55"
+"TOP76","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,3","17","17","7,3","88","5","45,65"
+"TOP77","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","12","12","7",0,0,0
+"TOP78","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","18","18","8","55","3","29"
+"BLUSA18","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7","15","30","14",0,0,0
+"CHALECO04","Chaleco Denim","BLUSAS/TOPS/CHALECOS","unidad","1",0,"11","21","21","11",0,0,0
+"CORSET34","Corset","BLUSAS/TOPS/CHALECOS","unidad","1",0,"16","26","26","16","104","4","40"
+"TOP79","Top straple blanco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"13","25","25","13","460","23","263,12"
+"TOP80","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","15","15","6","10","1","4"
+"CHALECO05","Chaleco rojo","BLUSAS/TOPS/CHALECOS","unidad","10",0,"8","25","250","80","384","14","256"
+"TOP81","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","20","40","18","40","2","22"
+"TOP82","Top brillante talla única ajustable","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","19","0","0","19","1","9"
+"TOP83","Top Straple negro","BLUSAS/TOPS/CHALECOS","unidad","3",0,"15","25","75","45","383","17","226"
+"TOP84","Top manga larga ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"4,5","15","30","9",0,0,0
+"TOP85","Top con tirantes brillantes","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","15","15","6",0,0,0
+"TOP86","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","5",0,"5,25","16","80","26,25","32","2","21,5"
+"TOP87","Top ","BLUSAS/TOPS/CHALECOS","unidad","10",0,"6,75","17","170","67,5","89","5","50,75"
+"TOP88","Blusa asimetrica de encaje manga larga","BLUSAS/TOPS/CHALECOS","unidad","4",0,"9","20","80","36","395","20","209"
+"TOP89","Top de cuerina","BLUSAS/TOPS/CHALECOS","unidad","1",0,"5","15","15","5",0,0,0
+"TOP90","Top","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10","18","54","30","54","3","30,57"
+"CORSET36","Corset","BLUSAS/TOPS/CHALECOS","unidad","-1",0,"15","25","-25","-15","25","1","10"
+"TOP91","Corset vinotinto","BLUSAS/TOPS/CHALECOS","unidad","2",0,"17","27","54","34","382","18","192"
+"TOP92","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","140","7","70"
+"BLUSA19","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","296","14","152"
+"BLUSA20","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,38","18","0","0","90","5","53,1"
+"TOP93","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","12","12","6",0,0,0
+"CORSET37","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","3",0,"15,3","25","75","45,900","275","11","106,7"
+"CAM05","Camisa crop top","CAMISAS","unidad","1",0,"10","15","15","10",0,0,0
+"CAM06","Camisa ","CAMISAS","unidad","0",0,"8","17","0","0",0,0,0
+"TOP94","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"2,5","8","24","7,5","18","3","10,5"
+"CORSET38","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","5",0,"16,5","25","125","82,5","170","7","61"
+"TOP95","Top negro/marron/rojo ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7,22","17","51","21,66","68","4","38,34"
+"CHALECO06","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","5",0,"8","25","125","40","272,5","11","135,5"
+"BLUSA21","Blusa asimétrica ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,23","18","18","7,23","35","2","22,46"
+"BLUSA22","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,5","19","0","0","213","11","119,3"
+"CHALECO07","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","7",0,"12","25","175","84","54","3","35,79"
+"CORSET39","Corset de cuerina","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","28","0","0","418","16","196"
+"SET11","Set de camisa con top. Desliza para ver los colores","SETS","unidad","2",0,"8","17","34","16",0,0,0
+"CAM07","Camisa","CAMISAS","unidad","0",0,"10","25","0","0","50","2","30"
+"CAM08","Camisa","CAMISAS","unidad","0",0,"8","17","0","0",0,0,0
+"CAM09","Camisa","CAMISAS","unidad","1",0,"8","17","17","8",0,0,0
+"CAM10","Camisa crop top","CAMISAS","unidad","0",0,"8","17","0","0",0,0,0
+"CAM11","Camisa","CAMISAS","unidad","0",0,"10","25","0","0",0,0,0
+"CAM12","Camisa de vestir. Desliza para ver los colores  disponibles ","CAMISAS","unidad","1",0,"10,83","20","20","10,83","20","1","9,17"
+"CAM13","Camisa","CAMISAS","unidad","0",0,"7,7","25","0","0",0,0,0
+"CAM14","Camisa","CAMISAS","unidad","0",0,"8","18","0","0","18","1","10"
+"TOP96","Top","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7,25","17","34","14,5","27","2","12,5"
+"SWEATER01","Sweater ","SWEATERS","unidad","-1",0,"14","25","-25","-14","73","3","34"
+"BLUSA23","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7","18","36","14","188","10","105,4"
+"TOP97","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","5",0,"8","18","90","40",0,0,0
+"TD10","Chaleco denim","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","25","25","9","25","1","16"
+"TOP98","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","4",0,"7","18","72","28","41","3","14"
+"TOP99","Top ","BLUSAS/TOPS/CHALECOS","unidad","7",0,"6","18","126","42","265","15","141"
+"TOP100","Top tejido talla unica ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6","15","0","0",0,0,0
+"CHALECO08","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"14","26","26","14","136","5","59"
+"BLUSA24","Blusa satinada ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"3","6","12","6",0,0,0
+"CHALECO09","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"15","25","25","15","50","2","20"
+"BLUSA25","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","20","20","8","576","29","343,66"
+"TOP101","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","3",0,"5","17","51","15","289","17","164,4"
+"TOP102","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"3","8","16","6",0,0,0
+"BLUSA26","blusa manga larga vinotinto","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","240","12","112"
+"BLUSA27","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6,25","16","32","12,5","16","1","9,75"
+"TOP103","Top básico","BLUSAS/TOPS/CHALECOS","unidad","5",0,"3","8","40","15","15","3","6"
+"TOP104","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"3","8","24","9",0,0,0
+"TOP105","Top de brillos plateados","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","17","0","0","289","17","159"
+"BLUSA28","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,92","17","0","0","34","2","16,16"
+"SET12","Set de chaleco y pantalon ","SETS","unidad","0",0,"18","31","0","0","252","8","122"
+"SETD13","Set deportivo de top y leggins ","ROPA DEPORTIVA","unidad","13",0,"16,43","45","585","213,59","45","1","28,57"
+"FALD06","Falda","FALDAS","unidad","0",0,"13","25","0","0","140","6","74,8"
+"PANT21","Pantalón de vestir ","PANTS","unidad","0",0,"10","28","0","0","416","15","264"
+"SETD14","Set deportivo de top y short","ROPA DEPORTIVA","unidad","6",0,"14","35","210","84","280","8","168"
+"SETD15","Set deportivo de top manga larga y short","ROPA DEPORTIVA","unidad","5",0,"14","35","175","70","70","2","42"
+"SETD16","Set deportivo de top manga larga y short","ROPA DEPORTIVA","unidad","6",0,"14","35","210","84","169,75","5","99,75"
+"SETD17","Set deportivo de top y leggins","ROPA DEPORTIVA","unidad","1",0,"17,13","42","42","17,13","42","1","24,87"
+"SETD18","Set deportivo de top y leggins","ROPA DEPORTIVA","unidad","6",0,"16,43","45","270","98,58","315","7","199,99"
+"SETD19","Set deportivo","ROPA DEPORTIVA","unidad","0",0,"12","26","0","0","52","2","28"
+"SETD20","Set deportivo de top y leggins","ROPA DEPORTIVA","unidad","1",0,"12","22","22","12","54","2","20,3"
+"SETD21","Set deportivo top y leggins","ROPA DEPORTIVA","unidad","9",0,"15,08","42","378","135,72","203,7","5","128,3"
+"SETD22","Set deportivo de top y leggins","ROPA DEPORTIVA","unidad","11",0,"15,08","42","462","165,88","126","3","80,76"
+"EARCUFF23","Earcuff individuales ","ACCESORIOS","unidad","0",0,"1,4","5","0","0",0,0,0
+"TOP106","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","18","36","16","54","3","30"
+"FALD07","Falda","FALDAS","unidad","1",0,"12,25","22","22","12,25",0,0,0
+"TOP107","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","5",0,"5,6","17","85","28","339","20","221,8"
+"TOP108","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"6","20","60","18","40","2","28"
+"TOP109","Top de cuerina ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","25","0","0","318","15","157,2"
+"TOP110","Top de broche","BLUSAS/TOPS/CHALECOS","unidad","1",0,"12","22","22","12","316","15","148,8"
+"TOP111","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","18","18","6","230","13","144,93"
+"TOP112","Top Straple","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","22","22","8","242","11","154"
+"TOP113","Top brillante","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","16","16","7",0,0,0
+"BLUSA29","Blusa espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","229","12","119,7"
+"TOP114","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","18","18","10","58","3","32"
+"TOP115","Top straple ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"13","25","0","0","270","13","146,7"
+"TOP116","Top straple","BLUSAS/TOPS/CHALECOS","unidad","-2",0,"13","25","-50","-26","486","24","258,8"
+"TOP117","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","18","18","7","115","7","68"
+"TOP118","Malla (no trae el top) ","BLUSAS/TOPS/CHALECOS","unidad","5",0,"7","18","90","35","531,3","33","332,3"
+"TOP119","Top strapless","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","12","12","7","28","2","14,46"
+"TOP120","Blusa con broche","BLUSAS/TOPS/CHALECOS","unidad","4",0,"10","22","88","40","225","13","75,9"
+"BLUSA30","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,2","18","0","0","60","4","27,2"
+"BODY15","Body","BODIES","unidad","8",0,"7,75","18","144","62",0,0,0
+"TOP121","Top","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6,49","14","56","25,96",0,0,0
+"BODY16","Body halter","BODIES","unidad","6",0,"7","17","102","42","17","1","10"
+"BODY22","Body","BODIES","unidad","2",0,"6,25","18","36","12,5",0,0,0
+"CAM15","Camisa cargo","CAMISAS","unidad","0",0,"13,35","23","0","0",0,0,0
+"CAM16","Camisa","CAMISAS","unidad","0",0,"9","19","0","0",0,0,0
+"CAM17","Camisa","CAMISAS","unidad","1",0,"10","20","20","10",0,0,0
+"TOP122","Top","BLUSAS/TOPS/CHALECOS","unidad","4",0,"10","19","76","40","57","3","30"
+"TOP123","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,5","18","18","7,5","90","5","52,5"
+"TOP124","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"4","15","15","4","15","1","11"
+"TOP125","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","91","6","48"
+"FALD08","Falda short","FALDAS","unidad","0",0,"10","25","0","0","141","6","90,75"
+"7453105899285","Falda cargo","FALDAS","unidad","0",0,"12,5","25","0","0","25","1","12,5"
+"FALD09","Falda short azul","FALDAS","unidad","16",0,"10","25","400","160",0,0,0
+"FALD10","Short de cuerina ","FALDAS","unidad","0",0,"10,3","25","0","0","200","8","117,6"
+"FALD12","Falda short ","FALDAS","unidad","13",0,"7,5","25","325","97,5","375","15","260"
+"FALD15","Falda short","FALDAS","unidad","7",0,"8","25","175","56","175","7","119"
+"BLUSA31","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10","20","40","20","39","2","21"
+"TOP127","Top","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10","22","44","20","370","18","205"
+"BLUSA32","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8,41","20","20","8,41","252","13","135,45"
+"BLUSA33","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","17","17","7",0,0,0
+"GANCHO01","Ganchos para el cabello desliza para ver los colores","ACCESORIOS","unidad","0",0,"2","3","0","0",0,0,0
+"CORSET40","Corset ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15,25","25","0","0","275","11","114,75"
+"BLUSA34","Blusa espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","56","3","31"
+"CORSET41","Corset ","BLUSAS/TOPS/CHALECOS","unidad","9",0,"8,33","22","198","74,97","66","3","41,01"
+"BANDOLERO18","Bandolero grande","CARTERAS/BANDOLEROS","unidad","0",0,"17,26","28","0","0","164","6","69,48"
+"BANDOLERO19","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"7,3","28","0","0","612","22","420,6"
+"BANDOLERO20","Bandolero doble strap","CARTERAS/BANDOLEROS","unidad","0",0,"15","27","0","0","108","4","48"
+"BANDOLERO21","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"17","27","0","0","135","5","50"
+"BANDOLERO22","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"16","27","27","16","108","4","45"
+"BANDOLERO25","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"7,3","28","0","0","500","18","329,8"
+"BANDOLERO23","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"16","27","0","0","81","3","33"
+"BANDOLERO24","Bandolero grande ","CARTERAS/BANDOLEROS","unidad","1",0,"17,26","28","28","17,26","163","6","70,74"
+"BANDOLERO26","Bandolero ","CARTERAS/BANDOLEROS","unidad","2",0,"17,42","27","54","34,84","27","1","9,58"
+"BANDOLERO27","Bandolero","CARTERAS/BANDOLEROS","unidad","11",0,"18","28","308","198","495","18","302,49"
+"BANDOLERO28","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"10","20","0","0","175","7","80"
+"BANDOLERO29","Bandolero","CARTERAS/BANDOLEROS","unidad","2",0,"15","27","54","30","27","1","12"
+"BANDOLERO30","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"15","25","25","15","108","4","48"
+"BANDOLERO31","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"8","20","20","8","67","3","36"
+"BANDOLERO32","Bandolero","CARTERAS/BANDOLEROS","unidad","2",0,"17,3","25","50","34,6","496","18","304,94"
+"TDB36","Traje de baño","TRAJES DE BAÑO","unidad","0",0,"9,4","20","0","0","140","7","74,2"
+"TDB37","Traje de baño 3 piezas","TRAJES DE BAÑO","unidad","0",0,"12","25","0","0","150","6","78"
+"TDB38","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"11,1","22","0","0","110","5","54,5"
+"TDB39","Traje de baño","TRAJES DE BAÑO","unidad","1",0,"10","22","22","10","154","7","81"
+"TDB40","Traje de baño","TRAJES DE BAÑO","unidad","0",0,"9,5","20","0","0","20","1","10,5"
+"TDB41","Traje de baño","TRAJES DE BAÑO","unidad","1",0,"11,5","22","22","11,5","22","1","10,5"
+"TDB42","Traje de baño ","TRAJES DE BAÑO","unidad","1",0,"8","19","19","8",0,0,0
+"TDB43","Traje de baño","TRAJES DE BAÑO","unidad","2",0,"7,5","20","40","15","40","2","25"
+"TDB44","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"10","22","0","0","88","4","48"
+"CORSET42","Corset de encaje","BLUSAS/TOPS/CHALECOS","unidad","21",0,"7","25","525","147","200","8","116"
+"BODY18","Body","BODIES","unidad","2",0,"5,93","17","34","11,86","34","2","22,14"
+"BODY19","Body","BODIES","unidad","0",0,"12","25","0","0","229","11","122,5"
+"BODY20","Body ","BODIES","unidad","1",0,"11","25","25","11","289","14","166"
+"SWEATER02","Sweater","SWEATERS","unidad","0",0,"14,9","25","0","0",0,0,0
+"CAM18","Camisa ","CAMISAS","unidad","0",0,"10","25","0","0",0,0,0
+"SHORT08","Short de cuerina con cinturón ","SHORTS","unidad","1",0,"14","29","29","14","412","14","186"
+"SWEATER04","Sweater","SWEATERS","unidad","0",0,"16","26","0","0","121","5","50"
+"FALD16","Falda de cuerina beige","FALDAS","unidad","0",0,"8","24","0","0","48","2","32"
+"FALD17","Falda short","FALDAS","unidad","4",0,"8","25","100","32","275","11","167"
+"CORREA01","Correa","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"7453130353615","Jeans recto ","JEANS","unidad","7",0,"17","28","196","119","165","6","65"
+"VEST38","Vestido","VESTIDOS","unidad","-1",0,"12","30","-30","-12","236","8","140"
+"VEST39","Vestido","VESTIDOS","unidad","2",0,"13","22","44","26","22","1","9"
+"FALD18","Falda short","FALDAS","unidad","2",0,"13","25","50","26","36","2","20,2"
+"FALD19","Falda de brillos ","FALDAS","unidad","1",0,"18","30","30","18","162","6","65"
+"VEST40","Vestido salida de baño ","VESTIDOS","unidad","0",0,"10,5","16","0","0","16","1","5,5"
+"SET14","Set de sweater y pantalon ","SETS","unidad","1",0,"17,5","29","29","17,5","418","15","167"
+"VEST41","Vestido manga larga","VESTIDOS","unidad","1",0,"12","27","27","12","81","3","45"
+"SET15","Set de sweater y pantalon","SETS","unidad","2",0,"17,5","29","58","35","397","14","157,5"
+"SET16","Set chaleco y pantalón (desliza para verlo a detalle)","SETS","unidad","0",0,"23","37","0","0","282","8","105"
+"VEST43","Vestido Denim","VESTIDOS","unidad","0",0,"14","29","0","0","270","9","123"
+"VEST42","Vestido denim","VESTIDOS","unidad","0",0,"10","30","0","0","382","13","253,08"
+"VEST44","Vestido ","VESTIDOS","unidad","0",0,"17","30","0","0","312","12","155,58"
+"VEST45","Vestido Denim","VESTIDOS","unidad","0",0,"21","32","0","0","270","9","94"
+"VEST46","Vestido largo marrón","VESTIDOS","unidad","0",0,"17","29","0","0","131","5","54"
+"SET17","Set de sweater y pantalon ","SETS","unidad","0",0,"17,5","29","0","0","258","9","102"
+"SET17","Set de sweater y pantalon","SETS","unidad","0",0,"17,5","29","0","0","113","4","44,5"
+"SWEATER05","Sweater ","SWEATERS","unidad","0",0,"14","25","0","0","50","2","22"
+"SWEATER06","Sweater ","SWEATERS","unidad","0",0,"14","25","0","0","48","2","21"
+"SWEATER07","Sweater talla única","SWEATERS","unidad","5",0,"15","25","125","75","375","15","150"
+"SWEATER08","Sweater","SWEATERS","unidad","0",0,"12","25","0","0","254","10","119,5"
+"SWEATER09","Sweater ","SWEATERS","unidad","0",0,"14","25","0","0","75","3","33"
+"SWEATER10","Sweater","SWEATERS","unidad","0",0,"10","25","0","0",0,0,0
+"SWEATER11","Sweater","SWEATERS","unidad","0",0,"12","25","0","0","100","4","52"
+"SWEATER12","Sweater","SWEATERS","unidad","0",0,"10,5","20","0","0",0,0,0
+"SHORT09","Short de vestir","SHORTS","unidad","0",0,"14","24","0","0","96","4","40"
+"0081555966041","Compacto tono creamy natural","MAQUILLAJE","unidad","0",0,"3","6","0","0",0,0,0
+"0081555966027","Compacto tono Classic Ivory","MAQUILLAJE","unidad","0",0,"3","6","0","0",0,0,0
+"0081555966058","Compacto tono nude beige","MAQUILLAJE","unidad","0",0,"3","6","0","0",0,0,0
+"0081555966065","Compacto tono buff","MAQUILLAJE","unidad","-1",0,"3","6","-6","-3","12","2","6"
+"0081555966096","Compacto tono medium beige","MAQUILLAJE","unidad","1",0,"3","6","6","3","6","1","3"
+"0081555966089","Compacto tono soft honey ","MAQUILLAJE","unidad","0",0,"3","6","0","0","12","2","6"
+"0081555793753","Compacto natural beige","MAQUILLAJE","unidad","3",0,"3","6","18","9","12","2","6"
+"0081555793746","Compacto tono soft honey","MAQUILLAJE","unidad","3",0,"3","6","18","9","6","1","3"
+"0081555969394","Polvo suelto traslucido","MAQUILLAJE","unidad","4",0,"3,5","7","28","14","7","1","3,5"
+"0081555793524","Base tono natural","MAQUILLAJE","unidad","0",0,"3","8","0","0","8","1","5"
+"0081555793548","Base tono soft beige","MAQUILLAJE","unidad","2",0,"3","8","16","6","8","1","5"
+"0081555793579","Base tono golden beige","MAQUILLAJE","unidad","2",0,"3","8","16","6","8","1","5"
+"0081555793531","Base tono nude","MAQUILLAJE","unidad","3",0,"3","8","24","9",0,0,0
+"0081555966720","Base tono bisque","MAQUILLAJE","unidad","9",0,"3,5","9","81","31,5",0,0,0
+"0081555966768","Base tono light tan","MAQUILLAJE","unidad","6",0,"3,5","9","54","21",0,0,0
+"0081555966737","Base tono beige","MAQUILLAJE","unidad","1",0,"3,5","9","9","3,5","9","1","5,5"
+"0081555966751","Base tono medium beige ","MAQUILLAJE","unidad","4",0,"3,5","9","36","14","27","3","16,5"
+"0081555966744","Base tono natural","MAQUILLAJE","unidad","0",0,"3,5","9","0","0","18","2","11"
+"0081555969721","Corrector de ojeras tono natural","MAQUILLAJE","unidad","0",0,"3","5,5","0","0",0,0,0
+"0081555969738","Corrector de ojeras tono creamy beige","MAQUILLAJE","unidad","0",0,"3","5,5","0","0","22","4","10"
+"0081555969837","Corrector de ojeras tono fawn ","MAQUILLAJE","unidad","4",0,"3","5,5","22","12",0,0,0
+"0081555969943","Corrector de ojeras tono peach","MAQUILLAJE","unidad","2",0,"3","5,5","11","6",0,0,0
+"0081555969806","Corrector de ojeras tono cool tan","MAQUILLAJE","unidad","0",0,"3","5,5","0","0",0,0,0
+"0081555774615","Labial ","MAQUILLAJE","unidad","0",0,"1,5","3","0","0","6","2","3"
+"0081555774721","Labial tono uva ","MAQUILLAJE","unidad","1",0,"1,5","3","3","1,5","6","2","3"
+"0081555774639","Labial","MAQUILLAJE","unidad","0",0,"1,5","3","0","0",0,0,0
+"0081555969905","Corrector de ojeras tono naranja","MAQUILLAJE","unidad","0",0,"3","5,5","0","0",0,0,0
+"0081555969493","Primer (preparador de piel)","MAQUILLAJE","unidad","0",0,"3,5","6","0","0","12","2","5"
+"0731509807011","Gloss (brillo para labios)","MAQUILLAJE","unidad","11",0,"1","2,5","27,5","11","7,5","3","4,5"
+"0081555751357","Paleta de sombras nude","MAQUILLAJE","unidad","3",0,"2,5","6","18","7,5","6","1","3,5"
+"0081555353513","Lápiz delineador negro","MAQUILLAJE","unidad","0",0,"2","4","0","0","4","1","2"
+"SWEATER13","Sweater","SWEATERS","unidad","0",0,"12,56","25","0","0","75","3","37,32"
+"SWEATER14","Sweater","SWEATERS","unidad","0",0,"14","25","0","0","117","5","59"
+"SWEATER15","Sweater","SWEATERS","unidad","2",0,"10","25","50","20","50","2","30"
+"SWEATER16","Sweater","SWEATERS","unidad","0",0,"14","25","0","0","117","5","51"
+"SWEATER17","Sweater","SWEATERS","unidad","0",0,"15","25","0","0","100","4","40"
+"7453105892385","Jeans cargo plateado","JEANS","unidad","3",0,"18","27","81","54",0,0,0
+"7453128397744","Jeans palazzo","JEANS","unidad","0",0,"20","30","0","0","990","33","330"
+"7453072763725","Jeans bota ancha","JEANS","unidad","0",0,"16,7","26","0","0","26","1","9,3"
+"7450113441543","Jeans bota ancha","JEANS","unidad","4",0,"11,5","26","104","46","182","7","101,5"
+"7450214029237","Short de jeans","SHORTS","unidad","0",0,"11","21","0","0","63","3","30"
+"7453072775476","Falda short ","FALDAS","unidad","0",0,"14","25","0","0","450","18","198"
+"7453119116255","Jeans ancho","JEANS","unidad","2",0,"15,6","28","56","31,2","392","14","173,6"
+"7450113422740","Jeans bota ancha","JEANS","unidad","0",0,"17","27","0","0","74","3","23"
+"9743ROSA","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17","27","1","10"
+"7453120358842","Jeans cargo","JEANS","unidad","5",0,"20,66","31","155","103,3","310","10","103,4"
+"7450113470307","Jeans bota campana ","JEANS","unidad","0",0,"15,11","27","0","0","162","6","69,45"
+"7450194167400","Jeans mom","JEANS","unidad","3",0,"13,5","26","78","40,5","26","1","12,5"
+"7450113445398","Jeans cargo","JEANS","unidad","0",0,"16,67","28","0","0","28","1","11,33"
+"0718819009830","Jeans cargo","JEANS","unidad","2",0,"18,33","28","56","36,66",0,0,0
+"7453121528275","Jeans bota ancha","JEANS","unidad","2",0,"17,17","27","54","34,34","27","1","9,83"
+"7450214130605","Jeans ancho","JEANS","unidad","1",0,"16","28","28","16","326","12","134"
+"7453119116262","Jeans ancho","JEANS","unidad","3",0,"15,6","28","84","46,8","252","9","111,6"
+"7450102947766","Falda short cargo","FALDAS","unidad","1",0,"12,17","25","25","12,17","75","3","38,49"
+"7450102949135","Short de jeans","SHORTS","unidad","8",0,"10,34","20","160","82,72","118","6","55,96"
+"7450102947759","Falda cargo","FALDAS","unidad","0",0,"10,84","25","0","0","25","1","14,16"
+"7450102949777","Short de jeans","SHORTS","unidad","1",0,"10,34","20","20","10,34","60","3","28,98"
+"7450102947742","Falda cargo","FALDAS","unidad","2",0,"11","25","50","22","25","1","14"
+"FALD20","Falda short","FALDAS","unidad","1",0,"7,6","25","25","7,6","100","4","69,6"
+"FALD21","Falda de lentejuelas","FALDAS","unidad","8",0,"8","28","224","64","523","19","317"
+"FALD25","Falda (la cadena es opcional)","FALDAS","unidad","1",0,"12,5","24","24","12,5",0,0,0
+"FALD23","Falda (la cadena es opcional)","FALDAS","unidad","1",0,"12,5","24","24","12,5",0,0,0
+"FALD24","Falda de cuerina","FALDAS","unidad","0",0,"16","30","0","0","225","8","107,5"
+"0722787066559","Short cargo","SHORTS","unidad","-1",0,"10","22","-22","-10","22","1","12"
+"0722787056475","Jeans skinny","JEANS","unidad","1",0,"16,7","25","25","16,7","25","1","8,3"
+"0722787065699","Short de jeans tipo cargo","SHORTS","unidad","0",0,"12","22","0","0","22","1","10"
+"CADENA38","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA39","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0",0,0,0
+"CADENA40","Cadena","ACCESORIOS","unidad","-1",0,"3,5","6","-6","-3,5","18","3","7,5"
+"CADENA41","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA42","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA43","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","6","1","2,5"
+"CADENA44","Cadena","ACCESORIOS","unidad","0",0,"7","12","0","0","36","3","15"
+"CADENA45","Cadena","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","12","2","5"
+"CADENA46","Cadena","ACCESORIOS","unidad","-2",0,"3,5","6","-12","-7","30","5","12,5"
+"CADENA47","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA48","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA49","Cadena","ACCESORIOS","unidad","0",0,"5,4","10","0","0","56","6","25,5"
+"CADENA50","Cadena","ACCESORIOS","unidad","0",0,"3,3","6","0","0",0,0,0
+"CADENA51","Cadena","ACCESORIOS","unidad","-1",0,"3,5","6","-6","-3,5","12","2","5"
+"CADENA52","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA53","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA54","Cadena ","ACCESORIOS","unidad","0",0,"4","8","0","0","16","2","8"
+"CADENA55","Cadena","ACCESORIOS","unidad","0",0,"7","12","0","0","42","4","17,5"
+"PULSERA10","Pulsera ajustable ","ACCESORIOS","unidad","0",0,"3","6","0","0","30","5","15"
+"7450113455243","Jeans bota ancha","JEANS","unidad","0",0,"17","28","0","0","28","1","11"
+"7453121527759","Jeans bota ancha","JEANS","unidad","0",0,"15,83","26","0","0","78","3","30,51"
+"7453084913200","Jeans skinny","JEANS","unidad","4",0,"16,6","25","100","66,4","125","5","42"
+"7453121542769","Jeans skinny","JEANS","unidad","1",0,"16,6","25","25","16,6",0,0,0
+"7453103325779","Jeans cargo","JEANS","unidad","2",0,"18,34","28","56","36,68",0,0,0
+"7453105878938","Jeans mom ","JEANS","unidad","1",0,"16","26","26","16","25","1","8,6"
+"7453084912982","Jeans skinny","JEANS","unidad","3",0,"15","25","75","45","25","1","10"
+"0722787124891","Jeans bota ancha","PANTS","unidad","2",0,"16","27","54","32","353","13","142"
+"SWEATER18","Sweater","SWEATERS","unidad","0",0,"14","25","0","0","45","2","19"
+"SWEATER19","Sweater","","unidad","2",0,"14","25","50","28","25","1","11"
+"SWEATER20","Sweater","SWEATERS","unidad","0",0,"13","23","0","0","69","3","30"
+"SWEATER21","Sweater","SWEATERS","unidad","0",0,"12","22","0","0",0,0,0
+"SWEATER22","Sweater","SWEATERS","unidad","0",0,"13","25","0","0","250","10","126"
+"SWEATER23","Sueter tejido","SWEATERS","unidad","0",0,"18","28","0","0","212","8","100"
+"SWEATER24","Sweater talla única (es largo)","SWEATERS","unidad","8",0,"15","25","200","120","150","6","60"
+"0077802118998","Corrector de ojeras wet n wild tono light beige","MAQUILLAJE","unidad","0",0,"6,57","8","0","0",0,0,0
+"0609332848252","Corrector de ojeras tono light peach","MAQUILLAJE","unidad","0",0,"8,5","10","0","0",0,0,0
+"0609332848269","Corrector de ojeras tono light beige","MAQUILLAJE","unidad","0",0,"8,5","10","0","0",0,0,0
+"0609332848221","Corrector de ojeras tono Fair beige ","MAQUILLAJE","unidad","0",0,"8,5","10","0","0",0,0,0
+"4059729382412","Tinta de labios y mejillas  ","MAQUILLAJE","unidad","0",0,"6,5","9","0","0",0,0,0
+"0077802115577","Blush tono pinch me pink","MAQUILLAJE","unidad","0",0,"5,5","7","0","0",0,0,0
+"0077802349712","Iluminador tono blossom glow ","MAQUILLAJE","unidad","1",0,"6,5","8","8","6,5",0,0,0
+"3616304543876","Polvo suelto tono traslúcido ","MAQUILLAJE","unidad","0",0,"8","12","0","0",0,0,0
+"4250587735543","Polvo compacto traslúcido","MAQUILLAJE","unidad","0",0,"5,5","8","0","0","16","2","5"
+"0052336341456","Gel fijador","MAQUILLAJE","unidad","0",0,"4,4","6,5","0","0",0,0,0
+"4250587739084","Máscara de pestañas","MAQUILLAJE","unidad","0",0,"5,5","10","0","0",0,0,0
+"0077802536532","Base tono soft beige","MAQUILLAJE","unidad","0",0,"6,5","10","0","0",0,0,0
+"0077802536136","Base tono ivory ","MAQUILLAJE","unidad","0",0,"6,5","10","0","0","10","1","3,5"
+"0077802536037","Base tono porcelana","MAQUILLAJE","unidad","0",0,"6,5","10","0","0",0,0,0
+"0077802536631","Base tono buff beige","MAQUILLAJE","unidad","0",0,"6,5","10","0","0","20","2","7"
+"0077802536839","Base tono golden beige","MAQUILLAJE","unidad","0",0,"6,5","10","0","0",0,0,0
+"4059729207241","Máscara de pestañas ","MAQUILLAJE","unidad","0",0,"6","10","0","0",0,0,0
+"4250947516027","Máscara de pestañas","MAQUILLAJE","unidad","0",0,"6","10","0","0",0,0,0
+"94474842","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10,5","18","36","21",0,0,0
+"94538018","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"10,5","18","72","42",0,0,0
+"94627142","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10,5","18","18","10,5",0,0,0
+"94711534","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10,5","18","0","0",0,0,0
+"94708509","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10,5","18","36","21",0,0,0
+"94634386","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10,5","18","18","10,5","18","1","7,5"
+"94331855","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10,5","18","54","31,5",0,0,0
+"94537585","Franela aeropostal original ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10,5","18","0","0",0,0,0
+"LENTES03","Lentes de sol","ACCESORIOS","unidad","0",0,"3,4","12","0","0","60","5","43"
+"LENTES04","Lentes de sol","ACCESORIOS","unidad","0",0,"4,5","12","0","0","84","7","52,5"
+"LENTES05","Lentes de sol","ACCESORIOS","unidad","0",0,"3,4","12","0","0","72","6","51,6"
+"0667558218808","Splash in the stars","ACCESORIOS","unidad","0",0,"7","12","0","0",0,0,0
+"Splash01","Splash ","ACCESORIOS","unidad","0",0,"7","12","0","0","60","5","25"
+"90250BLACK","Mom jeans ","JEANS","unidad","9",0,"14","26","234","126","26","1","12"
+"7450113481334","Jeans bota ancha","JEANS","unidad","0",0,"16,3","29","0","0","490","17","215,2"
+"0718819033668","Jeans skinny","JEANS","unidad","7",0,"13,4","25","175","93,8","250","10","121,4"
+"90250LIGHT","Mom jeans","JEANS","unidad","5",0,"14","26","130","70","26","1","12"
+"90255LIGHT","Mom jeans","JEANS","unidad","3",0,"14","26","78","42",0,0,0
+"4785SEBUSCA","Short de jeans","JEANS","unidad","0",0,"9,74","25","0","0","227","9","130,82"
+"90271LIGHT","Mom jeans","JEANS","unidad","3",0,"14","26","78","42","26","1","12"
+"90306DARK","Short de jeans","SHORTS","unidad","0",0,"10,66","21","0","0","21","1","10,34"
+"90276LIGHT","Short de jeans","SHORTS","unidad","1",0,"10,66","21","21","10,66","63","3","31,02"
+"90276MEDIUM","Short de jeans","SHORTS","unidad","1",0,"10,66","21","21","10,66","126","6","62,04"
+"90306LIGHT","Short de jeans","SHORTS","unidad","0",0,"10,66","21","0","0","21","1","10,34"
+"7453115129464","Chaqueta de jeans","CHAQUETAS","unidad","2",0,"15,83","25","50","31,66","200","8","73,36"
+"CHAQUETA03","Chaqueta de jeans","CHAQUETAS","unidad","0",0,"15,6","30","0","0","240","8","115,2"
+"7410FN","Chaqueta de jeans","CHAQUETAS","unidad","0",0,"13","25","0","0","75","3","36"
+"5080FOREVER","Jeans bota ancha","JEANS","unidad","0",0,"25","34","0","0","585","18","209,18"
+"715NEGRO","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7","17","51","21",0,0,0
+"715BEIGE","Top básico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","51","3","30"
+"397BEIGE","Top básico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","18","0","0","108","6","48"
+"0011NEGRO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","12",0,"4,5","18","216","54","424","24","280,72"
+"2033BLANCO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9,95","20","0","0",0,0,0
+"1415NEGRO","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"4,15","17","17","4,15","34","2","25,7"
+"1256BLANCO","Body","BODIES","unidad","0",0,"15,5","25","0","0","1.073","46","397,84"
+"1071NEGRO","Top basico","BLUSAS/TOPS/CHALECOS","unidad","2",0,"4,15","17","34","8,3","17","1","12,85"
+"1055BLANCO","Top básico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","18","0","0","54","3","27"
+"1055NEGRO","Top basico","BLUSAS/TOPS/CHALECOS","unidad","9",0,"9","18","162","81","72","4","36"
+"1055AZUL","Top basico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","17","0","0","17","1","9"
+"1057NEGRO","Top basico","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7","17","51","21","34","2","20"
+"1526BLANCO","Body","BODIES","unidad","6",0,"13","25","150","78","211","9","104"
+"1054FUCSIA","Body","BODIES","unidad","2",0,"8","18","36","16","18","1","10"
+"1095MARRON","Body","BODIES","unidad","4",0,"11","22","88","44","94","5","51"
+"A40BLANCO","Top manga larga cuello tortuga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,74","19","0","0","209","11","112,86"
+"A40CELESTE","Top manga larga cuello tortuga","BLUSAS/TOPS/CHALECOS","unidad","10",0,"8","19","190","80","133","7","71,82"
+"A40NEGRO","Top manga larga cuello tortuga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,75","19","0","0","342","18","184,5"
+"9008GUAYABA","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","85","5","50"
+"2033ROSADO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","19","0","0","19","1","10"
+"715VERDE","Top basico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","51","3","30"
+"A40LILA","Top manga larga cuello tortuga","BLUSAS/TOPS/CHALECOS","unidad","10",0,"8","19","190","80",0,0,0
+"2006FN","Chaqueta de jeans ","CHAQUETAS","unidad","0",0,"18","28","0","0","165","6","59,16"
+"7453115129563","Chaqueta de jeans","CHAQUETAS","unidad","4",0,"15","25","100","60","150","6","60"
+"SETDENIM01","Set de jeans","CHAQUETAS","unidad","1",0,"18,33","26","26","18,33","26","1","7,67"
+"1063NEGRO","Body","BODIES","unidad","6",0,"11","25","150","66","328","16","188"
+"1256ROJO","Body manga larga","BODIES","unidad","2",0,"15","25","50","30","610","27","281,12"
+"1265ROJO","Body ","BODIES","unidad","2",0,"12,75","23","46","25,5","599","28","307,13"
+"956NEGRO","Jumpsuit talla unica ","BRAGAS","unidad","0",0,"8,5","22","0","0",0,0,0
+"7010NEGRO","Jumpsuit talla unica","BRAGAS","unidad","0",0,"11","25","0","0",0,0,0
+"1433NEGRO","Top talla unica","BLUSAS/TOPS/CHALECOS","unidad","4",0,"8,5","17","68","34",0,0,0
+"VEST47","Vestido asimetrico vinotinto","VESTIDOS","unidad","0",0,"10","27","0","0","304","12","188,52"
+"SHORTDENIM01","Short de jeans","SHORTS","unidad","3",0,"9,5","20","60","28,5","120","6","63"
+"7450113443288","Top denim tipo corset","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","21","21","10","21","1","11"
+"TOPDEPORTIVO01","Top deportivo","ROPA DEPORTIVA","unidad","5",0,"5","10","50","25","40","4","20"
+"TOPDEPORTIVO02","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5","10","0","0",0,0,0
+"FALDADEPORTIVA01","Falda short deportiva","ROPA DEPORTIVA","unidad","0",0,"5","10","0","0",0,0,0
+"TOPDEPORTIVO03","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","10","1","4,5"
+"FALDADEPORTIVA02","Falda short deportiva","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"TOPDEPORTIVO04","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","20","2","9"
+"TOPDEPORTIVO05","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","20","2","9"
+"TOPDEPORTIVO06","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"TOPDEPORTIVO07","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"TOPDEPORTIVO08","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"TOPDEPORTIVO09","Top deportivo c/u","ROPA DEPORTIVA","unidad","1",0,"7","12","12","7","24","2","10"
+"TOPDEPORTIVO10","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"TOPDEPORTIVO11","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","10","1","4,5"
+"TOPDEPORTIVO12","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","10","1","4,5"
+"TOPDEPORTIVO13","Top deportivo","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"FALDADEPORTIVA03","Falda short deportiva","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"FALDADEPORTIVA04","Falda short deportiva","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0","10","1","4,5"
+"0718819006143","Jeans bota ancha ","JEANS","unidad","3",0,"17","26","78","51","72,8","3","21,8"
+"0427NEGRO","Body halter","BODIES","unidad","1",0,"8","18","18","8","18","1","10"
+"VEST48","Vestido ","VESTIDOS","unidad","4",0,"14","25","100","56","116","5","60,5"
+"CAM19","Camisa","CAMISAS","unidad","0",0,"7","18","0","0","108","6","66"
+"CAM20","Camisa de seda","CAMISAS","unidad","0",0,"7","18","0","0",0,0,0
+"SHORTDENIM02","Short denim","SHORTS","unidad","0",0,"9","22","0","0","44","2","26"
+"VEST49","Vestido","VESTIDOS","unidad","0",0,"18","30","0","0","200","8","106"
+"CAM21","Camisa","CAMISAS","unidad","0",0,"12,28","25","0","0","25","1","12,72"
+"CAM22","Camisa con bolsillos cargo","CAMISAS","unidad","0",0,"11,02","25","0","0","25","1","13,98"
+"BODY23","Body manga larga","BODIES","unidad","0",0,"7,09","18","0","0","72","4","43,64"
+"ENTERIZODEPORTIVO01","Enterizo deportivo","ROPA DEPORTIVA","unidad","0",0,"10,18","25","0","0","225","9","133,38"
+"MEDIAS03","Medias ","ACCESORIOS","unidad","0",0,"2,67","5","0","0","10","2","4,66"
+"ZARC21","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","5","1","2,5"
+"ZARC22","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC23","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC24","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC25","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC26","Zarcillos","ACCESORIOS","unidad","0",0,"3","5","0","0","5","1","2"
+"ZARC27","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC28","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","5","1","2,5"
+"ZARC29","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","10","2","5"
+"ZARC30","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","5","1","2,5"
+"ZARC31","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC32","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","12","2","6"
+"ZARC33","Zarcillos","ACCESORIOS","unidad","1",0,"6","6","6","6","6","1",0
+"ZARC34","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC35","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC36","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC37","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","18","3","9"
+"ZARC38","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC39","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC40","Zarcillos","ACCESORIOS","unidad","1",0,"2,5","5","5","2,5","15","3","7,5"
+"ZARC41","Zarcillos","ACCESORIOS","unidad","1",0,"3","6","6","3","6","1","3"
+"ZARC42","Zarcillos","ACCESORIOS","unidad","3",0,"3","6","18","9",0,0,0
+"ZARC43","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC44","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC45","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC46","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","5","1","2,5"
+"ZARC47","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC48","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC49","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC50","Zarcillos","ACCESORIOS","unidad","-2",0,"2,5","5","-10","-5","10","2","5"
+"ZARC51","Zarcillos","ACCESORIOS","unidad","2",0,"2,5","5","10","5","5","1","2,5"
+"ZARC52","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0","10","2","5"
+"ZARC53","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC54","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"ZARC55","Zarcillos","ACCESORIOS","unidad","1",0,"2,5","5","5","2,5","5","1","2,5"
+"ZARC56","Zarcillos gotas","ACCESORIOS","unidad","0",0,"3","6","0","0","6","1","3"
+"ZARC57","Zarcillos","ACCESORIOS","unidad","0",0,"3","6","0","0",0,0,0
+"ZARC58","Zarcillos","ACCESORIOS","unidad","0",0,"2,5","5","0","0",0,0,0
+"SETDECADENA01","Set de cadena y zarcillos","ACCESORIOS","unidad","0",0,"3","7","0","0",0,0,0
+"SETDECADENA02","Set de cadena y zarcillos","ACCESORIOS","unidad","0",0,"3","7","0","0",0,0,0
+"SETDECADENA03","Set de cadena y zarcillos","ACCESORIOS","unidad","0",0,"3","7","0","0",0,0,0
+"ZARC59","Zarcillos","ACCESORIOS","unidad","1",0,"3","6","6","3","12","2","6"
+"Jeanslineasblancas","Jeans bota recta","JEANS","unidad","4",0,"18","28","112","72",0,0,0
+"0424FN","Jeans ancho","JEANS","unidad","7",0,"18","30","210","126","140","5","52"
+"7453128367303","Jeans bota ancha","JEANS","unidad","0",0,"19,25","29","0","0","625,2","23","222,95"
+"0718819006150","Jeans bota ancha","JEANS","unidad","8",0,"17","26","208","136","52","2","18"
+"CARTERA08","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"CARTERA09","Cartera grande","CARTERAS/BANDOLEROS","unidad","3",0,"10,63","31","93","31,89","217","7","142,59"
+"CARTERA10","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"CARTERA11","Cartera con strap","CARTERAS/BANDOLEROS","unidad","0",0,"10","25","0","0",0,0,0
+"FALDADEPORTIVA05","Falda deportiva","ROPA DEPORTIVA","unidad","3",0,"5,5","10","30","16,5","20","2","9"
+"FALDADEPORTIVA06","Falda deportiva","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"FALDADEPORTIVA07","Falda deportiva","ROPA DEPORTIVA","unidad","2",0,"5,5","10","20","11",0,0,0
+"FALDADEPORTIVA08","Falda short deportiva","ROPA DEPORTIVA","unidad","0",0,"5,5","10","0","0",0,0,0
+"SHORTDENIM03","Short de jeans ","SHORTS","unidad","0",0,"9","22","0","0","22","1","13"
+"BODY24","Body manga larga","BODIES","unidad","3",0,"11","20","60","33","186","10","105,12"
+"VEST50","Vestido largo","VESTIDOS","unidad","2",0,"18","28","56","36","88","4","48,85"
+"VEST51","Vestido largo","VESTIDOS","unidad","5",0,"17","28","140","85","28","1","11"
+"VEST52","Vestido manga larga","VESTIDOS","unidad","1",0,"12","27","27","12","325","13","183,1"
+"7450113442298","Short denim pretina blanca ","SHORTS","unidad","2",0,"12","24","48","24",0,0,0
+"0718819001209","Falda cargo. Desliza para ver los colores ","FALDAS","unidad","4",0,"11,7","25","100","46,8","25","1","13,3"
+"7453123535523","Short denim. Desliza para ver los colores","SHORTS","unidad","6",0,"10,5","22","132","63","88","4","46"
+"7453123516621","Short de jeans","SHORTS","unidad","4",0,"9,85","22","88","39,4","44","2","24,3"
+"7453116840603","Falda short","FALDAS","unidad","0",0,"11,67","25","0","0","25","1","13,33"
+"7453116841761","Falda short","FALDAS","unidad","1",0,"11,67","25","25","11,67","50","2","26,66"
+"1313MARRON","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9,5","20","20","9,5","54","3","27,06"
+"4244MARRON","Blusa tejida","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","300","15","156"
+"BLUSAMARRON","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"17","25","0","0","75","3","24"
+"7453084913552","Chaqueta de jeans","CHAQUETAS","unidad","0",0,"17,5","28","0","0","243","9","106,5"
+"7450102945724","Chaqueta de jeans","CHAQUETAS","unidad","0",0,"10,34","25","0","0","100","4","58,64"
+"1769NEGRA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","1",0,"5","15","15","5","30","2","20"
+"1745BLANCA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"5","15","0","0","15","1","10"
+"1769BLANCA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"5","15","30","10","45","3","30"
+"1745NEGRA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"5","15","0","0","60","4","40"
+"7450102948374","Short de jeans ","SHORTS","unidad","2",0,"8,5","21","42","17","168","8","100"
+"7450102948336","Short de jeans","SHORTS","unidad","1",0,"8,5","21","21","8,5","126","6","75"
+"7450102948831","Short de jeans","SHORTS","unidad","4",0,"8,5","21","84","34","147","7","87,5"
+"7450102948930","Short de jeans","SHORTS","unidad","1",0,"8,5","21","21","8,5","144,9","7","85,4"
+"7450102948350","Short de jeans ","SHORTS","unidad","0",0,"8,5","21","0","0","21","1","12,5"
+"7450102950179","Jeans bota ancha ","JEANS","unidad","0",0,"11","26","0","0","52","2","30"
+"0718819017491","Jeans bota ancha","JEANS","unidad","2",0,"14,2","27","54","28,4","512","18","218,7"
+"0718874316287","Jeans bota ancha con correa ","JEANS","unidad","0",0,"18","28","0","0","246","9","105"
+"7453119116293","Jeans bota ancha","JEANS","unidad","3",0,"15,6","28","84","46,8","864,4","30","410,2"
+"5545FUCSIA","Camisa ","CAMISAS","unidad","1",0,"7","22","22","7","22","1","15"
+"5545BLANCA","Camisa","CAMISAS","unidad","0",0,"7","22","0","0",0,0,0
+"07901221430011","Camisa","CAMISAS","unidad","0",0,"10","22","0","0","44","2","24"
+"7004NEGRO","Jumpsuit largo","BRAGAS","unidad","3",0,"12","25","75","36",0,0,0
+"960NEGRO","Jumpsuit","BRAGAS","unidad","0",0,"11,25","22","0","0",0,0,0
+"7023GRIS","Jumpsuit","BRAGAS","unidad","0",0,"11,75","25","0","0",0,0,0
+"792NARANJA","Vestido largo","VESTIDOS","unidad","0",0,"11,75","25","0","0",0,0,0
+"792NEGRO","Vestido largo","VESTIDOS","unidad","0",0,"11,75","25","0","0","25","1","13,25"
+"959NEGRO","Jumpsuit","BRAGAS","unidad","0",0,"10,75","22","0","0","22","1","11,25"
+"959CAMEL","Jumpsuit","BRAGAS","unidad","4",0,"10,75","22","88","43",0,0,0
+"7023MARRON","Jumpsuit","BRAGAS","unidad","1",0,"11,25","25","25","11,25","25","1","13,75"
+"7450194308773","Camisa ","CAMISAS","unidad","2",0,"6,75","17","34","13,5","51","3","30,75"
+"8773NEGRA","Camisa ","CAMISAS","unidad","0",0,"6,75","17","0","0",0,0,0
+"8773BLANCA","Camisa","CAMISAS","unidad","0",0,"6,75","17","0","0",0,0,0
+"8773ROSA","Camisa","CAMISAS","unidad","1",0,"6,75","17","17","6,75","17","1","10,25"
+"8773AMARILLA","Camisa","CAMISAS","unidad","1",0,"6,75","17","17","6,75","68","4","41"
+"3441VERDE","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"9","18","54","27","54","3","27"
+"3441MARRON","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","18","36","18","52,2","3","25,2"
+"3441BEIGE","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","18","0","0","72","4","36"
+"3441ROSA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","5",0,"9","18","90","45","36","2","18"
+"5585VERDE","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"6,5","17","51","19,5",0,0,0
+"5585AZUL","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","5",0,"6,5","17","85","32,5","17","1","10,5"
+"5585NEGRA","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","17","1","10,5"
+"5585FUCSIA","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6,5","17","68","26","17","1","10,5"
+"3792ROJA","Top de malla","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6","16","0","0","16","1","10"
+"3792BEIGE","Top de malla","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","16","16","6","48","3","30"
+"3792AZUL","Top de malla","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6","16","16","6","48","3","30"
+"3792VERDE","Top de malla","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6","16","32","12","16","1","10"
+"8815ROSA","Sweater","SWEATERS","unidad","0",0,"9","20","0","0","20","1","11"
+"8815NARANJA","Sweater","SWEATERS","unidad","0",0,"9","20","0","0","60","3","33"
+"8815CELESTE","Sweater","SWEATERS","unidad","0",0,"9","20","0","0","40","2","22"
+"0670VERDE","Sweater","SWEATERS","unidad","0",0,"10","20","0","0",0,0,0
+"3945VERDE","Sweater","SWEATERS","unidad","0",0,"9","20","0","0",0,0,0
+"3945MOSTAZA","Sweater","SWEATERS","unidad","0",0,"9","20","0","0","20","1","11"
+"3945NEGRO","Sweater","SWEATERS","unidad","0",0,"9","20","0","0",0,0,0
+"7453130302347","Jeans bota ancha","JEANS","unidad","5",0,"16,15","27","135","80,75","209","8","78,95"
+"8773CELESTE","Camisa","CAMISAS","unidad","1",0,"8","17","17","8","51","3","27"
+"7453072761370","Short de jeans","SHORTS","unidad","0",0,"17","25","0","0","358","14","164"
+"1211NEGRO","Body","BODIES","unidad","1",0,"12","22","22","12","568","26","230,1"
+"1440NEGRO","Body","BODIES","unidad","-1",0,"13","25","-25","-13","699","33","334,5"
+"1431AZUL","Top","BLUSAS/TOPS/CHALECOS","unidad","5",0,"4,15","17","85","20,75",0,0,0
+"1058ROJO","Body","BODIES","unidad","5",0,"11","22","110","55","36","2","18"
+"561NEGRO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","18","0","0","18","1","8"
+"1063AZUL","Body","BODIES","unidad","9",0,"11","25","225","99","345","17","188,64"
+"567BEIGE","Top manga larga","BODIES","unidad","0",0,"10","19","0","0","38","2","18"
+"7450113438413","Chaqueta de jeans","CHAQUETAS","unidad","16",0,"13","25","400","208","175","7","84"
+"ALOVERDE","Top ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8,2","17","51","24,599","51","3","27"
+"1041AZUL","Body","BODIES","unidad","7",0,"11","25","175","77","430","21","235"
+"1411BEIGE","Body","BODIES","unidad","5",0,"80,03","18","90","400,15","56","3","32"
+"546NEGRO","Leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"8,5","18","18","8,5","54","3","28,5"
+"7453072763282","Falda cargo","FALDAS","unidad","1",0,"25","25","25","25","125","5",0
+"397AZUL","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","4",0,"11","22","88","44","22","1","11"
+"1055BEIGE","Top","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","18","0","0","36","2","18"
+"1430NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","17","17","7","34","2","20"
+"579NEGRO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","13",0,"11","20","260","143","39","2","19"
+"1292BLANCO","Body","BODIES","unidad","1",0,"14","25","25","14","578","26","286"
+"794NEGRO","Vestido","VESTIDOS","unidad","1",0,"12","25","25","12","100","4","52"
+"7453119103255","Jeans skinny","JEANS","unidad","2",0,"15","25","50","30",0,0,0
+"7453119103248","Jeans skinny","JEANS","unidad","0",0,"15","25","0","0",0,0,0
+"0718819001827","Jeans pretina blanca ancho","JEANS","unidad","1",0,"16","26","26","16",0,0,0
+"7453130367735","Jeans palazzo","JEANS","unidad","0",0,"21","32","0","0","1.467","47","537"
+"BODY21","Body manga larga","BODIES","unidad","2",0,"9","25","50","18","275","12","170,4"
+"BODY25","Body ","BODIES","unidad","1",0,"9","20","20","9","226","10","104"
+"1095ATURQUESA","Body","BODIES","unidad","1",0,"11","21","21","11","446","22","231,2"
+"851NEGRO","Body ","BODIES","unidad","3",0,"9,3","20","60","27,900","200","10","107"
+"851MOCCA","Body","BODIES","unidad","2",0,"9,3","20","40","18,6","200","10","107"
+"851BLANCO","Body","BODIES","unidad","8",0,"9,3","20","160","74,4","40","2","21,4"
+"1292NEGRO","Body","BODIES","unidad","0",0,"14","25","0","0","645","28","296,6"
+"BLUSA35","Blusa espalda descubierta","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9","20","20","9","214","11","121"
+"3629ROSA","Pantalon con correa","PANTS","unidad","1",0,"16","26","26","16","26","1","10"
+"5920GRIS","Pantalon parachute","PANTS","unidad","1",0,"16","26","26","16","78","3","30"
+"5920BEIGE","Pant parachute cargo","PANTS","unidad","2",0,"15","26","52","30",0,0,0
+"6651BEIGE","Pantalon de pretina blanca ","PANTS","unidad","0",0,"13,5","26","0","0","78","3","37,5"
+"5920NEGRO","Pant parachute cargo","PANTS","unidad","0",0,"15","26","0","0","52","2","22"
+"2639NEGRO","Pantalon de pretina","PANTS","unidad","3",0,"16","26","78","48",0,0,0
+"2639MARRON","Pantalon de pretina","PANTS","unidad","6",0,"16","26","156","96",0,0,0
+"2639ROSA","Pantalon de pretina","PANTS","unidad","5",0,"16","26","130","80",0,0,0
+"6651VINO","Pantalon de pretina ","PANTS","unidad","0",0,"16","26","0","0",0,0,0
+"7377VINO","Pantalon con correa","PANTS","unidad","0",0,"16","28","0","0","54","2","22"
+"2080AZUL","Pantalon de pretina blanca","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"2080ROJO","Pantalon con pretina blanca","PANTS","unidad","2",0,"16","26","52","32",0,0,0
+"7377VERDE","Pantalon con correa","PANTS","unidad","0",0,"16","28","0","0","28","1","12"
+"2707ROJO","Pantalon de pretina blanca ","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"2707MOSTAZA","Pantalon de pretina blanca","PANTS","unidad","2",0,"16","26","52","32",0,0,0
+"2752BEIGE","Pantalon doble correa","PANTS","unidad","0",0,"16","26","0","0","52","2","20"
+"2752VINO","Pantalon doble correa","PANTS","unidad","3",0,"16","26","78","48","26","1","10"
+"2752NEGRO","Pantalon doble correa","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"2080NEGRO","Pantalon de pretina blanca","PANTS","unidad","0",0,"16","26","0","0","78","3","30"
+"2080ROSA","Pantalon de pretina blanca","PANTS","unidad","2",0,"16","26","52","32","26","1","10"
+"9842VERDE","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"7453130367339","Jeans ancho","JEANS","unidad","1",0,"19","30","30","19","416","14","153"
+"BLUSA36","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","19","0","0","117","6","63"
+"BLUSA37","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,35","18","0","0","105","6","67,95"
+"BLUSA38","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","20","20","10","20","1","10"
+"BLUSA39","Malla de encaje","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","100","5","50"
+"BLUSA40","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7,35","18","54","22,049","71","4","44,5"
+"BLUSA41","Malla de brillos ","BLUSAS/TOPS/CHALECOS","unidad","-2",0,"7","20","-40","-14","354","18","228"
+"BLUSA42","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","40","2","20"
+"BLUSA43","Blusa talla unica ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10","20","60","30","20","1","10"
+"9234NEGRO","Short con correa","SHORTS","unidad","0",0,"10","20","0","0",0,0,0
+"9234BLANCO","Short con correa ","SHORTS","unidad","0",0,"10","20","0","0","20","1","10"
+"9203BLANCO","Short ","SHORTS","unidad","0",0,"10","20","0","0",0,0,0
+"9203NEGRO","Short","SHORTS","unidad","0",0,"10","20","0","0",0,0,0
+"9203AZUL","Short","SHORTS","unidad","1",0,"10","20","20","10","20","1","10"
+"9203TERRACOTA","Short","SHORTS","unidad","1",0,"10","20","20","10","20","1","10"
+"9227AZUL","Falda short","FALDAS","unidad","1",0,"10","20","20","10",0,0,0
+"9227TERRACOTA","Falda short ","FALDAS","unidad","0",0,"10","20","0","0","15","1","5"
+"9227BLANCO","Falda short  ","FALDAS","unidad","0",0,"10","20","0","0","15","1","5"
+"9227NEGRA","Falda short ","FALDAS","unidad","0",0,"10","20","0","0",0,0,0
+"1081MARRON","Top","BLUSAS/TOPS/CHALECOS","unidad","10",0,"10","20","200","100","17","1","10"
+"ALOMORADA","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8,2","17","34","16,4","34","2","18,8"
+"4244NEGRO","Blusa tejida","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","20","40","18","120","6","61"
+"1313ROSA","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9,5","20","20","9,5","80","4","41"
+"8350BLANCO","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","72","4","40"
+"0011FALDANEGRA","Falda larga","FALDAS","unidad","1",0,"19","28","28","19","208","8","140"
+"1081NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","10",0,"10","20","200","100",0,0,0
+"8694CREMA","Falda short","FALDAS","unidad","0",0,"12","25","0","0","25","1","13"
+"8694BEIGE","Falda short ","FALDAS","unidad","0",0,"12","25","0","0","50","2","26"
+"8694GRIS","Falda short","FALDAS","unidad","0",0,"12","25","0","0",0,0,0
+"8694MARRON","Falda short","FALDAS","unidad","1",0,"12","25","25","12",0,0,0
+"5920VERDE","Pant parachute cargo","PANTS","unidad","1",0,"15","26","26","15","52","2","22"
+"6300GRISCLARO","Pantalon de pretina blanca","PANTS","unidad","0",0,"12","26","0","0",0,0,0
+"6651ROSA","Pantalon de pretina blanca","PANTS","unidad","4",0,"13,5","26","104","54","26","1","12,5"
+"7040MARRÓN","Pantalon de líneas","PANTS","unidad","1",0,"15","26","26","15",0,0,0
+"6651NEGRO","Pant pretina blanca","PANTS","unidad","0",0,"13,5","26","0","0",0,0,0
+"PANT22","Pantalon de vestir ","PANTS","unidad","5",0,"10","28","140","50","336","12","216"
+"SET18","Set de sweater y pantalon","SETS","unidad","2",0,"17,5","29","58","35","148","5","57,8"
+"SET19","Set de chaleco y pantalon ","SETS","unidad","0",0,"20,66","31","0","0","282","9","92,43"
+"SET20","Set de chaleco y pantalon denim","","unidad","0",0,"28","43","0","0","331","9","127,4"
+"SET21","Set de chaleco y pantalon","SETS","unidad","0",0,"25","37","0","0","341","10","125"
+"7450200335465","Pantalon de vestir tipo zara ","PANTS","unidad","0",0,"16","28","0","0","420","15","180"
+"7088TERRACOTA","Pant de pretina blanca ","PANTS","unidad","0",0,"13,5","26","0","0","52","2","25"
+"1255BLANCO","Body","BODIES","unidad","4",0,"13","25","100","52","391","19","187"
+"1440BLANCO","Body ","BODIES","unidad","0",0,"13","25","0","0","572","26","275,25"
+"1431NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","5",0,"4,15","17","85","20,75",0,0,0
+"1218NEGRO","Top  manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"4,1","17","0","0","34","2","25,8"
+"8510BLANCO","Body","BODIES","unidad","1",0,"8","20","20","8","40","2","24"
+"1068NEGRO","Top","BLUSAS/TOPS/CHALECOS","unidad","2",0,"4,15","17","34","8,3","34","2","25,7"
+"1067AZUL","Body","BODIES","unidad","1",0,"8","18","18","8","36","2","20"
+"1095ROJO","Body","BODIES","unidad","9",0,"11","22","198","99","58","3","31"
+"6323BEIGE","Pant con líneas a los lados","PANTS","unidad","1",0,"13","26","26","13","26","1","13"
+"5654BEIGE","Pant de pretina blanca","PANTS","unidad","0",0,"12","26","0","0",0,0,0
+"5753NEGRO","Pant","PANTS","unidad","0",0,"12","25","0","0","50","2","26"
+"5753BEIGE","Pant ","PANTS","unidad","3",0,"12","25","75","36",0,0,0
+"5753ROSA","Pant  con líneas blancas","PANTS","unidad","3",0,"12","25","75","36",0,0,0
+"1830BEIGE","Braga corta","BRAGAS","unidad","1",0,"15","25","25","15","50","2","20"
+"1830VERDE","Braga corta ","BRAGAS","unidad","3",0,"15","25","75","45",0,0,0
+"BRAGA04","Braga corta ","BRAGAS","unidad","0",0,"11,5","29","0","0","87","3","52,5"
+"2264NEGRO","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","20","1","10"
+"7001NEGRA","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10,5","20","0","0","60","3","29"
+"2264CREMA","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"10","20","40","20","40","2","20"
+"17LSTERRACOTA","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10,7","19","57","32,099","76","4","33,2"
+"4244BLANCO","Blusa tejida","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","154","8","81,52"
+"08TNEGRO","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","1",0,"12,7","23","23","12,7","66","3","31,1"
+"7971MARRON","Top ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","162","9","90"
+"7971BEIGE","Top  ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"8","18","54","24","72","4","40"
+"7971BLANCO","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","18","36","16","108","6","60"
+"7971NEGRO","Top ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","18","18","8","108","6","60"
+"8350NEGRO","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","72","4","40"
+"8350MARRON","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","90","5","50"
+"1313BLANCA","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9,5","20","0","0","20","1","10,5"
+"8350BEIGE","Blusa manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8","18","0","0","108","6","60"
+"5551CREMA","Chaleco tejido","SWEATERS","unidad","1",0,"9","22","22","9","88","4","52"
+"3921NEGRO","Chaleco tejido ","SWEATERS","unidad","0",0,"10","20","0","0",0,0,0
+"3921VINO","Chaleco tejido","SWEATERS","unidad","0",0,"10","20","0","0",0,0,0
+"5654GRIS","Pant pretina blanca","PANTS","unidad","1",0,"12","26","26","12","52","2","28"
+"5654NEGRO","Pant de pretina blanca","PANTS","unidad","1",0,"12","26","26","12",0,0,0
+"3907AZUL","Sweater","SWEATERS","unidad","0",0,"9,17","20","0","0",0,0,0
+"4776NEGRA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","80","4","40"
+"7453072765552","Pantalon de vestir","PANTS","unidad","0",0,"15","26","0","0","228,8","9","93,8"
+"7450200087395","Falda larga","FALDAS","unidad","0",0,"12","25","0","0","25","1","13"
+"7453092225913","Pant tipo jogger con líneas a los lados","PANTS","unidad","6",0,"12","26","156","72","130","5","70"
+"7453072761103","Pantalon de vestir","PANTS","unidad","0",0,"15","26","0","0","182","7","77"
+"4085GRIS","Pant de pretina","PANTS","unidad","5",0,"12","26","130","60","78","3","42"
+"4085NEGRO","Pant de pretina ","PANTS","unidad","1",0,"12","26","26","12","130","5","70"
+"CHALECO","Chaleco tejido","BLUSAS/TOPS/CHALECOS","unidad","3",0,"14","25","75","42","27","1","12"
+"7453072765385","Chaleco denim ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"15","25","150","90","100","4","40"
+"GUANTES01","Guantes ","ACCESORIOS","unidad","-1",0,"4","8","-8","-4",0,0,0
+"MEDIAS04","Medias panties","ACCESORIOS","unidad","3",0,"3","8","24","9","16","2","10"
+"CINTURON01","Cinturón ","ACCESORIOS","unidad","0",0,"4,5","8","0","0",0,0,0
+"CINTILLO01"," Cintillo de diablita","ACCESORIOS","unidad","3",0,"3,85","8","24","11,55",0,0,0
+"MEDIAS05","Medias panties marrón ","ACCESORIOS","unidad","12",0,"2,5","6","72","30",0,0,0
+"7450113448962","Jeans bota ancha ","JEANS","unidad","7",0,"18","29","203","126","87","3","33"
+"7453128397003","Jeans ancho palazzo","JEANS","unidad","0",0,"17","30","0","0","477","16","206"
+"0718819010850","Jeans bota ancha doble pretina ","BLUSAS/TOPS/CHALECOS","unidad","7",0,"17","27","189","119","75,6","3","24,6"
+"0718819009861","Jeans bota ancha ","JEANS","unidad","5",0,"17","27","135","85","27","1","10"
+"0718819001872","Jeans bota ancha ","JEANS","unidad","3",0,"17","27","81","51","27","1","10"
+"JEANSSHEIN02","Jeans ancho","JEANS","unidad","0",0,"21","32","0","0","403","14","169"
+"CHAQUETA01","Chaqueta de cuerina ","CHAQUETAS","unidad","0",0,"19","32","0","0","268","9","123"
+"6323ROSA","Pant con líneas a los lados ","PANTS","unidad","3",0,"13","26","78","39","26","1","13"
+"6323NEGRO","Pant con líneas a los lados","PANTS","unidad","3",0,"13","26","78","39","26","1","13"
+"7088NEGRO","Pant pretina blanca","PANTS","unidad","0",0,"13","26","0","0",0,0,0
+"7450200269654","Pantalon de vestir con correa  ","PANTS","unidad","0",0,"16","28","0","0","384,4","14","162,9"
+"7088CREMA","Pant pretina blanca","PANTS","unidad","0",0,"13","26","0","0","26","1","13"
+"0722787083570","Jeans bota recta","JEANS","unidad","0",0,"16","27","0","0","75,6","3","27,6"
+"7453103328121","Jeans mom ","JEANS","unidad","4",0,"18","29","116","72","87","3","33"
+"7453103328114","Jeans mom","JEANS","unidad","7",0,"18","29","203","126","58","2","22"
+"7453130332832","Jeans bota campana","JEANS","unidad","2",0,"16","27","54","32","108","4","44"
+"7453133910297","Jeans bota ancha","JEANS","unidad","8",0,"18,5","32","256","148","349","12","137,5"
+"7450214127155","Jeans ancho","JEANS","unidad","2",0,"15","28","56","30","723","26","309,74"
+"7450113464399","Jeans ","JEANS","unidad","14",0,"18","31","434","252","29","1","11"
+"7453124793519","Jeans cargo","JEANS","unidad","3",0,"18","30","90","54","90","3","36"
+"7453130322826","Jeans bota recta","JEANS","unidad","2",0,"16,67","27","54","33,34","108","4","41,32"
+"SET22","Set de chaleco y short","SETS","unidad","0",0,"16,33","27","0","0","54","2","21,34"
+"7453124791324","Jeans cargo ","JEANS","unidad","1",0,"19","30","30","19","120","4","44"
+"7040AZUL","Pantalon de lineas ","PANTS","unidad","1",0,"15","26","26","15","26","1","11"
+"7450113457988","Pantalon de lineas  ","PANTS","unidad","3",0,"28","42","126","84","84","2","28"
+"7450113457995","Pantalon de líneas ","PANTS","unidad","0",0,"28","42","0","0","42","1","14"
+"0718819026561","Jeans bota ancha ","JEANS","unidad","3",0,"16","27","81","48","216","8","88"
+"0718874312975","Jeans bota ancha","JEANS","unidad","0",0,"16","28","0","0","450,4","16","182,4"
+"0722787082894","Jeans cargo","JEANS","unidad","0",0,"19","30","0","0","150","5","55"
+"7049VERDE","Pantalon de lineas","PANTS","unidad","0",0,"31","42","0","0",0,0,0
+"7049ROJO","Pantalon de lineas ","PANTS","unidad","0",0,"31","42","0","0","42","1","11"
+"7049ROSA","Pantalon de lineas ","PANTS","unidad","2",0,"31","42","84","62",0,0,0
+"7453124794134","Jeans cargo","","unidad","2",0,"20","30","60","40","150","5","50"
+"7453124790389","Jeans cargo","JEANS","unidad","4",0,"19","30","120","76","114","4","38"
+"7001CREMA","Chaleco tejido","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","181","8","91"
+"0718819013745","Jeans bota campana","JEANS","unidad","0",0,"15","27","0","0","612","22","252"
+"7001MARRON","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10,5","20","0","0","65","3","29"
+"03TNEGRO","Top brillante","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7,45","17","34","14,9","65,3","3","27,85"
+"5551BLANCO","Chaleco tejido","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","22","0","0","91","4","49"
+"5551NEGRO","Chaleco tejido","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","22","0","0","138","6","72"
+"5972FUCSIA","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15","25","0","0","75","3","30"
+"5972BEIGE","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"15","25","50","30","75","3","30"
+"17LSMARRON","Blusa manga larga ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10,7","19","19","10,7","95","5","41,5"
+"5487FUCSIA","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,5","15","15","7,5",0,0,0
+"5487BLANCO","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,5","15","0","0",0,0,0
+"5487VERDE","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7,5","15","0","0","15","1","7,5"
+"5487NEGRO","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,5","15","15","7,5",0,0,0
+"5487VERDEMANZANA","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7,5","15","15","7,5",0,0,0
+"0428ROJO","Top basico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","17","1","10"
+"SPLASH02","Splash ","ACCESORIOS","unidad","0",0,"7","12","0","0","24","2","10"
+"SPLASH03","Splash","ACCESORIOS","unidad","0",0,"7","12","0","0","12","1","5"
+"SPLASH04","Splash ","ACCESORIOS","unidad","0",0,"7","12","0","0","72","6","30"
+"SPLASH05","Splash ","ACCESORIOS","unidad","0",0,"7","12","0","0","24","2","10"
+"SPLASH06","Splash","ACCESORIOS","unidad","0",0,"7","12","0","0","36","3","15"
+"SPLASH07","Splash ","ACCESORIOS","unidad","0",0,"7","12","0","0","60","5","25"
+"7451001534750","Jeans ancho","JEANS","unidad","4",0,"17,1","27","108","68,4","216","8","79,2"
+"0718819010348","Jeans bota ancha","JEANS","unidad","1",0,"19","30","30","19","30","1","11"
+"0718819034085","Jeans de brillos","JEANS","unidad","4",0,"18,5","32","128","74","472","16","191,5"
+"7450117480135","Jeans ancho","JEANS","unidad","0",0,"16","26","0","0","29","1","10"
+"0718819023638","Jeans bota campana","JEANS","unidad","0",0,"17","27","0","0","432","16","160"
+"7450224072360","Bermuda denim","JEANS","unidad","2",0,"20","28","56","40","727","23","270"
+"7453130355121","Jeans recto","JEANS","unidad","0",0,"19","30","0","0","778","25","281,5"
+"0718874325715","Jeans bota campana","JEANS","unidad","2",0,"20","32","64","40","788,8","27","320,25"
+"7453124789956","Jeans cargo","JEANS","unidad","1",0,"19","30","30","19","60","2","22"
+"SET23","Set de chaleco y pantalon","SETS","unidad","1",0,"15,6","32","32","15,6","160","5","82"
+"SET24","Set de top y pantalon ","SETS","unidad","0",0,"13,35","35","0","0",0,0,0
+"FALD22","Falda short","FALDAS","unidad","11",0,"8","26","286","88","561","22","316,8"
+"FALD26","Falda short ","FALDAS","unidad","12",0,"8","25","300","96","178","7","121,4"
+"FALD27","Falda short con correa","FALDAS","unidad","14",0,"7,2","26","364","100,8","363","14","262,2"
+"CHALECO10","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","8",0,"8,8","27","216","70,4","187","7","127,1"
+"FALD28","Falda","FALDAS","unidad","8",0,"8,1","25","200","64,8","25","1","16,9"
+"PANTC34","Pantalon cargo ","PANTS","unidad","6",0,"10,3","27","162","61,800","210,6","8","128,2"
+"PANTC35","Pantalon cargo","PANTS","unidad","4",0,"10,3","27","108","41,2","108","4","66,8"
+"PANTC36","Pantalon cargo","PANTS","unidad","8",0,"10,3","27","216","82,4","135","5","83,5"
+"8944GRIS","Sweater","SWEATERS","unidad","0",0,"17,85","25","0","0","25","1","7,15"
+"8944NEGRO","Sweater","SWEATERS","unidad","0",0,"17,85","25","0","0","25","1","7,15"
+"8944CREMA","Sweater","SWEATERS","unidad","0",0,"17,85","25","0","0",0,0,0
+"8944BEIGE","Sweater ","SWEATERS","unidad","0",0,"17,85","25","0","0","25","1","7,15"
+"0718819031619","Jeans de brillos","JEANS","unidad","2",0,"20","32","64","40","360,8","12","123,7"
+"7450113458510","Pant ","PANTS","unidad","14",0,"27,16","40","560","380,24","105","3","23,52"
+"3987NEGRO","Pant","PANTS","unidad","1",0,"17,1","28","28","17,1",0,0,0
+"3987ROJO","Pant ","PANTS","unidad","0",0,"17,1","28","0","0","28","1","10,9"
+"3987AZUL","Pant  ","PANTS","unidad","1",0,"17,1","28","28","17,1","56","2","21,8"
+"3987BEIGE","Pant ","PANTS","unidad","1",0,"17,1","28","28","17,1",0,0,0
+"7453084916515","Jeans bota ancha ","JEANS","unidad","0",0,"16","27","0","0","158,6","6","60,6"
+"7450113456820","Jeans ","JEANS","unidad","14",0,"16,6","27","378","232,400",0,0,0
+"7450113465594","Jeans cargo","JEANS","unidad","4",0,"20,9","29","116","83,6",0,0,0
+"7450113470062","Chaqueta","CHAQUETAS","unidad","13",0,"26,41","35","455","343,33","105","3","25,77"
+"CHALECO11","Blazer","BLUSAS/TOPS/CHALECOS","unidad","1",0,"21","32","32","21","32","1","11"
+"FALD29","Falda short","FALDAS","unidad","11",0,"7,5","26","286","82,5","233","9","165,8"
+"ENTERIZO01","Braga de jeans","BRAGAS","unidad","0",0,"13","35","0","0","70","2","44"
+"SET25","Set de top y short","SETS","unidad","0",0,"15,56","26","0","0","78","3","31,32"
+"VEST53","Vestido largo","VESTIDOS","unidad","2",0,"9,63","22","44","19,26","22","1","12,37"
+"VEST54","Vestido largo","VESTIDOS","unidad","0",0,"11,81","23","0","0",0,0,0
+"VEST55","Vestido","VESTIDOS","unidad","0",0,"20","32","0","0","300","10","112"
+"VEST56","Vestido marrón","VESTIDOS","unidad","0",0,"18","29","0","0","371","13","177"
+"VEST57","Vestido negro","VESTIDOS","unidad","2",0,"9","28","56","18","160","6","106"
+"SET26","Set de top y pantalón ","SETS","unidad","0",0,"12,42","25","0","0","150","6","75,48"
+"SET27","Set de chaleco y pantalon","SETS","unidad","2",0,"20,66","31","62","41,32","242","8","84,88"
+"796NEGRO","Vestido","VESTIDOS","unidad","3",0,"9,45","25","75","28,349","125","5","77,75"
+"591BLANCO","Top básico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,25","19","0","0","114","6","64,5"
+"1080BEIGE","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"8,7","18","72","34,8","18","1","9,3"
+"796BEIGE","Vestido","VESTIDOS","unidad","0",0,"9,45","25","0","0","25","1","15,55"
+"780NEGRO","Vestido","VESTIDOS","unidad","0",0,"10,95","26","0","0","26","1","15,05"
+"1526BEIGE","Body","BODIES","unidad","0",0,"13","25","0","0","668","30","318"
+"591NEGRO","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8,7","19","19","8,7","113","6","60,8"
+"1041BLANCO","Body","BODIES","unidad","1",0,"9,49","22","22","9,49","458","22","249,22"
+"1080NEGRO","Top basico","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8,7","18","18","8,7","72","4","37,2"
+"8299NEGRO","Body ","BODIES","unidad","3",0,"8","19","57","24","38","2","22"
+"1041NEGRO","Body ","BODIES","unidad","4",0,"9,49","22","88","37,96","352","17","190,67"
+"1276NEGRO","Body ","BODIES","unidad","0",0,"14","23","0","0","474","22","189"
+"953NEGRO","Jumpsuit","BRAGAS","unidad","4",0,"9,7","25","100","38,8","50","2","30,6"
+"2033NEGRO","Top manga larga ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9,95","20","0","0","40","2","20,1"
+"SWEATER25","Sweater ","SWEATERS","unidad","0",0,"14","25","0","0","94","4","41"
+"0718819020514","Jeans cargo","JEANS","unidad","2",0,"19","30","60","38","240","8","88"
+"0718874325708","Jeans bota campana","JEANS","unidad","1",0,"22","32","32","22","975","32","349,8"
+"0718874298132","Jeans cargo","JEANS","unidad","2",0,"19,5","31","62","39","31","1","11,5"
+"7453124790433","Jeans cargo","JEANS","unidad","6",0,"19,5","31","186","117","62","2","23"
+"7450113465419","Jeans de líneas","JEANS","unidad","11",0,"23,5","35","385","258,5","70","2","23"
+"7450113458220","Jeans doble tono","JEANS","unidad","17",0,"21,5","35","595","365,5",0,0,0
+"7453124790969","Jeans cargo","JEANS","unidad","7",0,"19,33","31","217","135,31","124","4","46,68"
+"7450113454826","Jeans cargo","JEANS","unidad","2",0,"18,5","30","60","37","120","4","46"
+"7450113465082","Jeans ","JEANS","unidad","16",0,"19","31","496","304","50","2","12"
+"SHORT10","Short de vestir","SHORTS","unidad","3",0,"4","18","54","12","90","5","70"
+"SHORT11","Short de vestir","SHORTS","unidad","0",0,"4","18","0","0","90","5","70"
+"CHALECO12","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","25","50","18","125","5","80"
+"PANT23","Pantalon","PANTS","unidad","0",0,"10","26","0","0","78","3","48"
+"7450113463095","Jeans doble tono","PANTS","unidad","14",0,"23,5","35","490","329","70","2","23"
+"SHORT12","Short Denim","SHORTS","unidad","0",0,"12","22","0","0","110","5","50"
+"1445BEIGE","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6","17","34","12","51","3","33"
+"1081AZUL","Top","BLUSAS/TOPS/CHALECOS","unidad","9",0,"10","20","180","90","71","4","43"
+"7450113467871","Pantalon animal print ","PANTS","unidad","0",0,"22","35","0","0","105","3","39"
+"7450113465525","Jeans de lineas","JEANS","unidad","6",0,"22","35","210","132","35","1","13"
+"7450113467857","Jeans de líneas ","JEANS","unidad","6",0,"22","32","192","132","96","3","30"
+"7453130367278","Jeans ancho","JEANS","unidad","6",0,"18","29","174","108","687","24","289,65"
+"7450113469493","Jeans con líneas plateadas","JEANS","unidad","1",0,"19,38","31","31","19,38","62","2","23,24"
+"7453119116361","Jeans ancho","JEANS","unidad","2",0,"15,6","28","56","31,2","373","13","154,3"
+"7450113469684","Pantalon animal print","JEANS","unidad","18",0,"21,7","37","666","390,599","87","3","21,9"
+"7453124790228","Jeans cargo","JEANS","unidad","1",0,"18,5","31","31","18,5","217","7","87,5"
+"7453124789987","Jeans cargo","JEANS","unidad","1",0,"18,5","31","31","18,5","155","5","62,5"
+"7450113470222","Jeans ancho ","JEANS","unidad","2",0,"14,2","28","56","28,4","399","14","184,3"
+"7453119116378","Jeans ancho","JEANS","unidad","3",0,"15,6","28","84","46,8","413","14","174,3"
+"7453124790365","Jeans cargo","JEANS","unidad","2",0,"18,5","31","62","37","31","1","12,5"
+"7450113467710","Jeans","JEANS","unidad","7",0,"18,5","31","217","129,5","62","2","25"
+"7450113441062","Jeans de brillos","JEANS","unidad","3",0,"16","27","81","48","297","11","128"
+"ZAPATOS01","V2k run nike ","ZAPATOS","unidad","3",0,"30","65","195","90","2.405","37","1.288,5"
+"ZAPATOS02","Converse blancas","ZAPATOS","unidad","6",0,"30","65","390","180","195","3","105"
+"ZAPATOS03","On cloud ","ZAPATOS","unidad","3",0,"31","65","195","93","780","12","409"
+"ZAPATOS04","Samba adidas","ZAPATOS","unidad","1",0,"30","65","65","30","585","9","315"
+"ZAPATOS05","Nike ","ZAPATOS","unidad","9",0,"30","65","585","270","585","9","315"
+"ZAPATOS06","New balance crema","ZAPATOS","unidad","1",0,"30","65","65","30","520","8","280"
+"ZAPATOS07","V2k marrón Nike","","unidad","14",0,"30","65","910","420","1.878,5","29","1.008,5"
+"ZAPATOS08","Samba color crema ","ZAPATOS","unidad","0",0,"30","65","0","0","1.690","26","910"
+"ZAPATOS09","Samba clásicas adidas ","ZAPATOS","unidad","2",0,"30","65","130","60","2.658,5","41","1.428,5"
+"ZAPATOS10","New balance clásicas ","ZAPATOS","unidad","8",0,"30","65","520","240","1.885","29","1.015"
+"ZAPATOS11","Alo deportivas","ZAPATOS","unidad","1",0,"30","65","65","30","1.690","26","910"
+"ZAPATOS12","On cloud","ZAPATOS","unidad","12",0,"35","65","780","420","715","11","385"
+"ZAPATOS13","On cloud","ZAPATOS","unidad","9",0,"30","65","585","270","585","9","315"
+"1292FN","Jeans ancho","JEANS","unidad","4",0,"18","28","112","72","233","8","86"
+"ZAPATOS14","Adidas samba spezial ","ZAPATOS","unidad","1",0,"35","65","65","35","910","14","420"
+"ZAPATOS15","Nike","ZAPATOS","unidad","1",0,"35","65","65","35","780","12","360"
+"OVERSIZE01","Oversize","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","18","36","18","72","4","36"
+"OVERSIZE02","Oversize","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","188","10","98"
+"OVERSIZE03","Oversize ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"9,5","20","20","9,5","222","12","112,5"
+"OVERSIZE04","Oversize","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","18","0","0","90","5","45"
+"CADENA56","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA57","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA58","Cadena  ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA59","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA60","Cadena","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","24","4","10"
+"CADENA61","Cadena ","ACCESORIOS","unidad","0",0,"4","8","0","0","30","4","14"
+"CADENA62","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA63","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","12","2","5"
+"CADENA65","Cadena ","ACCESORIOS","unidad","0",0,"8","12","0","0","54","6","19,5"
+"CADENA66","Cadena","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","12","2","5"
+"CADENA67","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","30","5","12,5"
+"CADENA68","Cadena ","ACCESORIOS","unidad","0",0,"6","10","0","0","42","5","17"
+"CADENA69","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA70","Cadena  ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA71","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","30","5","12,5"
+"CADENA72","Cadena ","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA73","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","18","3","7,5"
+"CADENA74","Cadena ","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","36","6","15"
+"CADENA75","Cadena","ACCESORIOS","unidad","0",0,"3,5","6","0","0","24","4","10"
+"CADENA76","Cadena ","ACCESORIOS","unidad","1",0,"3,5","6","6","3,5","12","2","5"
+"1526NEGRO","Body","BODIES","unidad","2",0,"13","25","50","26","489","21","241,5"
+"1253AZUL","Body ","BODIES","unidad","0",0,"12,5","22","0","0","265","13","128,75"
+"1253MARRON","Body","BODIES","unidad","0",0,"12,5","22","0","0","520","25","232,54"
+"1087BLANCO","Body","BODIES","unidad","5",0,"12,25","22","110","61,25","562","27","250,88"
+"1087NEGRO","Body","BODIES","unidad","3",0,"12,25","22","66","36,75","437","21","196,36"
+"1041VINO","Body","BODIES","unidad","0",0,"9,49","22","0","0","460","22","251,22"
+"8299BLANCO","Body","BODIES","unidad","0",0,"8","19","0","0","256","13","127,34"
+"1280AZUL","Body","BODIES","unidad","3",0,"14","25","75","42","290","14","138,6"
+"8299MARRON","Body ","BODIES","unidad","1",0,"8","19","19","8","255","13","129,08"
+"BODY26","Body","BODIES","unidad","1",0,"12","20","20","12","536","25","324,36"
+"BODY27","Body ","BODIES","unidad","5",0,"8,1","20","100","40,5","360","18","200,05"
+"BODY28","Body marrón ","BODIES","unidad","5",0,"8,1","25","125","40,5","347","15","201,8"
+"BODY29","Body ","BODIES","unidad","3",0,"12","22","66","36","559","28","296"
+"BODY30","Body  ","BODIES","unidad","9",0,"8,1","20","180","72,899","410","21","221,5"
+"0718819025960","Jeans bota recta","JEANS","unidad","2",0,"15","27","54","30","666","24","252"
+"7450214234563","Jeans palazzo","JEANS","unidad","7",0,"17","32","224","119","808","28","310"
+"7453130368121","Jeans Wide leg","JEANS","unidad","0",0,"16","32","0","0","834","27","357"
+"7450113458633","Jeans cargo","JEANS","unidad","1",0,"20","30","30","20","210","7","70"
+"ZAPATOS16","New balance 960 ","ZAPATOS","unidad","2",0,"35","65","130","70","715","11","330"
+"ZAPATOS17","New balance","ZAPATOS","unidad","7",0,"36","55","385","252","770","12","382"
+"BANDOLERO33","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"10","20","20","10","45","2","20"
+"BANDOLERO34","Bandolero ","CARTERAS/BANDOLEROS","unidad","0",0,"7","20","0","0","10","1","3"
+"BANDOLERO35","Bandolero ","CARTERAS/BANDOLEROS","unidad","0",0,"7","20","0","0","10","1","3"
+"BANDOLERO36","Bandolero","CARTERAS/BANDOLEROS","unidad","5",0,"8","28","140","40","81","3","57"
+"BANDOLERO37","Bandolero ","CARTERAS/BANDOLEROS","unidad","0",0,"8","25","0","0","75","3","51"
+"BANDOLERO38","Bandolero ","CARTERAS/BANDOLEROS","unidad","1",0,"10","25","25","10","37","2","10"
+"BANDOLERO39","Bandolero","CARTERAS/BANDOLEROS","unidad","0",0,"10","20","0","0","114","5","50"
+"BANDOLERO40","Bandolero ","CARTERAS/BANDOLEROS","unidad","0",0,"17","27","0","0","27","1","10"
+"BANDOLERO41","Bandolero","CARTERAS/BANDOLEROS","unidad","1",0,"17","27","27","17","27","1","10"
+"1522BLANCO","Top básico ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"11,25","22","44","22,5","231","11","110,5"
+"1069BLANCO","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8","17","17","8",0,0,0
+"1522NEGRO","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","2",0,"11,25","22","44","22,5","191","9","93"
+"1095AZUL","Body","BODIES","unidad","5",0,"11","22","110","55","55","3","30"
+"1080BLANCO","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,7","18","0","0","72","4","37,2"
+"1255NEGRO","Body","BODIES","unidad","4",0,"13","25","100","52","130","6","66"
+"6300ROSA","Pantalon pretina blanca ","PANTS","unidad","0",0,"16","26","0","0","26","1","10"
+"7453130348505","Jeans palazzo","JEANS","unidad","1",0,"19","32","32","19","605","20","239"
+"567NEGRO","Top manga larga ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","19","0","0","19","1","9"
+"PIJAMA01","Pijama de camisa y short ","SETS","unidad","0",0,"9,16","20","0","0","20","1","10,84"
+"BANDOLERO42","Morral ","CARTERAS/BANDOLEROS","unidad","0",0,"20","30","0","0","30","1","10"
+"BANDOLERO43","Bandolero","CARTERAS/BANDOLEROS","unidad","5",0,"18","28","140","90","156","6","53,22"
+"BANDOLERO44","Bandolero ","CARTERAS/BANDOLEROS","unidad","8",0,"18","28","224","144","547","20","336,51"
+"BANDOLERO45","Bandolero ","CARTERAS/BANDOLEROS","unidad","2",0,"16","25","50","32","20","1","4"
+"BANDOLERO46","Bandolero  ","CARTERAS/BANDOLEROS","unidad","0",0,"16","25","0","0","20","1","4"
+"LENTES06","Lentes c/u","ACCESORIOS","unidad","-1",0,"3,47","10","-10","-3,47","60","6","39,18"
+"TDB45","Traje de baño","TRAJES DE BAÑO","unidad","3",0,"10","22","66","30","66","3","36"
+"TDB46","Traje de baño","TRAJES DE BAÑO","unidad","0",0,"10","22","0","0","66","3","36"
+"TDB47","Traje de baño ","TRAJES DE BAÑO","unidad","4",0,"9","22","88","36","176","8","104"
+"TDB48","Traje de baño","TRAJES DE BAÑO","unidad","0",0,"9","22","0","0","110","5","65"
+"TDB49","Traje de baño enterizo","TRAJES DE BAÑO","unidad","0",0,"10","22","0","0","132","6","72"
+"PIJAMA02","Pijama de camisa y short ","SETS","unidad","0",0,"9,16","20","0","0","60","3","32,52"
+"PIJAMA03","Pijama de camisa y short  ","SETS","unidad","1",0,"9,16","20","20","9,16","60","3","32,52"
+"PIJAMA04","Pijama de camisa y short  ","SETS","unidad","0",0,"9,16","20","0","0","40","2","21,68"
+"0428FUCSIA","Top básico","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7","17","51","21",0,0,0
+"0428NEGRO","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"7","17","17","7",0,0,0
+"0428MARRON ","Top basico","BLUSAS/TOPS/CHALECOS","unidad","0",0,"7","17","0","0","34","2","20"
+"0428VERDE","Top basico","BLUSAS/TOPS/CHALECOS","unidad","3",0,"7","17","51","21",0,0,0
+"7450194046750","Pantalon cargo","PANTS","unidad","2",0,"16","26","52","32",0,0,0
+"7800114488578","Pantalon parachute","PANTS","unidad","1",0,"10","26","26","10",0,0,0
+"7453072761363","Jeans ancho","JEANS","unidad","6",0,"17","29","174","102","174","6","72"
+"1265BLANCO","Body","BODIES","unidad","2",0,"12,75","23","46","25,5","294","13","134,5"
+"1265NEGRO","Body ","BODIES","unidad","3",0,"12,75","23","69","38,25","407","18","186,25"
+"7453128397706","Jeans palazzo","JEANS","unidad","0",0,"19,5","31","0","0","644,8","21","235,3"
+"7453130322055","Jeans palazzo","JEANS","unidad","8",0,"19,5","31","248","156","248","8","92"
+"FN02","Jeans ","JEANS","unidad","0",0,"11","27","0","0","27","1","16"
+"8329VERDE","Body","BODIES","unidad","1",0,"8","20","20","8","60","3","36"
+"8329HUESO","Body ","BODIES","unidad","1",0,"8","20","20","8","60","3","36"
+"1211BLANCO","Body ","BODIES","unidad","0",0,"13","22","0","0","102","5","57"
+"1256AZUL","Body","BODIES","unidad","8",0,"15","25","200","120","257","11","112,6"
+"7872HUESO","Body ","BODIES","unidad","1",0,"8","19","19","8","57","3","33"
+"1411VERDE","Body  ","BODIES","unidad","5",0,"8","18","90","40","38","2","22"
+"1280BLANCO","Body  ","BODIES","unidad","2",0,"14","25","50","28","113","5","55"
+"5796VERDE","Body","BODIES","unidad","2",0,"8","19","38","16","38","2","22"
+"5796NEGRO","Body ","BODIES","unidad","1",0,"8","19","19","8","38","2","22"
+"1411NEGRO","Body  ","BODIES","unidad","4",0,"8","18","72","32","75","4","43"
+"7377BEIGE","Pantalon con correa ","PANTS","unidad","0",0,"16","28","0","0","78,4","3","30,4"
+"7377AZUL","Pantalon con correa  ","PANTS","unidad","0",0,"16","28","0","0","56","2","24"
+"9296AZUL","Pantalon Zara ","PANTS","unidad","-1",0,"16","28","-28","-16","112","4","48"
+"9296BEIGECLARO","Pantalon Zara ","PANTS","unidad","0",0,"16","28","0","0",0,0,0
+"9296NEGRO","Pantalon Zara  ","PANTS","unidad","0",0,"16","28","0","0","112","4","48"
+"9296MOCCA","Pantalon Zara ","PANTS","unidad","0",0,"16","28","0","0","112","4","48"
+"9296BEIGE","Pantalon Zara  ","PANTS","unidad","0",0,"16","28","0","0","112","4","48"
+"9692HUESO","Pantalon con correa","PANTS","unidad","0",0,"16","28","0","0","84","3","36"
+"9692MOCCA","Pantalon con correa ","PANTS","unidad","2",0,"16","28","56","32","56","2","24"
+"9692AZUL","Pantalon con correa  ","PANTS","unidad","0",0,"16","28","0","0","56","2","24"
+"9692NEGRO","Pantalon con correa  ","PANTS","unidad","0",0,"16","28","0","0","56","2","24"
+"1440AZUL","Body","BODIES","unidad","0",0,"10,5","25","0","0","545","24","298,5"
+"1252BLANCO","Body","BODIES","unidad","0",0,"13,5","22","0","0","406","19","169"
+"1291NEGRO","Body ","BODIES","unidad","6",0,"10,5","25","150","63","335","16","173,5"
+"1276VINO","Body manga larga ","BODIES","unidad","4",0,"14","23","92","56","570","27","244"
+"9464NEGRO","Set de chaleco y pantalon ","SETS","unidad","1",0,"20","32","32","20","32","1","12"
+"9464CREMA","Set de chaleco y pantalon  ","SETS","unidad","1",0,"20","32","32","20","32","1","12"
+"9464ROSA","Set de chaleco y pantalon  ","SETS","unidad","1",0,"20","32","32","20","32","1","12"
+"5173CREMA","Set de chaleco y pantalon  ","SETS","unidad","0",0,"17","30","0","0","122","4","51"
+"9806ROSA","Set de sweater y pantalon","SETS","unidad","0",0,"16,85","30","0","0","142","5","61,15"
+"5209BEIGE","Set de blusa y pantalon","SETS","unidad","3",0,"15","30","90","45","196","7","87"
+"5209CREMA","Set de blusa y pantalon ","SETS","unidad","0",0,"15","30","0","0","286","10","132"
+"2203BEIGE","Set de blusa y pantalon  ","SETS","unidad","0",0,"11","27","0","0","245","9","120"
+"0538NEGRO","Falda short","FALDAS","unidad","7",0,"7,1","25","175","49,699","500","20","358"
+"0538BLANCA","Falda short ","FALDAS","unidad","16",0,"7,1","25","400","113,6","225","9","161,1"
+"0538MARRON","Falda short ","FALDAS","unidad","12",0,"7,1","25","300","85,199","325","13","232,7"
+"7465NEGRA","Falda short","FALDAS","unidad","0",0,"7,1","25","0","0","875","35","626,5"
+"7465BLANCA","Falda short ","FALDAS","unidad","7",0,"7,1","25","175","49,699","550","22","393,8"
+"7135BEIGE","Falda short ","FALDAS","unidad","16",0,"7,1","25","400","113,6","325","13","232,7"
+"7249BEIGE","Falda short","FALDAS","unidad","20",0,"8,8","25","500","176","350","14","226,3"
+"7249NEGRA","Falda short ","FALDAS","unidad","8",0,"8,8","25","200","70,4","650","26","421,2"
+"7249BLANCA","Falda short  ","FALDAS","unidad","19",0,"8,8","25","475","167,200","475","19","307,8"
+"796NEGRO","Short de vestir","SHORTS","unidad","7",0,"6,8","25","175","47,6","200","8","145,6"
+"796BLANCO","Short de vestir ","SHORTS","unidad","10",0,"6,8","25","250","68","350","14","254,8"
+"796BEIGE","Short de vestir ","SHORTS","unidad","10",0,"6,8","25","250","68","150","6","109,2"
+"7214BLANCO","Falda short","FALDAS","unidad","21",0,"7,1","25","525","149,1","600","24","429,6"
+"7214NEGRO","Falda short ","FALDAS","unidad","3",0,"7,1","25","75","21,299","750","30","537"
+"7214MARRON","Falda short ","FALDAS","unidad","16",0,"7,1","25","400","113,6","300","12","214,3"
+"086NEGRO","Short","SHORTS","unidad","1",0,"5","25","25","5","550","22","440"
+"5284NEGRO","Set de sweater y jogger ","SETS","unidad","0",0,"13","30","0","0","300","10","151,64"
+"5284BLANCO","Set de sweater y jogger ","SETS","unidad","-1",0,"13","30","-30","-13","330","11","173,97"
+"4843GRIS","Set de sweater y jogger  ","SETS","unidad","0",0,"16","30","0","0","330","11","142,35"
+"5284GRIS","Set de sweater y jogger ","SETS","unidad","0",0,"13","30","0","0","360","12","180,31"
+"8143BEIGE","Set de sweater y jogger   ","SETS","unidad","0",0,"18,33","30","0","0","30","1","11,67"
+"4904NEGRO","Set de chaqueta y pantalon ","SETS","unidad","0",0,"26","36","0","0","396","11","110"
+"9806BLANCO","Set de sweater y jogger  ","SETS","unidad","0",0,"16,85","30","0","0","150","5","62,79"
+"0341VERDE","Set de blusay pantalon ","SETS","unidad","0",0,"15","27","0","0","190","7","87"
+"1127BLANCO","Set de top y pantalon ","SETS","unidad","1",0,"15","27","27","15","111","4","57"
+"5209NEGRO","Set de chaleco y pantalon","SETS","unidad","0",0,"15","30","0","0","395","14","189"
+"ZAPATOS18","On cloud","ZAPATOS","unidad","4",0,"31","65","260","124","1.417","22","735"
+"ZAPATOS19","New balance 9060","ZAPATOS","unidad","12",0,"31","65","780","372","780","12","408"
+"3187CELESTE","Chaqueta y pantalon ","SETS","unidad","0",0,"12","28","0","0","140","5","71"
+"3187ESPRESSO","Set de chaqueta y pantalon","SETS","unidad","2",0,"12","28","56","24","112","4","55"
+"3187MARRON","Chaqueta y pantalon ","SETS","unidad","0",0,"12","28","0","0","112","4","59,5"
+"3187NEGRO","Chaqueta y pantalon  ","SETS","unidad","2",0,"12","28","56","24","140","5","66,5"
+"ZAPATOS20","Nike metcon beige","ZAPATOS","unidad","2",0,"32","65","130","64","780","12","396"
+"ZAPATOS21","Nike metcon negras","ZAPATOS","unidad","12",0,"32","65","780","384","845","13","429"
+"7453130333822","Jeans palazzo","JEANS","unidad","0",0,"17,5","32","0","0","512","16","232"
+"7453130333952","Jeans palazzo","JEANS","unidad","3",0,"17,5","32","96","52,5","384","12","174"
+"7453130348710","Jeans ancho","JEANS","unidad","5",0,"17,5","32","160","87,5","217,6","7","95,1"
+"7453130348802","Jeans ancho","JEANS","unidad","1",0,"17,5","32","32","17,5","352","11","159,5"
+"SETD23","Set de top short deportivo","ROPA DEPORTIVA","unidad","2",0,"17,5","27","54","35",0,0,0
+"SETD24","Set de top y leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"22,2","30","30","22,2","60","2","15,6"
+"SETD25","Set de top y short deportivo","ROPA DEPORTIVA","unidad","0",0,"16,75","27","0","0","27","1","10,25"
+"SETD26","Set de top y short deportivo","ROPA DEPORTIVA","unidad","3",0,"17","27","81","51",0,0,0
+"SETD27","Set de top y leggins deportiva","ROPA DEPORTIVA","unidad","0",0,"17","27","0","0","27","1","10"
+"SETD28","Set de top y leggins deportiva ","ROPA DEPORTIVA","unidad","0",0,"21","29","0","0","58","2","16"
+"SETD29","Set de top y leggins deportivo","ROPA DEPORTIVA","unidad","1",0,"21","29","29","21","29","1","8"
+"SETD30","Set de top manga larga y leggins deportivo","ROPA DEPORTIVA","unidad","2",0,"21,5","30","60","43","30","1","8,5"
+"SETD31","Set de top manga larga y leggins deportivo ","ROPA DEPORTIVA","unidad","1",0,"22","30","30","22","60","2","16"
+"SETD32","Set de top manga larga y leggins deportivo ","ROPA DEPORTIVA","unidad","0",0,"22","30","0","0","60","2","16"
+"SETD33","Set de top manga larga y leggins deportivo  ","ROPA DEPORTIVA","unidad","0",0,"18","28","0","0","56","2","20"
+"SETD34","Set de top y leggins deportivo ","ROPA DEPORTIVA","unidad","2",0,"14,22","27","54","28,44","27","1","12,78"
+"SETD35","Set de top manga larga y leggins deportivo ","ROPA DEPORTIVA","unidad","0",0,"22,75","30","0","0","90","3","21,75"
+"SETD36","Set de top manga larga y leggins deportivo  ","ROPA DEPORTIVA","unidad","1",0,"23","30","30","23","60","2","14"
+"SETD37","Set de top y short","ROPA DEPORTIVA","unidad","3",0,"14","27","81","42",0,0,0
+"SETD38","Set de top y short","ROPA DEPORTIVA","unidad","2",0,"14","27","54","28",0,0,0
+"JEANSSHEIN03","Jeans ancho ","JEANS","unidad","1",0,"30","40","40","30","344","9","74"
+"JEANSSHEIN04","Jeans ancho prelavado","JEANS","unidad","0",0,"22","34","0","0","132","4","44"
+"JEANSSHEIN05","Jeans ancho","JEANS","unidad","0",0,"26","37","0","0","229","7","71"
+"JEANSFOREVER02","Jeans bota ancha","JEANS","unidad","0",0,"25","35","0","0","35","1","10"
+"JEANSSHEIN06","Jeans de brillos","JEANS","unidad","3",0,"24","35","105","72","350","10","110"
+"JEANSSHEIN07","Jeans de brillos ","JEANS","unidad","13",0,"24","35","455","312","175","5","55"
+"7453130346617","Jeans recto","JEANS","unidad","0",0,"20","30","0","0","466","16","160"
+"7453130367094","Jeans ancho ","JEANS","unidad","0",0,"17","28","0","0","756","27","278"
+"7453130348598","Jeans palazzo","JEANS","unidad","1",0,"20","32","32","20","401","13","150"
+"7453130333983","Jeans palazzo","JEANS","unidad","0",0,"16,3","32","0","0","480","15","235,5"
+"0774SEBUSCA","Jeans bota campana ","JEANS","unidad","0",0,"14,55","27","0","0","378","14","174,3"
+"0785SEBUSCA","Jeans ancho ","JEANS","unidad","0",0,"17","28","0","0","582,4","21","225,4"
+"0756SEBUSCA","Jeans ancho ","JEANS","unidad","0",0,"15,37","27","0","0","162","6","69,78"
+"7453130334461","Jeans ancho ","JEANS","unidad","1",0,"14,9","26","26","14,9","254,8","10","105,8"
+"7453120390064","Jeans ancho ","JEANS","unidad","5",0,"14,9","27","135","74,5","162","6","72,6"
+"0738SEBUSCA","Jeans ancho","JEANS","unidad","0",0,"17","28","0","0","492,8","18","186,8"
+"7453130321997","Jeans palazzo","JEANS","unidad","0",0,"19","32","0","0","32","1","13"
+"1332MARRON","Chaleco","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","44","2","24"
+"1332BEIGE","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","44","2","24"
+"1332CREMA","Chaleco ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","22","0","0","22","1","12"
+"1332NEGRO","Chaleco  ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","22","22","10","22","1","12"
+"3268CHICMI","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"14,75","17","51","44,25","49,3","3","5,05"
+"3268CHICMI","Top manga larga","BLUSAS/TOPS/CHALECOS","unidad","3",0,"14,75","17","51","44,25","51","3","6,75"
+"7453128380579","Jeans palazzo ","JEANS","unidad","0",0,"16,3","32","0","0","576","18","282,6"
+"1219ROSA","Set de chaleco y pantalon ","SETS","unidad","0",0,"19","30","0","0","90","3","33"
+"5173NEGRO","Set de chaleco y pantalon ","SETS","unidad","0",0,"17","30","0","0","210","7","85"
+"5173BEIGE","Set de chaleco y pantalon  ","SETS","unidad","0",0,"17","30","0","0","120","4","50"
+"1219NEGRO","Set de chaleco y pantalon  ","SETS","unidad","0",0,"19","30","0","0","90","3","33"
+"0358BEIGE","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"3415CREMA","Set de chaqueta y pantalon  ","SETS","unidad","0",0,"14,5","30","0","0","171","6","82,5"
+"0358NEGRO","Set de blusa y pantalon   ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"0358AZUL","Set de blusa y pantalon  ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"0372NEGRO","Set de blusa y pantalon","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"0372BLANCO","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","54","2","24"
+"0372VERDE","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"0372BEIGE","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","81","3","36"
+"0372CREMA","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","81","3","36"
+"0389BEIGE","Set de top y pantalon","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"2203NEGRO","Set de top y pantalon","SETS","unidad","0",0,"11","27","0","0","135","5","64"
+"2203CREMA","Set de top y pantalon ","SETS","unidad","0",0,"11","27","0","0","108","4","56"
+"2203BLANCO","Set de top y pantalon ","SETS","unidad","0",0,"15","27","0","0","162","6","72"
+"0783SEBUSCA","Jeans bota ancha ","JEANS","unidad","3",0,"16","28","84","48","308","11","132"
+"5076SEBUSCA","Jeans bota ancha","JEANS","unidad","1",0,"16","28","28","16","386,4","14","162,4"
+"5097SEBUSCA","Jeans bota ancha","JEANS","unidad","0",0,"17","28","0","0","392","14","154"
+"TOP128","Top estilo chaleco","BLUSAS/TOPS/CHALECOS","unidad","0",0,"14","25","0","0","344","16","172,5"
+"TOP129","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"6,5","17","51","19,5","68","4","42"
+"TOP130ALGODON","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","117,3","7","71,8"
+"TOP131","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6,5","17","34","13","270,3","16","166,3"
+"TOP132","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"6,5","17","102","39","83,3","5","50,8"
+"TOP133","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","85","5","52,5"
+"TOP134","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6,5","17","68","26","51","3","31,5"
+"TOP135","Top basico   ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6,5","17","34","13","221","13","136,5"
+"TOP136","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","6",0,"6,5","17","102","39","153","9","94,5"
+"TOP137","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6,5","17","68","26","272","16","168"
+"TOP138","Top basico   ","BLUSAS/TOPS/CHALECOS","unidad","5",0,"6,5","17","85","32,5","32,3","2","19,3"
+"TOP139","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","10",0,"6,5","17","170","65","102","6","63"
+"TOP140","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"6,5","17","51","19,5","136","8","84"
+"TOP141","Top basico","BLUSAS/TOPS/CHALECOS","unidad","2",0,"6,5","17","34","13","51","3","31,5"
+"TOP142","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","17","17","6,5","102","6","63"
+"TOP143","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","17","17","6,5","34","2","21"
+"TOP144ALGODON","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","17","17","6,5","102","6","63"
+"TOP145","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","4",0,"6,5","17","68","26","51","3","31,5"
+"TOP146","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","253,3","15","155,8"
+"TOP147","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","85","5","52,5"
+"TOP148","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","83,3","5","50,8"
+"TOP149","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"6,5","17","0","0","100,3","6","61,3"
+"TOP150ALGODON","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","17","17","6,5","85","5","52,5"
+"TOP151ALGODON","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"6,5","17","17","6,5","68","4","42"
+"TOP152","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","3",0,"6,5","17","51","19,5","83,3","5","50,8"
+"TOP153","Top basico  ","BLUSAS/TOPS/CHALECOS","unidad","11",0,"6,5","17","187","71,5","102","6","63"
+"ZAPATOS22","New balance 9060","ZAPATOS","unidad","5",0,"32","65","325","160","513,5","8","257,5"
+"7453119116279","Jeans ancho","JEANS","unidad","3",0,"15,6","28","84","46,8","268,8","10","107,2"
+"7450214132784","Jeans palazzo de brillos","JEANS","unidad","5",0,"17,5","39","195","87,5","663","17","365,5"
+"7450214132821","Jeans palazzo de brillos","JEANS","unidad","0",0,"17,5","39","0","0","507","13","279,5"
+"TOP154","Top negro","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","19","38","16","214","12","125"
+"TOP155","Top basico   ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","18","36","18","162","9","81"
+"TOP156","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","7",0,"7","17","119","49","51","3","30"
+"TOP157","Top basico ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"7","17","34","14","68","4","40"
+"7453130348512","Jeans palazzo","JEANS","unidad","4",0,"18","32","128","72","320","10","140"
+"7453136305687","Bermuda denim","JEANS","unidad","2",0,"9,7","25","50","19,4","605","20","226,5"
+"7453130348482","Jeans palazzo ","JEANS","unidad","1",0,"20","32","32","20","768","24","288"
+"7453130348536","Jeans palazzo ","JEANS","unidad","0",0,"20","32","0","0","256","8","96"
+"7292BEIGE","Vestido largo","VESTIDOS","unidad","2",0,"13,5","25","50","27","50","2","23"
+"7292NEGRO","Vestido largo ","VESTIDOS","unidad","2",0,"13,5","25","50","27","50","2","23"
+"7292CREMA","Vestido largo  ","VESTIDOS","unidad","2",0,"13,5","25","50","27","50","2","23"
+"ZAPATOS23","On cloud ","ZAPATOS","unidad","3",0,"32","65","195","96","1.300","20","660"
+"1350VINO","Set de chaleco y pantalon ","SETS","unidad","3",0,"14","27","81","42",0,0,0
+"1350MARRON","Set de chaleco y pantalon ","SETS","unidad","0",0,"14","27","0","0","108","4","52"
+"1350NEGRO","Set de chaleco y pantalon  ","SETS","unidad","0",0,"14","27","0","0","54","2","26"
+"1350VINO","Set de chaleco y pantalon   ","SETS","unidad","0",0,"14","27","0","0","81","3","39"
+"ZAPATOS25","On cloud  ","ZAPATOS","unidad","12",0,"32","65","780","384","318,5","5","158,5"
+"ZAPATOS24","On cloud   ","ZAPATOS","unidad","5",0,"32","65","325","160","578,5","9","290,5"
+"3415BLANCO","Set de chaqueta y pantalon  ","SETS","unidad","1",0,"14,5","30","30","14,5","90","3","46,5"
+"3415BEIGE","Set de chaqueta y pantalon  ","SETS","unidad","0",0,"14,5","30","0","0","90","3","46,5"
+"3415NEGRO","Set de chaqueta y pantalon ","SETS","unidad","0",0,"14,5","30","0","0","120","4","62"
+"5223CREMA","Set de blusa y pantalon ","SETS","unidad","0",0,"15","27","0","0","135","5","60"
+"5223BEIGE","Set de blusa y pantalon  ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"5223AZUL","Set de blusa y pantalon   ","SETS","unidad","0",0,"15","27","0","0","108","4","48"
+"2692NEGRO","Set de blusa y pantalon  ","SETS","unidad","1",0,"10,5","27","27","10,5","108","4","66"
+"2692GRIS","Set de blusa y pantalon  ","SETS","unidad","1",0,"10,5","27","27","10,5","54","2","33"
+"2692CELESGE","Set de blusa y pantalon  ","SETS","unidad","0",0,"10,5","27","0","0","108","4","66"
+"2692CREMA","Set de blusa y pantalon ","SETS","unidad","2",0,"10,5","27","54","21","81","3","49,5"
+"3408GRIS","Set de blusa y pantalon  ","SETS","unidad","0",0,"13,5","28","0","0","112","4","58"
+"3408VERDE","Set de blusa y pantalon  ","SETS","unidad","0",0,"13,5","28","0","0","56","2","29"
+"3408BLANCO","Set de blusa y pantalon ","SETS","unidad","0",0,"13,5","28","0","0","28","1","14,5"
+"3408NEGRO","Set de blusa y pantalon  ","SETS","unidad","0",0,"13,5","28","0","0","140","5","72,5"
+"201NEGRO","Set de chaqueta y jogger ","SETS","unidad","0",0,"23","35","0","0","210","6","72"
+"201CELESTE","Set de chaqueta y jogger ","SETS","unidad","1",0,"23","35","35","23","70","2","24"
+"201CHOCOLATE","Set de chaqueta y jogger  ","SETS","unidad","0",0,"23","35","0","0","210","6","72"
+"101BEIGE","Set de sweater y pantalon","SETS","unidad","4",0,"22,7","36","144","90,8","144","4","53,2"
+"11SCAMEL","Set de camisa y pantalon","SETS","unidad","0",0,"23","32","0","0","192","6","63,9"
+"11SMARRON","Set de camisa y pantalon","SETS","unidad","0",0,"19,7","32","0","0","224","7","86,1"
+"11SCELESTE","Set de camisa y pantalon","SETS","unidad","0",0,"19,7","32","0","0","224","7","86,1"
+"101NEGRO","Set de sweater y pantalon","SETS","unidad","2",0,"22,7","36","72","45,4","216","6","79,8"
+"101CELESTE","Set de sweater y pantalon","SETS","unidad","2",0,"22,7","36","72","45,4","108","3","39,9"
+"1SNEGRO","Set de top y pantalon","SETS","unidad","3",0,"11,45","25","75","34,349","100","4","54,2"
+"1SMOCHAMOUSSE","Set de top y pantalon","SETS","unidad","2",0,"11,45","25","50","22,9","125","5","67,75"
+"1SROJO","Set de top y pantalon","SETS","unidad","4",0,"11,45","25","100","45,8","50","2","27,1"
+"1SESPRESSO","Set de top y pantalon","SETS","unidad","4",0,"11,45","25","100","45,8","50","2","27,1"
+"1SMARRON"," Set de top y pantalon","SETS","unidad","3",0,"11,45","25","75","34,349","75","3","40,65"
+"1SAZUL","Set de top y pantalon","SETS","unidad","3",0,"11,45","25","75","34,349","50","2","27,1"
+"19SNEGRO","Set de top y pantalon","SETS","unidad","0",0,"12,2","27","0","0","135","5","74"
+"19SMOCHAMOUSSE","Set de top y pantalon","SETS","unidad","0",0,"12,2","27","0","0","27","1","14,8"
+"01TROJO","Straple","BLUSAS/TOPS/CHALECOS","unidad","1",0,"8,75","17","17","8,75","30,6","2","13,1"
+"01TMARRON","Straple","BLUSAS/TOPS/CHALECOS","unidad","0",0,"8,75","17","0","0","66,3","4","31,3"
+"22TROJA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9,7","19","38","19,4","19","1","9,3"
+"22TBLANCA","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9,7","19","0","0","76","4","37,2"
+"101MARRON","Set de sweater y pantalon ","SETS","unidad","1",0,"22,7","36","36","22,7","216","6","79,8"
+"7450113474466","Set de jeans chaleco y pantalon","SETS","unidad","1",0,"27,5","45","45","27,5","765","17","297,5"
+"JEANSSHEIN08","Jeans ancho","JEANS","unidad","0",0,"25","37","0","0","37","1","12"
+"JEANSSHEIN09","Jeans ancho ","JEANS","unidad","2",0,"27,33","37","74","54,66","222","6","58,02"
+"JEANSSHEIN10","Jeans ancho  ","JEANS","unidad","0",0,"29","38","0","0","114","3","27"
+"JEANSSHEIN11","Jeans ancho   ","JEANS","unidad","0",0,"29","40","0","0","200","5","55"
+"JEANSSHEIN12","Jeans ancho ","JEANS","unidad","1",0,"29","38","38","29","227","6","54"
+"JEANSSHEIN13","Jeans ancho ","JEANS","unidad","1",0,"22","34","34","22","136","4","48"
+"","Jeans ancho  (copia)","JEANS","unidad","","","22","34","","",0,0,0
+"7450113473391","Jeans ancho","JEANS","unidad","5",0,"18","29","145","90","290","10","110"
+"7453130367544","Jeans ancho","JEANS","unidad","1",0,"19","30","30","19","300","10","110"
+"7453130367490","Jeans ancho","JEANS","unidad","2",0,"18","28","56","36","56","2","20"
+"7453130368367","Jeans bota ancha","JEANS","unidad","6",0,"19","30","180","114","270","9","95"
+"0718819013721","Jeans bota campana","JEANS","unidad","0",0,"18","28","0","0","224","8","80"
+"7453130360491","Jeans bota campana","JEANS","unidad","2",0,"18","29","58","36","116","4","44"
+"JEANSCELLO01","Jeans ancho","JEANS","unidad","0",0,"30","45","0","0","135","3","45"
+"CORSET43","Corset","BLUSAS/TOPS/CHALECOS","unidad","14",0,"8","25","350","112","50","2","34"
+"CORSET44","Corset estilo faja","BLUSAS/TOPS/CHALECOS","unidad","20",0,"8","25","500","160","25","1","17"
+"CORSET45","Corset estilo faja","BLUSAS/TOPS/CHALECOS","unidad","20",0,"8","25","500","160",0,0,0
+"CORSET46","Corset estilo faja ","BLUSAS/TOPS/CHALECOS","unidad","17",0,"8","25","425","136","50","2","34"
+"CORSET47","Corset estilo faja","BLUSAS/TOPS/CHALECOS","unidad","16",0,"8","25","400","128","25","1","17"
+"7453000123300","Jeans bota ancha ","JEANS","unidad","3",0,"16,3","30","90","48,900","300","10","137"
+"ZAPATOS26","On cloud  ","ZAPATOS","unidad","2",0,"36","65","130","72","195","3","87"
+"ZAPATOS27","Nike  ","ZAPATOS","unidad","3",0,"32","55","165","96","385","7","161"
+"ZAPATOS28","On cloud","ZAPATOS","unidad","6",0,"32","65","390","192","455","7","231"
+"FALD30","Falda larga","FALDAS","unidad","5",0,"9","26","130","45",0,0,0
+"FALD31","Falda short larga","FALDAS","unidad","5",0,"14","28","140","70","56","2","28"
+"FALD32","Falda short larga","FALDAS","unidad","4",0,"14,5","28","112","58","224","8","108"
+"FALD33","Falda larga ","FALDAS","unidad","4",0,"14,5","26","104","58",0,0,0
+"FALD34","Falda short larga","FALDAS","unidad","7",0,"14,5","28","196","101,5","56","2","27"
+"BODY31","Body  ","BODIES","unidad","0",0,"12","22","0","0","44","2","20"
+"BODY32","Body   ","BODIES","unidad","0",0,"12","25","0","0",0,0,0
+"TOP158","Top","BLUSAS/TOPS/CHALECOS","unidad","1",0,"10","22","22","10","44","2","24"
+"TOP159","Top de lentejuelas","BLUSAS/TOPS/CHALECOS","unidad","0",0,"12","25","0","0","75","3","39"
+"TOP160","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"14","22","44","28",0,0,0
+"TOP161","Top  ","BLUSAS/TOPS/CHALECOS","unidad","1",0,"14","22","22","14","22","1","8"
+"TOP162","Blusa","BLUSAS/TOPS/CHALECOS","unidad","2",0,"8","19","38","16","76","4","44"
+"TOP163","Blusa manga larga de encaje","BLUSAS/TOPS/CHALECOS","unidad","3",0,"9","20","60","27",0,0,0
+"FALD35","Falda de cuerina","FALDAS","unidad","1",0,"10","26","26","10","52","2","32"
+"TOP164","Blazer estilo chaleco","BLUSAS/TOPS/CHALECOS","unidad","3",0,"12","25","75","36","150","6","70"
+"TOP165","Top ","BLUSAS/TOPS/CHALECOS","unidad","2",0,"9","19","38","18","19","1","10"
+"TOP166","Corset azul","BLUSAS/TOPS/CHALECOS","unidad","4",0,"17","27","108","68","73","3","31"
+"TOP167","Blusa","BLUSAS/TOPS/CHALECOS","unidad","3",0,"10","20","60","30",0,0,0
+"TOP168","Blusa gris","BLUSAS/TOPS/CHALECOS","unidad","5",0,"10","20","100","50","97","5","49"
+"BLUSA169","Blusa ","BLUSAS/TOPS/CHALECOS","unidad","0",0,"11","20","0","0","40","2","18"
+"TOP169","Malla de encaje manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"9","20","0","0","160","8","88"
+"TOP170","Straple blanco/vino/negro","BLUSAS/TOPS/CHALECOS","unidad","4",0,"7","17","68","28","156","9","90"
+"TOP171","Blusa de encaje manga larga","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","40","2","20"
+"TOP172","Top gris","BLUSAS/TOPS/CHALECOS","unidad","2",0,"12","21","42","24","104","5","48"
+"TOP173","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"10","20","0","0","60","3","32"
+"TOP174","Blusa","BLUSAS/TOPS/CHALECOS","unidad","0",0,"15","25","0","0","150","6","60"
+"7453130349670","Jeans bota ancha","JEANS","unidad","1",0,"18","30","30","18","90","3","36"
+"7453130349007","Jeans ancho","JEANS","unidad","3",0,"20","32","96","60","64","2","24"
+"7453130366905","Jeans nuevo ","JEANS","unidad","5",0,"20","32","160","100","32","1","12"
+"7453130332719","Jeans bota ancha","JEANS","unidad","4",0,"20","32","128","80","96","3","36"
+"9447SEBUSCA","Jeans bota campana","JEANS","unidad","10",0,"18","30","300","180",0,0,0
+"7453130366448","Jeans bota campana","JEANS","unidad","5",0,"18","29","145","90","29","1","11"
+"7450224055905","Jeans bota ancha","JEANS","unidad","10",0,"20","32","320","200","224","7","84"
+"7453130339404","Jeans bota recta","JEANS","unidad","5",0,"18","29","145","90",0,0,0
+"7450113482003","Pantalon color uva ","JEANS","unidad","4",0,"15","30","120","60","210","7","105"
+"7453084932287","Jeans skinny","JEANS","unidad","11",0,"15","25","275","165",0,0,0
+"7453130367636","Jeans palazzo","JEANS","unidad","5",0,"20","32","160","100","64","2","24"
+"7453133904609","Jeans bota recta","JEANS","unidad","3",0,"15","30","90","45","270","9","135"
+"7453084932409","Jeans bota recta","JEANS","unidad","8",0,"16","28","224","128","28","1","12"
+"7453130365403","Jeans bota campana","JEANS","unidad","1",0,"20","32","32","20",0,0,0
+"7453130349298","Jeans bota ancha","JEANS","unidad","5",0,"18","30","150","90",0,0,0
+"7450117464043","Jeans bota ancha","JEANS","unidad","1",0,"16","28","28","16",0,0,0
+"7453130367568","Jeans bota ancha","JEANS","unidad","6",0,"18","30","180","108","30","1","12"
+"7453130360781","Jeans bota campana","JEANS","unidad","1",0,"18","29","29","18",0,0,0
+"7450214033777","Jeans cargo","JEANS","unidad","2",0,"19","30","60","38",0,0,0
+"5453133910396","Jeans negro de brillos","JEANS","unidad","5",0,"20","35","175","100",0,0,0
+"7453105878914","Jeans mom","JEANS","unidad","1",0,"20","25","25","20",0,0,0
+"7450113421125","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"7453119115623","Jeans cargo","JEANS","unidad","1",0,"20","32","32","20",0,0,0
+"7450113430080","Jeans cargo","JEANS","unidad","1",0,"17","27","27","17",0,0,0
+"7800114489637","Jeans skinny","JEANS","unidad","1",0,"12,5","25","25","12,5",0,0,0
+"7453124793731","Jeans cargo","JEANS","unidad","1",0,"20","29","29","20",0,0,0
+"7450113443691","Jeans ancho","JEANS","unidad","2",0,"18","27","54","36",0,0,0
+"7453105804357","Jeans skinny","JEANS","unidad","1",0,"12,5","25","25","12,5",0,0,0
+"7450113443738","Jeans bota ancha","JEANS","unidad","1",0,"17","27","27","17",0,0,0

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara E-commerce Multisede - Guía de Uso y Características</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased p-6 md:p-12">
+
+    <div class="max-w-5xl mx-auto space-y-12">
+        
+        <!-- Header -->
+        <header class="text-center space-y-4">
+            <h1 class="text-5xl font-extrabold tracking-tight gradient-text">Ara E-commerce Multisede</h1>
+            <p class="text-xl text-slate-500">Guía Exhausitiva de Uso y Características</p>
+        </header>
+
+        <!-- Sección 1: Características Principales -->
+        <section class="space-y-6">
+            <h2 class="text-3xl font-bold text-slate-800 border-b pb-2">1. Características Completas del Sistema</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>🏢</span> Sistema Multisede Avanzado
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li>Gestión de múltiples sucursales con inventario independiente.</li>
+                        <li>Visibilidad de stock Local vs. Global en el punto de venta.</li>
+                        <li>Bandeja Compartida: Los pedidos web (Delivery) son visibles por todas las sedes hasta que una los "adopta" y descuenta su stock.</li>
+                        <li>Transferencias de stock entre sedes con registro de origen, destino y usuario.</li>
+                    </ul>
+                </div>
+
+                <!-- Card -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>🛍️</span> Omnicanalidad (POS + Web)
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Punto de Venta (POS):</strong> Interfaz rápida para vendedores físicos. Descuento de stock en tiempo real.</li>
+                        <li><strong>Tienda Online:</strong> Catálogo público con carrito, wishlist y perfiles de cliente.</li>
+                        <li>Diferenciación automática en base de datos entre ventas POS (con <code>seller_id</code>) y Web (sin <code>seller_id</code>).</li>
+                    </ul>
+                </div>
+
+                <!-- Card -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>📦</span> Gestión de Inventario y Variantes
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li>Soporte nativo para <strong>variantes de productos</strong> (ej. tallas, colores) a nivel de base de datos.</li>
+                        <li>Historial y auditoría (<code>product_movements</code>) de cada entrada, salida, ajuste, venta o transferencia.</li>
+                        <li>Prevención de stock negativo mediante triggers en MySQL.</li>
+                    </ul>
+                </div>
+
+                <!-- Card -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>✨</span> UX Premium y Tecnología Moderna
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>PWA (Progressive Web App):</strong> Instalable en móviles y PC, notificaciones push, funcionamiento offline.</li>
+                        <li>Diseño UI/UX estilo iOS (Liquid Glass, Dark Mode, Micro-animaciones).</li>
+                        <li>CDN de imágenes automático para máxima velocidad.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Marketing -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>🏷️</span> Marketing y Fidelización
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li>Sistema de cupones de descuento personalizados.</li>
+                        <li>Descuentos por porcentaje (%) o montos fijos ($).</li>
+                        <li>Gestión de activación/pausa de promociones en tiempo real.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: CRM -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>👥</span> CRM y Gestión de Clientes
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li>Directorio centralizado de clientes (Módulo Customers).</li>
+                        <li>Historial de compras y preferencias guardadas (Wishlist).</li>
+                        <li>Asignación de perfiles para fidelización.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Analytics -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>📈</span> Analíticas Avanzadas
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li>Módulo específico de <code>Inventory Analytics</code> para prever demanda y tendencias.</li>
+                        <li>Gráficos interactivos de ventas y rendimiento por sede.</li>
+                        <li>Diferenciación clara de métricas entre canales Web y POS.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: UI Utilities -->
+                <div class="glass-card rounded-2xl p-6">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span>🛠️</span> Utilidades UI Integradas
+                    </h3>
+                    <ul class="list-disc pl-5 space-y-2 text-slate-600">
+                        <li><strong>Recorte de Imágenes:</strong> Componente nativo en el admin para optimizar fotos antes de subirlas.</li>
+                        <li><strong>Búsqueda Global:</strong> Overlay rápido para buscar en todo el catálogo.</li>
+                        <li><strong>Notificaciones In-App:</strong> Sistema de alertas Toast personalizadas.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 2: Guía de Uso -->
+        <section class="space-y-6">
+            <h2 class="text-3xl font-bold text-slate-800 border-b pb-2">2. Guía de Uso Rápido</h2>
+
+            <div class="space-y-6">
+                <!-- Flujo de Pedidos -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-2xl font-semibold mb-4 text-blue-600">Gestión de Pedidos (Delivery Global)</h3>
+                    <ol class="list-decimal pl-5 space-y-3 text-slate-700">
+                        <li>Un cliente realiza un pedido en la tienda online. Entra como <code>pending</code> a la Sede Principal.</li>
+                        <li>En el panel Admin, los pedidos globales aparecen resaltados con un <strong>borde naranja</strong>.</li>
+                        <li>El operador de cualquier sede (ej. Sede Norte) visualiza el pedido.</li>
+                        <li>Al hacer clic en <strong>"Completar / Entregar"</strong>, el sistema transfiere el pedido a la Sede Norte y descuenta el stock del inventario de dicha sede.</li>
+                    </ol>
+                </div>
+
+                <!-- Flujo de POS -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-2xl font-semibold mb-4 text-purple-600">Uso del Punto de Venta (POS)</h3>
+                    <ol class="list-decimal pl-5 space-y-3 text-slate-700">
+                        <li>El vendedor ingresa al módulo POS desde su sucursal.</li>
+                        <li>Al buscar un producto, el sistema muestra el <strong>Stock Local</strong>. Si no hay, muestra el <strong>Stock Global</strong> de otras sedes.</li>
+                        <li>Se agrega al carrito y se cobra. El sistema registra la venta automáticamente bajo el canal "POS" y descuenta el stock localmente.</li>
+                    </ol>
+                </div>
+
+                <!-- Transferencias -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-2xl font-semibold mb-4 text-green-600">Mover Stock entre Sedes</h3>
+                    <ol class="list-decimal pl-5 space-y-3 text-slate-700">
+                        <li>En el módulo de Inventario, seleccionar la opción de <strong>Transferir</strong>.</li>
+                        <li>Seleccionar el producto (y su variante, si aplica).</li>
+                        <li>Indicar Sede Origen, Sede Destino y Cantidad.</li>
+                        <li>El sistema registrará el movimiento en <code>product_movements</code> con el tipo <code>transfer</code>.</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección 3: Arquitectura Técnica (Resumen) -->
+        <section class="space-y-6">
+            <h2 class="text-3xl font-bold text-slate-800 border-b pb-2">3. Arquitectura y Seguridad</h2>
+            <div class="bg-slate-800 text-white rounded-2xl p-6 overflow-x-auto">
+                <ul class="space-y-3 font-mono text-sm">
+                    <li><span class="text-blue-400">Frontend:</span> React 18.3, TypeScript 5.8, Vite, TailwindCSS.</li>
+                    <li><span class="text-green-400">Backend:</span> PHP 8.0+, Base de datos MySQL con Procedimientos Almacenados.</li>
+                    <li><span class="text-yellow-400">Seguridad DB:</span> Triggers (trg_inventory_check_negative) previenen inconsistencias.</li>
+                    <li><span class="text-purple-400">Roles:</span> Admin (Acceso total), Vendedor (Solo POS y su sede), Master.</li>
+                    <li><span class="text-red-400">Despliegue:</span> Frontend preparado para Vercel/Netlify. Backend en VPS/cPanel clásico.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center pt-8 border-t text-slate-500">
+            <p>Generado automáticamente a partir de la documentación del sistema. © 2026</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

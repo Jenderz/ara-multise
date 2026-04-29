@@ -1,0 +1,11 @@
+# Ignorar todas las imágenes subidas
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.svg
+
+# Pero mantener la estructura de carpetas
+!.gitignore
+!.htaccess
