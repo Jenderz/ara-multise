@@ -40,8 +40,8 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({ settings, onUpdate
 
                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
                         <div>
-                            <p className="text-sm font-bold dark:text-white">Ocultar Nombre en el Menú</p>
-                            <p className="text-[10px] text-gray-500">Mostrar solo el logo en la cabecera.</p>
+                            <p className="text-sm font-bold dark:text-white">Ocultar Nombre de la Tienda</p>
+                            <p className="text-[10px] text-gray-500">Muestra solo el logo en el menú y en el footer (sin texto del nombre).</p>
                         </div>
                         <button onClick={() => onUpdate({ hideStoreName: !settings.hideStoreName })} className={`w-12 h-6 rounded-full transition-all relative ${settings.hideStoreName ? 'bg-ios-blue' : 'bg-gray-300'}`}>
                             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.hideStoreName ? 'right-1' : 'left-1'}`} />

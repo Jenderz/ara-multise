@@ -164,3 +164,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </Card>
     );
 };
+
+// =====================================================
+// SKELETON CARD — Se muestra mientras los productos cargan
+// =====================================================
+export const ProductCardSkeleton: React.FC = () => (
+    <div className="h-full rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/5 flex flex-col animate-pulse">
+        {/* Imagen */}
+        <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-700 relative overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        </div>
+        {/* Contenido */}
+        <div className="p-5 flex-1 flex flex-col gap-3">
+            <div className="h-5 bg-gray-100 dark:bg-zinc-800 rounded-xl w-3/4" />
+            <div className="h-4 bg-gray-100 dark:bg-zinc-800 rounded-xl w-1/2" />
+            <div className="mt-auto grid grid-cols-2 gap-2 pt-2">
+                <div className="h-10 bg-gray-100 dark:bg-zinc-800 rounded-xl" />
+                <div className="h-10 bg-gray-200 dark:bg-zinc-700 rounded-xl" />
+            </div>
+        </div>
+    </div>
+);

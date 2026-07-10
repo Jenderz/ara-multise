@@ -7,6 +7,7 @@ import { Button } from '../components/UIComponents';
 import { ChevronLeft, Heart, Check, X, AlertCircle, Store, MapPin, Globe } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { DEFAULT_IMAGE } from '../config';
+import { trackProductView } from './Home';
 
 export const ProductDetail = () => {
     const { id } = useParams();
@@ -37,6 +38,9 @@ export const ProductDetail = () => {
 
             // Limpiamos selecciones al cambiar de producto
             setSelections({});
+
+            // Registrar visita para "Visto Recientemente"
+            trackProductView(product.id);
 
             // Forzar vista al principio de la página al cargar el producto
             window.scrollTo({ top: 0, left: 0, behavior: 'auto' });

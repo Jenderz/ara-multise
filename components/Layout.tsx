@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check } from 'lucide-react';
+import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
 
@@ -93,6 +93,61 @@ export const Navbar = () => {
   );
 };
 
+// =====================================================
+// ANNOUNCEMENT BAR
+// =====================================================
+export const AnnouncementBar = () => {
+  const { settings } = useStore();
+  const [dismissed, setDismissed] = useState(false);
+
+  // Revisar si ya fue cerrada en esta sesión
+  useEffect(() => {
+    const key = `ann_dismissed_${settings.announcementBarText}`;
+    if (sessionStorage.getItem(key)) setDismissed(true);
+  }, [settings.announcementBarText]);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    const key = `ann_dismissed_${settings.announcementBarText}`;
+    sessionStorage.setItem(key, '1');
+  };
+
+  if (!settings.announcementBarEnabled || !settings.announcementBarText || dismissed) return null;
+
+  const bg = settings.announcementBarBgColor || '#0071E3';
+  const color = settings.announcementBarTextColor || '#ffffff';
+
+  const content = (
+    <span className="text-xs font-semibold tracking-wide" style={{ color }}>
+      {settings.announcementBarText}
+    </span>
+  );
+
+  return (
+    <div
+      className="relative flex items-center justify-center px-10 py-2.5 text-center"
+      style={{ backgroundColor: bg }}
+    >
+      {settings.announcementBarLink ? (
+        <a href={settings.announcementBarLink} target="_blank" rel="noopener noreferrer" className="hover:underline underline-offset-2">
+          {content}
+        </a>
+      ) : content}
+
+      {settings.announcementBarDismissible !== false && (
+        <button
+          onClick={handleDismiss}
+          className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition"
+          aria-label="Cerrar"
+          style={{ color }}
+        >
+          <X size={14} />
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const Footer = () => {
   const { settings } = useStore();
 
@@ -103,6 +158,26 @@ export const Footer = () => {
     return srcMatch ? srcMatch[1] : null;
   }, [settings.contactGoogleMaps]);
 
+  // Generar link de Google Maps a partir del src o dirección
+  const getMapsLink = (srcOrEmbed: string | null | undefined, address?: string) => {
+    if (!srcOrEmbed && !address) return null;
+    if (srcOrEmbed) {
+      // Si es un iframe completo, extraer el src
+      const srcMatch = srcOrEmbed.match(/src="([^"]+)"/);
+      const src = srcMatch ? srcMatch[1] : srcOrEmbed;
+      return src.startsWith('http') ? src : null;
+    }
+    if (address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    return null;
+  };
+
+  const mainMapsLink = getMapsLink(settings.contactGoogleMaps, settings.contactAddress);
+
+  const handleWhatsApp = () => {
+    const phone = String(settings.whatsappNumber || '').replace(/\D/g, '');
+    if (phone) window.open(`https://wa.me/${phone}`, '_blank');
+  };
+
   return (
     <footer className="bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-white/5 mt-auto">
       <div className="max-w-7xl mx-auto px-6 pt-16 pb-8 md:pb-8 pb-32">
@@ -110,25 +185,53 @@ export const Footer = () => {
         {/* Grid Layout Moderno */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
 
-          {/* Columna 1: Marca y Sobre Nosotros (4 columnas) */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-3">
-              {settings.logoUrl ? (
-                <img src={settings.logoUrl} alt={settings.storeName} className="h-12 w-auto object-contain" />
-              ) : (
-                <div className="w-10 h-10 bg-ios-blue rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20">
-                  {settings.storeName.charAt(0).toUpperCase()}
+          {/* Columna 1: Marca (oculta si hideFooterBrand está activo) */}
+          {!settings.hideFooterBrand && (
+            <div className="lg:col-span-4 space-y-6">
+              <div className="flex items-center gap-3">
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} alt={settings.storeName} className="h-12 w-auto object-contain" />
+                ) : (
+                  <div className="w-10 h-10 bg-ios-blue rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20">
+                    {settings.storeName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                {/* Nombre solo visible si NO está oculto (mismo toggle que el navbar) */}
+                {!settings.hideStoreName && (
+                  <span className="font-bold text-2xl text-ios-text dark:text-white tracking-tight">{settings.storeName}</span>
+                )}
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed font-light">
+                {settings.footerDescription || 'Tu tienda de confianza con los mejores productos y la mejor atención.'}
+              </p>
+
+              {/* Horario de atención */}
+              {settings.businessHours && (
+                <div className="flex items-start gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
+                  <Clock size={16} className="text-ios-blue shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Horario</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{settings.businessHours}</p>
+                  </div>
                 </div>
               )}
-              <span className="font-bold text-2xl text-ios-text dark:text-white tracking-tight">{settings.storeName}</span>
-            </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed font-light">
-              {settings.footerDescription || "Tu tienda de confianza con los mejores productos y la mejor atención."}
-            </p>
-          </div>
 
-          {/* Columna 2: Enlaces Rápidos (3 columnas) */}
-          <div className="lg:col-span-3 lg:col-start-6 space-y-6">
+              {/* WhatsApp destacado */}
+              {settings.whatsappNumber && (
+                <button
+                  onClick={handleWhatsApp}
+                  className="w-full flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white px-5 py-3.5 rounded-2xl font-bold transition-all active:scale-95 shadow-lg shadow-green-500/20 group"
+                >
+                  <MessageCircle size={20} className="group-hover:scale-110 transition-transform" />
+                  <span className="text-sm">{settings.whatsappNumber}</span>
+                  <ExternalLink size={14} className="ml-auto opacity-70" />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Columna 2: Explorar */}
+          <div className={`lg:col-span-3 ${!settings.hideFooterBrand ? 'lg:col-start-6' : ''} space-y-6`}>
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Explorar</h4>
             <ul className="space-y-4">
               <li>
@@ -149,57 +252,74 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Columna 3: Contacto y Mapa (4 columnas) */}
-          <div className="lg:col-span-4 lg:col-start-9 space-y-6">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Ubicación y Contacto</h4>
+          {/* Columna 3: Ubicaciones */}
+          <div className="lg:col-span-4 lg:col-start-9 space-y-5">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Ubicación y Contacto</h4>
 
-            <div className="space-y-6">
-              {/* Dirección Principal */}
-              {settings.contactAddress && (
-                <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300 group">
-                  <MapPin size={18} className="shrink-0 text-ios-blue mt-0.5 group-hover:scale-110 transition-transform" />
-                  <div className="flex flex-col gap-1">
-                    <span className="leading-snug">{settings.contactAddress}</span>
-                    {mapSrc && (
-                      <a href={mapSrc} target="_blank" rel="noopener noreferrer" className="text-[10px] text-ios-blue hover:underline flex items-center gap-1 font-bold uppercase trekking-widest">
-                        Ver en el mapa <ExternalLink size={10} />
-                      </a>
-                    )}
+            {/* Dirección Principal */}
+            {settings.contactAddress && (
+              <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-ios-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                    <MapPin size={15} className="text-ios-blue" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Sede Principal</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-200 leading-snug">{settings.contactAddress}</p>
                   </div>
                 </div>
-              )}
-
-              {/* Direcciones Adicionales */}
-              {settings.additionalAddresses && settings.additionalAddresses.map((addr, idx) => (
-                <div key={addr.id || idx} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300 group">
-                  <MapPin size={18} className="shrink-0 text-ios-blue mt-0.5 group-hover:scale-110 transition-transform" />
-                  <div className="flex flex-col gap-1">
-                    <span className="leading-snug">{addr.address}</span>
-                    {addr.mapUrl && (
-                      <a href={addr.mapUrl.startsWith('http') ? addr.mapUrl : (addr.mapUrl.match(/src="([^"]+)"/)?.[1] || addr.mapUrl)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-ios-blue hover:underline flex items-center gap-1 font-bold uppercase trekking-widest">
-                        Ver en el mapa <ExternalLink size={10} />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex flex-col gap-3 pt-2">
-                {settings.whatsappNumber && (
-                  <a href={`https://wa.me/${String(settings.whatsappNumber).replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors group p-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-transparent hover:border-green-200 hover:bg-green-50 dark:hover:bg-green-900/10">
-                    <Phone size={18} className="text-green-500" />
-                    <span className="font-mono font-medium">{settings.whatsappNumber}</span>
-                    <ExternalLink size={14} className="ml-auto opacity-50 group-hover:opacity-100" />
+                {mainMapsLink && (
+                  <a
+                    href={mainMapsLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-white/10 hover:bg-ios-blue hover:text-white text-ios-blue rounded-xl text-[11px] font-bold border border-ios-blue/20 hover:border-ios-blue transition-all group"
+                  >
+                    <MapPin size={12} />
+                    Ver en Google Maps
+                    <ExternalLink size={10} className="opacity-60" />
                   </a>
                 )}
-                {settings.contactEmail && (
-                  <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 p-2 pl-0">
-                    <Mail size={18} className="text-ios-blue ml-2" />
-                    <span>{settings.contactEmail}</span>
-                  </div>
-                )}
               </div>
-            </div>
+            )}
+
+            {/* Direcciones Adicionales */}
+            {settings.additionalAddresses && settings.additionalAddresses.map((addr, idx) => {
+              const addrMapsLink = getMapsLink(addr.mapUrl, addr.address);
+              return (
+                <div key={addr.id || idx} className="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-ios-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                      <MapPin size={15} className="text-ios-blue" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Sede {idx + 2}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-200 leading-snug">{addr.address}</p>
+                    </div>
+                  </div>
+                  {addrMapsLink && (
+                    <a
+                      href={addrMapsLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-white/10 hover:bg-ios-blue hover:text-white text-ios-blue rounded-xl text-[11px] font-bold border border-ios-blue/20 hover:border-ios-blue transition-all group"
+                    >
+                      <MapPin size={12} />
+                      Ver en Google Maps
+                      <ExternalLink size={10} className="opacity-60" />
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Email */}
+            {settings.contactEmail && (
+              <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 px-1">
+                <Mail size={16} className="text-ios-blue shrink-0" />
+                <span>{settings.contactEmail}</span>
+              </div>
+            )}
 
             {/* MAPA ESTILIZADO */}
             {mapSrc && (
@@ -220,7 +340,7 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Pie de Página Final (Copyright) */}
+        {/* Pie de Página Final */}
         <div className="border-t border-gray-100 dark:border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-gray-400 uppercase font-bold tracking-widest">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-left">
             <p className="flex items-center gap-2">
@@ -232,20 +352,25 @@ export const Footer = () => {
             </Link>
           </div>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-3 items-center">
             {settings.socialInstagram && (
-              <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/10 transition-all">
+              <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-pink-500 hover:bg-pink-50 dark:hover:bg-pink-900/10 transition-all" title="Instagram">
                 <Instagram size={16} />
               </a>
             )}
             {settings.socialFacebook && (
-              <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all">
+              <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all" title="Facebook">
                 <Facebook size={16} />
               </a>
             )}
             {settings.socialTwitter && (
-              <a href={settings.socialTwitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-all">
+              <a href={settings.socialTwitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/10 transition-all" title="Twitter / X">
                 <Twitter size={16} />
+              </a>
+            )}
+            {settings.socialTiktok && (
+              <a href={settings.socialTiktok} target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-50 dark:bg-white/5 rounded-full text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all" title="TikTok">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.73a4.85 4.85 0 01-1.01-.04z"/></svg>
               </a>
             )}
           </div>
@@ -396,13 +521,31 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
 
   return (
     <div className="min-h-screen flex flex-col bg-ios-bg dark:bg-black select-none">
+      <AnnouncementBar />
       <Navbar />
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 pt-4 pb-20 md:pb-12">
         {children}
       </main>
       <Footer />
 
-
+      {/* Botón Flotante de WhatsApp */}
+      {settings.showWhatsappFloat && settings.whatsappNumber && (
+        <a
+          href={`https://wa.me/${String(settings.whatsappNumber).replace(/\D/g, '')}${settings.whatsappFloatMessage ? `?text=${encodeURIComponent(settings.whatsappFloatMessage)}` : ''}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Abrir WhatsApp"
+          className="fixed bottom-24 md:bottom-8 right-5 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl shadow-green-500/40 transition-all hover:scale-110 active:scale-95 group"
+          style={{ animation: 'whatsapp-pulse 2.5s ease-in-out infinite' }}
+        >
+          {/* Ícono WhatsApp SVG oficial */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          {/* Ping animado */}
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping opacity-75"></span>
+        </a>
+      )}
 
       {/* Rediseño Menú Móvil Ultra-Slim para máxima ligereza */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[70%] max-w-[280px] z-50">
@@ -431,6 +574,14 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
+
+      {/* Estilos de animación para el botón flotante */}
+      <style>{`
+        @keyframes whatsapp-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+          50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -24,7 +24,16 @@ export interface SystemConfig {
   arawIntegration?: ARAWIntegrationConfig; // Integración B2B con almacén central
 }
 
-export interface StoreSettings extends GeneralConfig, ThemeConfig, HeroConfig, PromoConfig, GiftBannerConfig, SystemConfig { }
+export interface AnnouncementBarConfig {
+  announcementBarEnabled?: boolean;
+  announcementBarText?: string;
+  announcementBarBgColor?: string;
+  announcementBarTextColor?: string;
+  announcementBarLink?: string;
+  announcementBarDismissible?: boolean;
+}
+
+export interface StoreSettings extends GeneralConfig, ThemeConfig, HeroConfig, PromoConfig, GiftBannerConfig, SystemConfig, AnnouncementBarConfig { }
 
 // ... resto del archivo igual (VariantOption, ProductVariant, etc.)
 export interface VariantOption {
@@ -202,9 +211,18 @@ export interface GeneralConfig {
   socialInstagram?: string;
   socialFacebook?: string;
   socialTwitter?: string;
+  socialTiktok?: string;
   hideStoreName?: boolean;
   hideOutOfStock?: boolean;
   additionalAddresses?: { id: string, address: string, mapUrl: string }[];
+  /** Mostrar botón flotante de WhatsApp en todas las páginas públicas */
+  showWhatsappFloat?: boolean;
+  /** Mensaje predeterminado al abrir el chat flotante de WhatsApp */
+  whatsappFloatMessage?: string;
+  /** Horario de atención visible en el footer */
+  businessHours?: string;
+  /** Ocultar el logo y nombre de la tienda en el footer */
+  hideFooterBrand?: boolean;
 }
 
 export interface ThemeConfig {
@@ -249,6 +267,14 @@ export interface HeroConfig {
   homeFeature3Title?: string;
   homeFeature3Text?: string;
   homeFeature3Icon?: string;
+  /** Modo solo imagen: oculta texto y botones en TODOS los slides del hero */
+  heroSliderOnlyImages?: boolean;
+  /** Visibilidad de secciones en la Home */
+  showBestSellers?: boolean;
+  showNewArrivals?: boolean;
+  showSaleSection?: boolean;
+  showCategoriesSection?: boolean;
+  showFeaturesSection?: boolean;
 }
 
 export interface PromoConfig {

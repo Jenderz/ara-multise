@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, Input, ImageUploader } from '../../UIComponents';
-import { LayoutTemplate, Smartphone, MapPin, Mail, Instagram, Facebook, Twitter, Globe, X } from 'lucide-react';
+import { LayoutTemplate, Smartphone, MapPin, Mail, Instagram, Facebook, Twitter, Globe, X, MessageCircle, Clock } from 'lucide-react';
 import { StoreSettings } from '../../../types';
 
 interface GeneralTabProps {
@@ -66,14 +66,122 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, onUpdate }) =>
                 </div>
             </Card>
 
+            {/* BARRA DE ANUNCIO */}
+            <Card className="p-6 space-y-5">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-bold flex items-center gap-2 dark:text-white">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-500"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 14 19.79 19.79 0 01.22 5.26 2 2 0 012.2 3h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 17z"/></svg>
+                        Barra de Anuncio Superior
+                    </h3>
+                    <button
+                        onClick={() => onUpdate({ announcementBarEnabled: !settings.announcementBarEnabled })}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarEnabled ? 'bg-yellow-400 shadow-lg shadow-yellow-400/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                    >
+                        <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.announcementBarEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                </div>
+
+                {/* Preview en vivo */}
+                {settings.announcementBarEnabled && settings.announcementBarText && (
+                    <div
+                        className="w-full py-2.5 px-10 rounded-2xl text-center text-xs font-semibold relative overflow-hidden"
+                        style={{ backgroundColor: settings.announcementBarBgColor || '#0071E3', color: settings.announcementBarTextColor || '#ffffff' }}
+                    >
+                        {settings.announcementBarText}
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 text-[10px]">✕</span>
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Texto del Anuncio</label>
+                        <input
+                            type="text"
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
+                            value={settings.announcementBarText || ''}
+                            onChange={e => onUpdate({ announcementBarText: e.target.value })}
+                            placeholder="🚚 Envío gratis en pedidos mayores a $50"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Fondo</label>
+                            <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
+                                <input
+                                    type="color"
+                                    className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
+                                    value={settings.announcementBarBgColor || '#0071E3'}
+                                    onChange={e => onUpdate({ announcementBarBgColor: e.target.value })}
+                                />
+                                <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">{settings.announcementBarBgColor || '#0071E3'}</span>
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Texto</label>
+                            <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
+                                <input
+                                    type="color"
+                                    className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
+                                    value={settings.announcementBarTextColor || '#ffffff'}
+                                    onChange={e => onUpdate({ announcementBarTextColor: e.target.value })}
+                                />
+                                <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">{settings.announcementBarTextColor || '#ffffff'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Enlace al hacer clic (opcional)</label>
+                        <input
+                            type="url"
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
+                            value={settings.announcementBarLink || ''}
+                            onChange={e => onUpdate({ announcementBarLink: e.target.value })}
+                            placeholder="https://... o /shop"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                        <div>
+                            <h4 className="text-sm font-bold text-gray-800 dark:text-white">Permitir cerrar la barra</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">El usuario puede cerrarla con la "✕". Se recuerda por sesión.</p>
+                        </div>
+                        <button
+                            onClick={() => onUpdate({ announcementBarDismissible: !settings.announcementBarDismissible })}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarDismissible !== false ? 'bg-ios-blue shadow-lg shadow-ios-blue/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                        >
+                            <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.announcementBarDismissible !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
+                </div>
+            </Card>
+
             <Card className="p-6 space-y-6">
                 <h3 className="font-bold flex items-center gap-2 dark:text-white"><MapPin size={20} className="text-ios-blue" /> Footer y Redes</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
+
+                        {/* Toggle: Ocultar marca en footer */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-800 dark:text-white">Ocultar Logo y Nombre en Footer</h4>
+                                <p className="text-xs text-gray-500 mt-0.5">Esconde la columna de marca (logo, descripción y WhatsApp) del pie de página.</p>
+                            </div>
+                            <button
+                                onClick={() => onUpdate({ hideFooterBrand: !settings.hideFooterBrand })}
+                                className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.hideFooterBrand ? 'bg-ios-blue shadow-lg shadow-ios-blue/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                            >
+                                <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.hideFooterBrand ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </button>
+                        </div>
+
+                        {!settings.hideFooterBrand && (
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Descripción Footer</label>
                             <textarea className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white min-h-[80px]" value={settings.footerDescription || ''} onChange={e => onUpdate({ footerDescription: e.target.value })} placeholder="Breve texto sobre tu tienda..." />
                         </div>
+                        )}
                         <Input label="Email" icon={<Mail size={16} />} value={settings.contactEmail || ''} onChange={e => onUpdate({ contactEmail: e.target.value })} />
 
                         <div className="pt-4 border-t border-gray-100 dark:border-white/5 space-y-4">
@@ -159,11 +267,69 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, onUpdate }) =>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-gray-100 dark:bg-white/10 rounded-xl flex items-center justify-center text-gray-800 dark:text-white"><Twitter size={20} /></div>
-                                <Input placeholder="Twitter URL" value={settings.socialTwitter || ''} onChange={e => onUpdate({ socialTwitter: e.target.value })} />
+                                <Input placeholder="Twitter / X URL" value={settings.socialTwitter || ''} onChange={e => onUpdate({ socialTwitter: e.target.value })} />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gray-900 dark:bg-white/10 rounded-xl flex items-center justify-center">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.73a4.85 4.85 0 01-1.01-.04z"/></svg>
+                                </div>
+                                <Input placeholder="TikTok URL" value={settings.socialTiktok || ''} onChange={e => onUpdate({ socialTiktok: e.target.value })} />
+                            </div>
+                        </div>
+
+                        {/* Horario de Atención */}
+                        <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1 mb-3">Horario de Atención</h4>
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-ios-blue/10 rounded-xl flex items-center justify-center shrink-0">
+                                    <Clock size={18} className="text-ios-blue" />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <textarea
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white min-h-[70px]"
+                                        value={settings.businessHours || ''}
+                                        onChange={e => onUpdate({ businessHours: e.target.value })}
+                                        placeholder="Lunes a Viernes: 9am - 6pm&#10;Sábados: 10am - 3pm"
+                                    />
+                                    <p className="text-[10px] text-gray-400 ml-1">Aparece en el footer del sitio.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </Card>
+
+            {/* NUEVA SECCIÓN: BOTÓN FLOTANTE WHATSAPP */}
+            <Card className="p-6 space-y-5">
+                <h3 className="font-bold flex items-center gap-2 dark:text-white">
+                    <MessageCircle size={20} className="text-green-500" /> Botón Flotante de WhatsApp
+                </h3>
+
+                <div className="flex items-start justify-between gap-4 p-4 bg-green-50 dark:bg-green-900/10 rounded-2xl border border-green-100 dark:border-green-900/20">
+                    <div>
+                        <h4 className="text-sm font-bold text-green-700 dark:text-green-400">Mostrar botón flotante en el sitio</h4>
+                        <p className="text-xs text-gray-500 mt-1">Aparece un botón verde con el logo de WhatsApp en todas las páginas públicas, fijo en la esquina inferior derecha.</p>
+                    </div>
+                    <button
+                        onClick={() => onUpdate({ showWhatsappFloat: !settings.showWhatsappFloat })}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.showWhatsappFloat ? 'bg-green-500 shadow-lg shadow-green-500/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                    >
+                        <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.showWhatsappFloat ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                </div>
+
+                {settings.showWhatsappFloat && (
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Mensaje Predeterminado (opcional)</label>
+                        <textarea
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none transition-all text-sm dark:text-white min-h-[80px]"
+                            value={settings.whatsappFloatMessage || ''}
+                            onChange={e => onUpdate({ whatsappFloatMessage: e.target.value })}
+                            placeholder="Hola! Me interesa conocer sus productos..."
+                        />
+                        <p className="text-[10px] text-gray-400 ml-1">Este mensaje se rellenará automáticamente al abrir el chat. Si se deja vacío, abre el chat sin mensaje.</p>
+                    </div>
+                )}
             </Card>
         </div>
     );

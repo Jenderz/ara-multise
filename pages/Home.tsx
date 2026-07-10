@@ -1,23 +1,50 @@
 
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ShopLayout } from '../components/Layout';
 import { Button } from '../components/UIComponents';
-import { ProductCard } from '../components/ProductCard';
+import { ProductCard, ProductCardSkeleton } from '../components/ProductCard';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowRight, Leaf, Heart, Sparkles, TrendingUp, Star, Clock, Layers,
     Truck, ShieldCheck, Headphones, RefreshCw, Zap, Award, Lock, Gift, Globe,
-    Percent, MessageCircle, ChevronLeft, ChevronRight as ChevronRightIcon
+    Percent, MessageCircle, ChevronLeft, ChevronRight as ChevronRightIcon, Eye
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { HeroSlide } from '../types';
 
+// ------- HOOK: Vistos Recientemente -------
+const RECENTLY_VIEWED_KEY = 'recently_viewed_products';
+const MAX_RECENT = 8;
+
+const getRecentlyViewed = (): string[] => {
+    try { return JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY) || '[]'); } catch { return []; }
+};
+
+export const trackProductView = (productId: string) => {
+    const current = getRecentlyViewed().filter(id => id !== productId);
+    const updated = [productId, ...current].slice(0, MAX_RECENT);
+    localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(updated));
+};
+
 export const Home = () => {
-    const { products, categories, settings, orders } = useStore();
+    const { products, categories, settings, orders, loading } = useStore();
     const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
     const timeoutRef = useRef<any>(null);
+
+    // --- Visto Recientemente (desde localStorage) ---
+    const [recentIds, setRecentIds] = useState<string[]>([]);
+    useEffect(() => {
+        setRecentIds(getRecentlyViewed());
+    }, []);
+
+    const recentlyViewed = useMemo(() => {
+        return recentIds
+            .map(id => products.find(p => p.id === id && p.isVisible))
+            .filter(Boolean)
+            .slice(0, 4) as typeof products;
+    }, [recentIds, products]);
 
     // Preparar slides (con fallback a la configuración legacy si no hay array)
     const slides: HeroSlide[] = useMemo(() => {
@@ -251,7 +278,7 @@ export const Home = () => {
                                     </div>
                                 )}
 
-                                {!slide.hideText && (
+                                {!slide.hideText && !settings.heroSliderOnlyImages && (
                                     <>
                                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-white mb-6 leading-[0.9] tracking-tighter drop-shadow-xl">
                                             {slide.title}
@@ -263,7 +290,7 @@ export const Home = () => {
                                     </>
                                 )}
 
-                                {!slide.hideButton && (
+                                {!slide.hideButton && !settings.heroSliderOnlyImages && (
                                     <div className={`flex flex-col sm:flex-row gap-4 ${getHeroAlignButtonClass(slide.align)}`}>
                                         <Button
                                             onClick={(e) => {
@@ -315,6 +342,7 @@ export const Home = () => {
             </section>
 
             {/* --- BEST SELLERS --- */}
+            {settings.showBestSellers !== false && (
             <section className="mb-24">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-10 px-4 gap-4">
                     <div>
@@ -341,6 +369,7 @@ export const Home = () => {
                     )}
                 </div>
             </section>
+            )}
 
             {/* --- GIFT BANNER (NUEVO) --- */}
             {settings.giftBannerImage && (
@@ -388,7 +417,7 @@ export const Home = () => {
             )}
 
             {/* --- OFERTAS ESPECIALES SECTION --- */}
-            {saleProducts.length > 0 && (
+            {settings.showSaleSection !== false && saleProducts.length > 0 && (
                 <section className="mb-24 px-4">
                     <div className="bg-red-50 dark:bg-red-900/10 rounded-[3rem] p-8 md:p-12 border border-red-100 dark:border-red-900/20 relative overflow-hidden">
                         {/* Decoración de Fondo */}
@@ -419,7 +448,7 @@ export const Home = () => {
             )}
 
             {/* --- FEATURED CATEGORIES CAROUSEL --- */}
-            {categories.length > 0 && (
+            {settings.showCategoriesSection !== false && categories.length > 0 && (
                 <section className="mb-24 relative">
                     <div className="flex justify-between items-end mb-6 px-2">
                         <div>
@@ -473,6 +502,7 @@ export const Home = () => {
             )}
 
             {/* --- NEW ARRIVALS --- */}
+            {settings.showNewArrivals !== false && (
             <section className="mb-24">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-10 px-4 gap-4">
                     <div>
@@ -490,8 +520,34 @@ export const Home = () => {
                     ))}
                 </div>
             </section>
+            )}
+
+            {/* --- VISTOS RECIENTEMENTE --- */}
+            {recentlyViewed.length > 0 && (
+            <section className="mb-24">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-10 px-4 gap-4">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Eye size={18} className="text-ios-blue" />
+                            <span className="text-xs font-black text-ios-blue uppercase tracking-widest">Tus últimas visitas</span>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-serif font-bold text-ios-text dark:text-white">Visto Recientemente</h2>
+                    </div>
+                    <Button variant="ghost" onClick={() => navigate('/shop')} className="hidden md:flex text-sm font-bold tracking-widest uppercase">
+                        Ver Tienda <ArrowRight size={16} />
+                    </Button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-2">
+                    {recentlyViewed.map(product => (
+                        <ProductCard key={product.id} product={product} />
+                    ))}
+                </div>
+            </section>
+            )}
 
             {/* --- FEATURES GRID --- */}
+            {settings.showFeaturesSection !== false && (
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20 px-2">
 
                 {/* Feature 1 */}
@@ -531,6 +587,7 @@ export const Home = () => {
                 </div>
 
             </section>
+            )}
         </ShopLayout>
     );
 };

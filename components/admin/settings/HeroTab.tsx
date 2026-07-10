@@ -66,10 +66,10 @@ export const HeroTab: React.FC<HeroTabProps> = ({ settings, onUpdate }) => {
             buttonText: 'Comprar Ahora',
             link: '/shop',
             align: isFirst ? (settings.homeHeroAlign || 'center') : 'center',
-            badgeText: 'Nueva Colección',
-            glassEffect: true, // Default activo
-            hideText: false,
-            hideButton: false
+            badgeText: '',
+            glassEffect: false, // Default desactivado (modo solo imagen)
+            hideText: true,   // Por defecto: solo imagen limpia
+            hideButton: true  // Por defecto: sin botón
         };
 
         onUpdate({ heroSlides: [...slides, newSlide] });
@@ -90,6 +90,26 @@ export const HeroTab: React.FC<HeroTabProps> = ({ settings, onUpdate }) => {
 
     return (
         <div className="space-y-6 animate-fade-in">
+
+            {/* TOGGLE GLOBAL: MODO SOLO IMAGEN */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-5 flex items-center justify-between border border-white/10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                        <Monitor size={20} className="text-white" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-white">Modo Solo Imagen (Global)</h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">Oculta todo el texto y botones en TODOS los slides del hero. El carrusel muestra solo las imágenes.</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => onUpdate({ heroSliderOnlyImages: !settings.heroSliderOnlyImages })}
+                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ${settings.heroSliderOnlyImages ? 'bg-ios-blue shadow-lg shadow-ios-blue/30' : 'bg-white/20'}`}
+                >
+                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.heroSliderOnlyImages ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+            </div>
+
             <Card className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                     <div>
@@ -301,6 +321,42 @@ export const HeroTab: React.FC<HeroTabProps> = ({ settings, onUpdate }) => {
                             </div>
                         </div>
                     ))}
+                </div>
+            </Card>
+
+            {/* NUEVA SECCIÓN: VISIBILIDAD DE SECCIONES */}
+            <Card className="p-6 space-y-5">
+                <div>
+                    <h3 className="font-bold flex items-center gap-2 dark:text-white">
+                        <Star size={20} className="text-ios-blue" /> Visibilidad de Secciones en la Home
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">Activa o desactiva secciones completas de la página de inicio. Los cambios se aplican después de guardar.</p>
+                </div>
+
+                <div className="space-y-3">
+                    {[
+                        { key: 'showBestSellers', label: 'Más Vendidos', desc: 'Sección de productos con más ventas' },
+                        { key: 'showNewArrivals', label: 'Novedades', desc: 'Productos recién añadidos al catálogo' },
+                        { key: 'showSaleSection', label: 'Ofertas Relámpago', desc: 'Productos con precio de oferta activo' },
+                        { key: 'showCategoriesSection', label: 'Carrusel de Categorías', desc: 'Visualización de categorías en la home' },
+                        { key: 'showFeaturesSection', label: 'Tarjetas de Características', desc: 'Las 3 tarjetas de ventajas/beneficios' },
+                    ].map(({ key, label, desc }) => {
+                        const isActive = (settings as any)[key] !== false;
+                        return (
+                            <div key={key} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isActive ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/20' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/5'}`}>
+                                <div>
+                                    <p className={`text-sm font-bold ${isActive ? 'text-green-700 dark:text-green-400' : 'text-gray-400'}`}>{label}</p>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                                </div>
+                                <button
+                                    onClick={() => onUpdate({ [key]: !isActive } as any)}
+                                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ${isActive ? 'bg-green-500 shadow-lg shadow-green-500/20' : 'bg-gray-200 dark:bg-white/10'}`}
+                                >
+                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+                        );
+                    })}
                 </div>
             </Card>
         </div>
