@@ -8,6 +8,10 @@
 .env.production
 .env.*.local
 *.key
+
+# --- ARCHIVOS DE DEPURACIÓN (GENERADOS EN SERVIDOR) ---
+debug_stock.txt
+*.log
 *.pem
 config.local.php
 
@@ -89,3 +93,4 @@ coverage/
 .env.backup
 .vercel
 .netlify
+*.zip

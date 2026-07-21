@@ -14,9 +14,6 @@ function injectVariantStock($product, $localMap, $globalMap, $branchId = 0)
         // Usamos cast a string para asegurar coincidencia con el mapa indexado como string
         $vId = isset($variant['id']) ? (string)$variant['id'] : '';
 
-        // DEBUG LOGGING
-        file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [READ] Branch: $branchId | VarID: '$vId' | InMap: " . (isset($localMap[$vId]) ? 'YES' : 'NO') . " | Val: " . ($localMap[$vId] ?? 'N/A') . "\n", FILE_APPEND);
-
         if ($vId !== '' && isset($localMap[$vId])) {
             $variant['stock'] = (int)$localMap[$vId];
         } else {

@@ -5,6 +5,7 @@ import { useStore } from '../../../context/StoreContext'; // Importar contexto p
 import { X, Plus, Trash2, Save, Search, User, Phone, MapPin, ChevronLeft, ChevronRight, Package, Box, Tag, DollarSign, Percent, CreditCard } from 'lucide-react';
 import { Button, Input, LazyImage } from '../../UIComponents';
 import { DEFAULT_IMAGE } from '../../../config';
+import { VariantSelectorModal } from '../pos/POSModals';
 
 interface OrderEditModalProps {
     order: Order;
@@ -20,8 +21,9 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
     
     // --- ESTADOS PARA AGREGAR PRODUCTOS ---
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState<Product[]>([]);
+    const [searchResults, setSearchResults] = useState<any[]>([]); // Cambiado para soportar variantes
     const [showResults, setShowResults] = useState(false);
+    const [selectedProductForVariant, setSelectedProductForVariant] = useState<Product | null>(null);
 
     // --- ESTADO PARA ITEM MANUAL ---
     const [manualItem, setManualItem] = useState({ title: '', price: '', qty: '1' });
@@ -38,11 +40,22 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
             return;
         }
         const term = searchTerm.toLowerCase();
-        const found = products.filter(p => 
-            p.isVisible && 
-            (p.title.toLowerCase().includes(term) || p.code.toLowerCase().includes(term))
-        ).slice(0, 5); // Max 5 resultados
-        setSearchResults(found);
+        let results: any[] = [];
+        for (const p of products) {
+            if (!p.isVisible) continue;
+            if (p.title.toLowerCase().includes(term) || p.code.toLowerCase().includes(term)) {
+                results.push({
+                    type: p.variants && p.variants.length > 0 ? 'product_with_variants' : 'product',
+                    product: p,
+                    title: p.title,
+                    code: p.code,
+                    price: p.price,
+                    stock: p.stock
+                });
+            }
+            if (results.length >= 5) break;
+        }
+        setSearchResults(results.slice(0, 5));
         setShowResults(true);
     }, [searchTerm, products]);
 
@@ -64,21 +77,51 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
     }, [formData.items, discountValue, discountType]);
 
     // Agregar producto del inventario al pedido
-    const handleAddProduct = (product: Product) => {
+    const handleAddProduct = (item: any) => {
+        const p = item.product;
+        
+        if (item.type === 'product_with_variants') {
+            setSelectedProductForVariant(p);
+            setShowResults(false);
+            return;
+        }
+
         const newItem: CartItem = {
-            cartId: `edit-${product.id}-${Date.now()}`,
-            productId: product.id,
-            productTitle: product.title,
-            price: product.price, // Usa precio base
+            cartId: `edit-${p.id}-base-${Date.now()}`,
+            productId: p.id,
+            productTitle: p.title,
+            price: item.price,
             quantity: 1,
-            image: product.images[0] || DEFAULT_IMAGE,
+            image: p.images[0] || DEFAULT_IMAGE,
             selectedOptions: {},
-            variantSku: product.code
+            variantSku: p.code
         };
         
         setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }));
         setSearchTerm(''); // Limpiar búsqueda
         setShowResults(false);
+    };
+
+    // Agregar variante confirmada desde el modal
+    const handleVariantConfirm = (p: Product, selections: Record<string, string>, price: number, variantSku: string, image: string) => {
+        // Encontrar la variante original para asegurar que guardamos su ID (para el inventario en backend)
+        const v = p.variants?.find(v => v.sku === variantSku);
+        
+        const newItem: CartItem = {
+            cartId: `edit-${p.id}-${v ? v.id : 'variant'}-${Date.now()}`,
+            productId: p.id,
+            productTitle: p.title,
+            price: price,
+            quantity: 1,
+            image: image,
+            selectedOptions: selections,
+            variantSku: variantSku,
+            variantId: v ? v.id : undefined
+        };
+        
+        setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }));
+        setSelectedProductForVariant(null);
+        setSearchTerm('');
     };
 
     const handleUpdateItemQty = (index: number, change: number) => {
@@ -220,13 +263,17 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
                                 {showResults && (
                                     <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/10 max-h-48 overflow-y-auto">
                                         {searchResults.length > 0 ? (
-                                            searchResults.map(p => (
-                                                <button key={p.id} onClick={() => handleAddProduct(p)} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/5 flex justify-between items-center group">
+                                            searchResults.map((p, i) => (
+                                                <button key={i} onClick={() => handleAddProduct(p)} className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/5 flex justify-between items-center group">
                                                     <div>
                                                         <p className="text-sm font-bold dark:text-white">{p.title}</p>
-                                                        <p className="text-[10px] text-gray-500">{p.code} • Stock: {p.stock}</p>
+                                                        <p className="text-[10px] text-gray-500">
+                                                            {p.code} • {p.type === 'product_with_variants' ? 'Múltiples opciones' : `Stock: ${p.stock}`}
+                                                        </p>
                                                     </div>
-                                                    <span className="text-xs font-bold text-ios-blue group-hover:scale-110 transition-transform">+ Add</span>
+                                                    <span className="text-xs font-bold text-ios-blue group-hover:scale-110 transition-transform">
+                                                        {p.type === 'product_with_variants' ? 'Elegir' : '+ Add'}
+                                                    </span>
                                                 </button>
                                             ))
                                         ) : (
@@ -320,6 +367,13 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
                     </div>
                 </div>
             </div>
+            
+            <VariantSelectorModal 
+                product={selectedProductForVariant}
+                isOpen={!!selectedProductForVariant}
+                onClose={() => setSelectedProductForVariant(null)}
+                onConfirm={handleVariantConfirm}
+            />
         </div>
     );
 };

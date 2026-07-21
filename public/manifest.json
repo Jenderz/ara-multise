@@ -1,0 +1,72 @@
+{
+  "name": "Tienda Virtual",
+  "short_name": "Tienda",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#007AFF",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": [
+    "shopping",
+    "lifestyle",
+    "productivity"
+  ],
+  "description": "La mejor experiencia de compra online con ofertas exclusivas y gestión de pedidos en tiempo real.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver Carrito",
+      "short_name": "Carrito",
+      "description": "Revisar mi bolsa de compras",
+      "url": "./?action=cart",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/1170/1170678.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Explorar",
+      "short_name": "Tienda",
+      "description": "Buscar productos",
+      "url": "#/shop",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/2832/2832495.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshots/desktop.jpg",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Escritorio: Gestión completa"
+    },
+    {
+      "src": "./screenshots/mobile.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Móvil: Compra rápida"
+    }
+  ]
+}

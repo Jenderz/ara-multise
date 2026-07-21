@@ -4,6 +4,7 @@ import { useStore } from '../context/StoreContext';
 import { X, Search, ChevronRight, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DEFAULT_IMAGE } from '../config';
+import { generateProductSlug } from '../utils/slugify';
 
 export const SearchOverlay = () => {
     const { isSearchOpen, setIsSearchOpen, products, categories, settings, activeExchangeRate, activeCurrencySymbol } = useStore();
@@ -25,8 +26,8 @@ export const SearchOverlay = () => {
         setQuery('');
     };
 
-    const handleProductClick = (id: string) => {
-        navigate(`/product/${id}`);
+    const handleProductClick = (id: string, title: string) => {
+        navigate(`/product/${generateProductSlug(title, id)}`);
         handleClose();
     };
 
@@ -123,7 +124,7 @@ export const SearchOverlay = () => {
                                 {products.filter(p => p.isFeatured).slice(0, 3).map(p => (
                                     <div 
                                         key={p.id} 
-                                        onClick={() => handleProductClick(p.id)}
+                                        onClick={() => handleProductClick(p.id, p.title)}
                                         className="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 active:bg-gray-100 transition-colors"
                                     >
                                         <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden">
@@ -143,7 +144,7 @@ export const SearchOverlay = () => {
                             filteredProducts.map(product => (
                                 <div 
                                     key={product.id}
-                                    onClick={() => handleProductClick(product.id)}
+                                    onClick={() => handleProductClick(product.id, product.title)}
                                     className="bg-white dark:bg-white/5 p-3 rounded-2xl flex gap-4 items-center cursor-pointer hover:shadow-md transition-all border border-transparent dark:border-white/5"
                                 >
                                     <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-xl overflow-hidden shrink-0">

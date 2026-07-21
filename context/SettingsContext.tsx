@@ -162,50 +162,72 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     useEffect(() => {
+        // ─── PROXY DE SERVIDOR ──────────────────────────────────────────────
+        // El cliente llama a /rates.php (tu propio servidor PHP).
+        // El servidor hace el caché real: 1000 usuarios = 1 req/hora a APIs externas.
+        // El cliente también mantiene su propio caché localStorage (1 hora)
+        // para no saturar ni tu propio servidor.
+        const CLIENT_TTL_MS = 1 * 60 * 60 * 1000; // 1 hora en cliente
+
+        const isFresh = (tsKey: string): boolean => {
+            const ts = localStorage.getItem(tsKey);
+            if (!ts) return false;
+            return Date.now() - Number(ts) < CLIENT_TTL_MS;
+        };
+
+        const saveCache = (bcv: number, binance: number, euro: number) => {
+            const now = String(Date.now());
+            localStorage.setItem('lyberate_ex_rate',         String(bcv));
+            localStorage.setItem('lyberate_ex_rate_p',       String(binance));
+            localStorage.setItem('lyberate_ex_rate_eur',     String(euro));
+            localStorage.setItem('lyberate_ex_rate_ts',      now);
+            localStorage.setItem('lyberate_ex_rate_p_ts',    now);
+            localStorage.setItem('lyberate_ex_rate_eur_ts',  now);
+        };
+
         const fetchRates = async () => {
             try {
-                const [resOficial, resParalelo, resEuro] = await Promise.all([
-                    fetch('https://ve.dolarapi.com/v1/dolares/oficial').catch(() => null),
-                    fetch('https://ve.dolarapi.com/v1/dolares/paralelo').catch(() => null),
-                    fetch('https://ve.dolarapi.com/v1/euros/oficial').catch(() => null)
-                ]);
+                // 1. Mostrar caché local inmediatamente (evita mostrar 0)
+                const cachedBCV = localStorage.getItem('lyberate_ex_rate');
+                const cachedBin = localStorage.getItem('lyberate_ex_rate_p');
+                const cachedEur = localStorage.getItem('lyberate_ex_rate_eur');
+                if (cachedBCV) setExchangeRate(Number(cachedBCV));
+                if (cachedBin) setExchangeRateParalelo(Number(cachedBin));
+                if (cachedEur) setExchangeRateEuro(Number(cachedEur));
 
-                if (resOficial && resOficial.ok) {
-                    const data = await resOficial.json();
-                    if (data.promedio) {
-                        setExchangeRate(Number(data.promedio));
-                        localStorage.setItem('lyberate_ex_rate', String(data.promedio));
-                    }
-                } else {
-                    const cached = localStorage.getItem('lyberate_ex_rate');
-                    if (cached) setExchangeRate(Number(cached));
+                // 2. Si el caché local es fresco, no consultar ni el proxy
+                if (isFresh('lyberate_ex_rate_ts')) {
+                    console.log('[Tasas] Caché local válido (1h). Sin petición de red.');
+                    return;
                 }
 
-                if (resParalelo && resParalelo.ok) {
-                    const data = await resParalelo.json();
-                    if (data.promedio) {
-                        setExchangeRateParalelo(Number(data.promedio));
-                        localStorage.setItem('lyberate_ex_rate_p', String(data.promedio));
-                    }
-                } else {
-                    const cached = localStorage.getItem('lyberate_ex_rate_p');
-                    if (cached) setExchangeRateParalelo(Number(cached));
-                }
+                // 3. Consultar el proxy del servidor (1 req al propio backend)
+                console.log('[Tasas] Actualizando desde proxy del servidor...');
+                const res = await fetch('/rates.php').catch(() => null);
 
-                if (resEuro && resEuro.ok) {
-                    const data = await resEuro.json();
-                    if (data.promedio) {
-                        setExchangeRateEuro(Number(data.promedio));
-                        localStorage.setItem('lyberate_ex_rate_eur', String(data.promedio));
-                    }
+                if (res && res.ok) {
+                    const data = await res.json();
+                    const bcv     = data.bcv     ? Number(data.bcv)     : Number(cachedBCV  || 0);
+                    const binance = data.binance  ? Number(data.binance) : Number(cachedBin  || 0);
+                    const euro    = data.euro     ? Number(data.euro)    : Number(cachedEur  || 0);
+
+                    if (bcv)     setExchangeRate(bcv);
+                    if (binance) setExchangeRateParalelo(binance);
+                    if (euro)    setExchangeRateEuro(euro);
+
+                    saveCache(bcv, binance, euro);
+                    console.log(`[Tasas] BCV: ${bcv} | Binance: ${binance} | Euro: ${euro} | Servidor: ${data._cache?.binance_age_min ?? '?'} min atrás`);
                 } else {
-                    const cached = localStorage.getItem('lyberate_ex_rate_eur');
-                    if (cached) setExchangeRateEuro(Number(cached));
+                    // Fallback: si el proxy falla, usar caché localStorage
+                    console.warn('[Tasas] Proxy no disponible, usando caché offline.');
                 }
             } catch (e) { console.error("Error fetching rates", e); }
         };
         fetchRates();
     }, []);
+
+
+
 
     useEffect(() => {
         // Priority: Global Forced > Local Preference > System (handled in initial state)

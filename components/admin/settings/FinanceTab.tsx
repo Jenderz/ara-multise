@@ -262,7 +262,7 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
                             </span>
                             <div className="text-xs font-bold text-gray-500 mb-2 flex flex-col">
                                 <span>BCV USD: {exchangeRate.toFixed(2)}</span>
-                                <span>Paralelo: {exchangeRateParalelo.toFixed(2)}</span>
+                                <span>Binance: {exchangeRateParalelo.toFixed(2)}</span>
                                 {exchangeRateEuro > 0 && <span className="text-yellow-600">EUR BCV: {exchangeRateEuro.toFixed(2)}</span>}
                             </div>
                         </div>
@@ -343,7 +343,7 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
                                 )}
                             </button>
 
-                            {/* Tasa Paralela */}
+                            {/* Tasa Binance */}
                             <button
                                 onClick={() => onUpdate({ currencyRateMode: 'paralelo' })}
                                 className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all flex flex-col items-center gap-0.5 ${
@@ -352,8 +352,8 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
                                         : 'text-gray-500 dark:text-gray-400'
                                 }`}
                             >
-                                <span className="text-base leading-none">$</span>
-                                <span className="text-[10px]">Paralela</span>
+                                <span className="text-base leading-none">₿</span>
+                                <span className="text-[10px]">Tasa Binance</span>
                                 {exchangeRateParalelo > 0 && (
                                     <span className="text-[9px] opacity-60 font-normal">Bs {exchangeRateParalelo.toFixed(2)}</span>
                                 )}
@@ -376,7 +376,7 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
                                 <span className="absolute top-1 right-1 text-[8px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-1 rounded font-black">BCV</span>
                             </button>
                         </div>
-                        <p className="text-[10px] text-gray-400 mt-2 pl-1">Define qué tasa se usa para calcular el precio en Bs visible para el cliente.</p>
+                        <p className="text-[10px] text-gray-400 mt-2 pl-1">Define qué tasa se usa para calcular el precio en Bs visible para el cliente. La Tasa Binance se obtiene en tiempo real desde P2P.</p>
                     </div>
 
                     <div>

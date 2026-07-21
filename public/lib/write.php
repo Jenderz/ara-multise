@@ -146,6 +146,47 @@ function handleSaveOrder($pdo, $input, $branchId)
             }
         }
 
+        // 1.5. AJUSTAR STOCK AL EDITAR PEDIDO COMPLETADO
+        $oldItemsJson = $existingOrder ? $existingOrder['items'] : '[]';
+        if ($oldStatus === 'completed' && $newStatus === 'completed' && $oldItemsJson !== $itemsJson) {
+            $stockRestore = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ? WHERE `product_id` = ? AND `branch_id` = ?");
+            $stockUpdate = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ? WHERE `product_id` = ? AND `branch_id` = ?");
+            $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
+
+            // Revertir items viejos
+            $itemsArrOld = safeJsonDecode($oldItemsJson);
+            foreach ($itemsArrOld as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
+                    $qty = intval($item['quantity']);
+                    $prodId = $item['productId'];
+                    $stockRestore->execute([$qty, $prodId, $activeBranchId]);
+                    if (!empty($item['variantId'])) {
+                        $stockRestore->execute([$qty, $item['variantId'], $activeBranchId]);
+                    }
+                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
+                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "Reversión por Edición Venta #" . $o['id'], time() * 1000]);
+                }
+            }
+
+            // Descontar items nuevos
+            $itemsArrNew = safeJsonDecode($itemsJson);
+            foreach ($itemsArrNew as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
+                    $qty = intval($item['quantity']);
+                    $prodId = $item['productId'];
+                    $stockUpdate->execute([$qty, $prodId, $activeBranchId]);
+                    if (!empty($item['variantId'])) {
+                        $stockUpdate->execute([$qty, $item['variantId'], $activeBranchId]);
+                    }
+                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
+                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'sale', $qty, intval($currentStock), "Re-Descuento Edición Venta #" . $o['id'], time() * 1000]);
+                }
+            }
+
+            // Como ya se ajustó el stock por la edición, evitamos que processStock lo vuelva a descontar
+            $o['processStock'] = false;
+        }
+
         $stmt->execute([
             ':id' => strval($o['id']),
             ':branch_id' => $activeBranchId,

@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node increment-version.js",
-    "build": "npm run prebuild && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

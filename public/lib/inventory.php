@@ -21,9 +21,6 @@ function handleAdjustStock($pdo, $input, $branchId)
 
 function handleTransferStock($pdo, $input)
 {
-    // DEBUG ENTRY
-    file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [TRANSFER_START] Payload: " . json_encode($input) . "\n", FILE_APPEND);
-
     $p = $input;
 
     // Validaciones Básicas
@@ -50,7 +47,6 @@ function handleTransferStock($pdo, $input)
                     elseif (isset($p['variantName']) && isset($v['option']) && $v['option'] == $p['variantName']) $match = true; // New "option"
 
                     if ($match && isset($v['id'])) {
-                        file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [FIX] Swapped Parent ID {$p['productId']} for Variant ID {$v['id']}\n", FILE_APPEND);
                         $p['productId'] = $v['id']; // <--- SWAP ID
                         break;
                     }
@@ -113,12 +109,9 @@ function handleTransferStock($pdo, $input)
 
         // 3. Descontar de Origen
         $normId = (string)$p['productId'];
-        file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [TRANSFER] Deducting $normId from Branch {$p['fromBranchId']} Amount {$p['amount']}\n", FILE_APPEND);
 
         $updStmt = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ? WHERE `product_id` = ? AND `branch_id` = ?");
         $updStmt->execute([$p['amount'], $normId, $p['fromBranchId']]);
-
-        file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [TRANSFER] RowCount: " . $updStmt->rowCount() . "\n", FILE_APPEND);
 
         if ($updStmt->rowCount() === 0) {
             throw new Exception("Error crítico: No se pudo descontar el stock. Verifique si el producto cambió mientras operaba.");

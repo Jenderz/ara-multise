@@ -31,11 +31,6 @@ $input = safeJsonDecode($rawInput);
 
 // 4. Enrutador Modular
 try {
-    // DEBUG API ENTRY
-    if ($action === 'transfer_stock') {
-        file_put_contents('debug_stock.txt', date('Y-m-d H:i:s') . " [API] Action: transfer_stock\n", FILE_APPEND);
-    }
-
     switch ($action) {
         // --- LECTURA ---
         case 'get_all':

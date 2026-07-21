@@ -71,26 +71,45 @@ export const SEO: React.FC<SEOProps> = ({
     };
   }
 
+  // URL canónica limpia del producto (sin hash) para que los bots puedan rastrearla
+  // Ej: https://tienda.com/#/product/slug → https://tienda.com/product/slug
+  const canonicalUrl = currentUrl.replace('/#/product/', '/product/');
+
   return (
     <Helmet>
       {/* Etiquetas Estándar */}
       <title>{siteTitle}</title>
       <meta name="description" content={metaDescription} />
-      <link rel="canonical" href={currentUrl} />
+      <link rel="canonical" href={canonicalUrl} />
 
-      {/* Open Graph / Facebook / WhatsApp */}
-      <meta property="og:type" content={type} />
+      {/* Open Graph / WhatsApp / Facebook */}
+      <meta property="og:type" content={type === 'product' ? 'product' : 'website'} />
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={metaDescription} />
+      {/* og:image con todas las propiedades requeridas por WhatsApp */}
       <meta property="og:image" content={metaImage} />
-      <meta property="og:url" content={currentUrl} />
+      <meta property="og:image:secure_url" content={metaImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="1200" />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:image:alt" content={siteTitle} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:site_name" content={settings.storeName} />
+      <meta property="og:locale" content="es_ES" />
+      {/* Precio del producto (Facebook/Instagram Shopping) */}
+      {type === 'product' && price && (
+        <meta property="product:price:amount" content={String(price)} />
+      )}
+      {type === 'product' && (
+        <meta property="product:price:currency" content={currency} />
+      )}
 
       {/* Twitter Cards */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={metaImage} />
+      <meta name="twitter:image:alt" content={siteTitle} />
 
       {/* Datos Estructurados (JSON-LD) */}
       <script type="application/ld+json">

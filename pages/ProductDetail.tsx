@@ -2,17 +2,22 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
+import { extractProductIdFromSlug } from '../utils/slugify';
 import { ShopLayout } from '../components/Layout';
 import { Button } from '../components/UIComponents';
-import { ChevronLeft, Heart, Check, X, AlertCircle, Store, MapPin, Globe } from 'lucide-react';
+import { ChevronLeft, Heart, Check, X, AlertCircle, Store, MapPin, Globe, Share2 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { DEFAULT_IMAGE } from '../config';
 import { trackProductView } from './Home';
+import { generateProductSlug } from '../utils/slugify';
 
 export const ProductDetail = () => {
-    const { id } = useParams();
+    const { id: slugParam } = useParams();
     const navigate = useNavigate();
     const { products, addToCart, wishlist, toggleWishlist, settings, activeExchangeRate, activeCurrencySymbol, getStockBreakdown } = useStore();
+    
+    // Soporta tanto el formato nuevo "titulo-del-producto--ID" como el formato legacy "ID"
+    const id = extractProductIdFromSlug(slugParam || '');
     const product = products.find(p => p.id === id);
 
     const [selections, setSelections] = useState<Record<string, string>>({});
@@ -120,6 +125,14 @@ export const ProductDetail = () => {
 
     const hasVariants = product.variantOptions && product.variantOptions.length > 0;
 
+    // Función para compartir el producto por WhatsApp
+    const handleShare = () => {
+        const slug = generateProductSlug(product.title, product.id);
+        const productUrl = `${window.location.origin}/product/${slug}`;
+        const message = `\uD83D\uDED2 *${product.title}*\n${productUrl}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
     // Validar si el usuario ya completó todas las selecciones requeridas
     const isSelectionComplete = hasVariants
         ? product.variantOptions.every(opt => selections[opt.name])
@@ -168,7 +181,15 @@ export const ProductDetail = () => {
                     >
                         <img key={currentImage} src={currentImage} alt={product.title} className="w-full h-full object-cover animate-fade-in transition-all duration-500" />
                         {displaySalePrice && <div className="absolute top-6 left-6 bg-red-500 text-white font-black text-[10px] uppercase tracking-tighter px-4 py-1.5 rounded-full shadow-lg z-10">Especial</div>}
-                        <button onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }} className="absolute top-6 right-6 p-4 bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition z-10 border border-white/20 dark:border-white/10"><Heart size={24} className={isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"} /></button>
+                        {/* Botones flotantes: Favorito + Compartir por WhatsApp */}
+                        <div className="absolute top-6 right-6 flex flex-col gap-3 z-10">
+                            <button onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }} className="p-4 bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition border border-white/20 dark:border-white/10">
+                                <Heart size={24} className={isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleShare(); }} title="Compartir por WhatsApp" className="p-4 bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition border border-white/20 dark:border-white/10 text-[#25D366]">
+                                <Share2 size={24} />
+                            </button>
+                        </div>
                     </div>
                     {/* Miniaturas */}
                     {product.images.length > 1 && (

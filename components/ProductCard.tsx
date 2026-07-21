@@ -6,6 +6,7 @@ import { Card, Badge, LazyImage } from './UIComponents';
 import { ShoppingBag, Eye, Heart, ListPlus, Share2, Globe } from 'lucide-react';
 import { Product } from '../types';
 import { DEFAULT_IMAGE } from '../config';
+import { generateProductSlug } from '../utils/slugify';
 
 interface ProductCardProps {
     product: Product;
@@ -48,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         // Si tiene opciones, ir al detalle
         if (showOptions) {
-            navigate(`/product/${product.id}`);
+            navigate(`/product/${generateProductSlug(product.title, product.id)}`);
             return;
         }
 
@@ -65,8 +66,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const productUrl = `${window.location.origin}${window.location.pathname}#/product/${product.id}`;
-        const message = `Mira este producto: ${product.title} - ${productUrl}`;
+        // URL limpia sin hash — esta es la URL que WhatsApp rastrea para el preview
+        // El seo-proxy.php detecta el bot y devuelve las OG tags correctas
+        // Los humanos son redirigidos al hash automáticamente por index.html
+        const slug = generateProductSlug(product.title, product.id);
+        const productUrl = `${window.location.origin}/product/${slug}`;
+        const message = `🛒 *${product.title}*\n${productUrl}`;
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
 
         window.open(whatsappUrl, '_blank');
@@ -82,7 +87,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     return (
         <Card className="h-full hover:shadow-xl dark:hover:shadow-white/5 transition-all duration-300 group flex flex-col relative overflow-hidden bg-white dark:bg-zinc-900 border-white/40 dark:border-white/5">
-            <Link to={`/product/${product.id}`} className="block relative cursor-pointer">
+            <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block relative cursor-pointer">
                 <LazyImage
                     src={displayImage}
                     alt={product.title}
@@ -108,7 +113,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </Link>
 
             <div className="p-5 flex-1 flex flex-col">
-                <Link to={`/product/${product.id}`} className="block group-hover:text-ios-blue transition-colors">
+                <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block group-hover:text-ios-blue transition-colors">
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="text-lg font-bold text-ios-text dark:text-white leading-tight line-clamp-2">{product.title}</h3>
                     </div>
@@ -138,7 +143,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </div>
 
                 <div className="mt-auto grid grid-cols-2 gap-2">
-                    <button onClick={() => navigate(`/product/${product.id}`)} className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-medium py-2.5 px-2 rounded-xl transition-colors text-xs">
+                    <button onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-medium py-2.5 px-2 rounded-xl transition-colors text-xs">
                         <Eye size={14} /> Ver
                     </button>
                     <button

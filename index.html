@@ -109,6 +109,29 @@
       .pl-safe { padding-left: env(safe-area-inset-left); }
       .pr-safe { padding-right: env(safe-area-inset-right); }
     </style>
+  <!--
+    ┌─────────────────────────────────────────────────────────────────────────┐
+    │  SEO PROXY REDIRECT SCRIPT                                              │
+    │  Detecta URLs limpias de producto (/product/slug) y redirige           │
+    │  al hash route (/#/product/slug) que usa React HashRouter.             │
+    │                                                                         │
+    │  Flujo:                                                                 │
+    │  1. Bot WhatsApp → .htaccess → seo-proxy.php → OG tags ✅             │
+    │  2. Humano → /product/slug → index.html → ESTE SCRIPT redirige         │
+    │     a /#/product/slug → React carga producto correcto ✅               │
+    └─────────────────────────────────────────────────────────────────────────┘
+  -->
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      var match = path.match(/^\/product\/(.+)$/);
+      if (match && !window.location.hash) {
+        // Redirigir de /product/SLUG → /#/product/SLUG sin agregar al historial
+        window.location.replace('/#/product/' + match[1]);
+      }
+    })();
+  </script>
+
   <script type="importmap">
 {
   "imports": {
