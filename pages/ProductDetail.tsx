@@ -59,17 +59,22 @@ export const ProductDetail = () => {
     }, [product, selections]);
 
     // Consulta de Disponibilidad (Dinámica: Producto Padre o Variante)
+    // FIX SEGURIDAD: Debounce de 400ms para evitar GETs por cada click en variante.
+    // Se usan IDs primitivos como dependencias (no objetos completos) para evitar
+    // re-renders espurios cuando el objeto cambia por referencia sin cambiar su valor.
     useEffect(() => {
-        if (product) {
+        if (!product) return;
+        const targetId = selectedVariant ? selectedVariant.id : product.id;
+        const timer = setTimeout(() => {
             setLoadingAvailability(true);
-            const targetId = selectedVariant ? selectedVariant.id : product.id;
-
             getStockBreakdown(targetId)
                 .then(data => setBranchAvailability(data || []))
                 .catch(console.error)
                 .finally(() => setLoadingAvailability(false));
-        }
-    }, [product, selectedVariant]);
+        }, 400); // Esperar 400ms — el usuario puede estar navegando entre variantes
+        return () => clearTimeout(timer);
+    }, [product?.id, selectedVariant?.id]); // Solo IDs, no objetos completos
+
 
     // Actualizar imagen SOLO si el usuario interactúa (no en la primera carga)
     useEffect(() => {

@@ -20,7 +20,7 @@
 - 📱 **PWA** - Instalable, funciona offline, push notifications
 - 🎨 **Diseño Premium** - UI moderna estilo iOS con glassmorphism y modo oscuro
 - 🤖 **IA Integrada** - Asistente inteligente con Gemini AI
-- 📸 **CDN de Imágenes** - Carga optimizada automática a CDN externo
+- 📸 **Almacenamiento Local de Imágenes** - Subida optimizada en servidor local con soporte Base64
 - 🔐 **Sistema de Roles** - Admin, Vendedor, Master con permisos granulares
 - 📈 **Analytics** - Productos más vendidos, reportes de ventas, CRM
 
@@ -140,10 +140,6 @@ $host = 'localhost';
 $db   = 'nombre_base_datos';
 $user = 'usuario';
 $pass = 'contraseña';
-
-// CDN
-define('CDN_URL', 'https://tu-dominio.com/cdn/receiver.php');
-define('CDN_API_KEY', 'tu_api_key');
 ```
 
 ---

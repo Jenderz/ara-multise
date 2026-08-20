@@ -168,7 +168,7 @@ function handleGetProducts($pdo, $branchId)
 
     if ($branchId > 0) $params[':branchId'] = $branchId;
     if ($search) {
-        $where[] = "(p.title LIKE :s OR p.code LIKE :s)";
+        $where[] = "(p.title LIKE :s OR p.code LIKE :s OR p.barcode_ean LIKE :s OR p.variants LIKE :s)";
         $params[':s'] = "%$search%";
     }
     if ($cat) {
@@ -338,7 +338,7 @@ function handleGetCustomers($pdo)
     $where = "1=1";
     $params = [];
     if ($search) {
-        $where = "(`name` LIKE :s OR `phone` LIKE :s)";
+        $where = "(`name` LIKE :s OR `phone` LIKE :s OR `cedula` LIKE :s)";
         $params[':s'] = "%$search%";
     }
     $stmt = $pdo->prepare("SELECT * FROM `customers` WHERE $where ORDER BY `last_order_date` DESC LIMIT $limit OFFSET $offset");

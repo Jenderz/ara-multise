@@ -67,6 +67,8 @@ export interface ProductVariant {
    */
   branchStock?: Record<number, number>;
   image?: string;
+  /** Código de barras EAN-13 de esta variante específica */
+  barcodeEan?: string;
 }
 
 export interface Product {
@@ -89,6 +91,8 @@ export interface Product {
   variantOptions: VariantOption[];
   variants: ProductVariant[];
   createdAt: number;
+  /** Código de barras EAN-13 generado automáticamente (categoría + código producto) */
+  barcodeEan?: string;
 }
 
 export interface Branch {
@@ -161,6 +165,7 @@ export interface Order {
 export interface Customer {
   phone: string;
   name: string;
+  cedula?: string;
   address: string;
   totalSpent: number;
   orderCount: number;

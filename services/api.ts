@@ -23,12 +23,17 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
         const headers: Record<string, string> = {
             'X-Branch-ID': getActiveBranchId(),
             'X-App-Token': 'AraEcom_v5_Secure', // Token para evitar bloqueos del WAF/Antivirus
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            // FIX BUG: Cache-Control reemplaza al &t=Date.now() como anti-caché.
+            // Es el método correcto y estándar — no genera URLs únicas que disparan rate-limiting.
+            'Cache-Control': 'no-store, no-cache',
+            'Pragma': 'no-cache'
         };
 
         if (!(data instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
         }
+
 
         const options: RequestInit = {
             method,
@@ -37,8 +42,16 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
             signal: controller.signal
         };
 
-        const url = `${API_URL}?action=${action}&t=${Date.now()}`;
+        // FIX SEGURIDAD: El cache-buster &t=Date.now() solo es necesario en mutaciones
+        // POST (donde necesitamos datos frescos del servidor tras un write).
+        // Aplicarlo en todas las GETs invalida el cache del servidor/CDN innecesariamente,
+        // lo que multiplica la carga y puede activar límites de rate-limiting del hosting.
+        const isMutation = method === 'POST';
+        const url = isMutation
+            ? `${API_URL}?action=${action}&t=${Date.now()}`
+            : `${API_URL}?action=${action}`;
         const response = await fetch(url, options);
+
         clearTimeout(id);
 
         const text = await response.text();

@@ -68,6 +68,7 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
         }
         const data = serverCustomers.map(c => ({
             Nombre: c.name,
+            Cedula: c.cedula || '',
             Telefono: c.phone,
             Direccion: c.address,
             TotalGastado: c.totalSpent,
@@ -87,6 +88,7 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
         const newCustomer: Customer = {
             name: '',
             phone: '',
+            cedula: '',
             address: '',
             totalSpent: 0,
             orderCount: 0,
@@ -148,9 +150,13 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/10 dark:to-white/5 flex items-center justify-center font-bold text-gray-500 dark:text-gray-300 shadow-inner">
                                                     {c.name.charAt(0).toUpperCase()}
                                                 </div>
-                                                <div>
+                                        <div>
                                                     <p className="font-bold text-sm dark:text-white">{c.name}</p>
-                                                    <p className="text-[10px] text-gray-400 line-clamp-1 max-w-[150px]">{c.address || 'Sin dirección'}</p>
+                                                    {c.cedula ? (
+                                                        <p className="text-[10px] text-gray-400 font-mono tracking-tight">CI: {c.cedula}</p>
+                                                    ) : (
+                                                        <p className="text-[10px] text-gray-400 line-clamp-1 max-w-[150px]">{c.address || 'Sin dirección'}</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>

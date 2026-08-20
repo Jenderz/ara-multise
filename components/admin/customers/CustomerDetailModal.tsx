@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Customer, Order } from '../../../types';
-import { X, User, Phone, MapPin, Calendar, Package, Clock, DollarSign, ExternalLink, ShoppingBag, History } from 'lucide-react';
+import { X, User, Phone, MapPin, Calendar, Package, Clock, DollarSign, ExternalLink, ShoppingBag, History, CreditCard } from 'lucide-react';
 import { LazyImage } from '../../UIComponents';
 import { DEFAULT_IMAGE } from '../../../config';
 
@@ -53,6 +53,9 @@ export const CustomerDetailModal: React.FC<CustomerDetailModalProps> = ({ custom
                             </h3>
                             <div className="flex flex-col text-sm text-gray-500 dark:text-gray-400 mt-1 gap-1">
                                 <span className="flex items-center gap-1"><Phone size={12} /> {customer.phone}</span>
+                                {customer.cedula && (
+                                    <span className="flex items-center gap-1"><CreditCard size={12} /> {customer.cedula}</span>
+                                )}
                                 <span className="flex items-center gap-1"><MapPin size={12} /> {customer.address || 'Sin dirección'}</span>
                             </div>
                         </div>

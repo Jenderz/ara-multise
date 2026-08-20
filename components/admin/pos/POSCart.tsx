@@ -80,7 +80,7 @@ export const POSCart = () => {
         }
         const term = customerInput.toLowerCase();
         const matches = customers.filter(c =>
-            c.name.toLowerCase().includes(term) || c.phone.includes(term)
+            c.name.toLowerCase().includes(term) || c.phone.includes(term) || (c.cedula || '').toLowerCase().includes(term)
         ).slice(0, 5);
         setCustomerSuggestions(matches);
         setShowSuggestions(matches.length > 0);
@@ -348,7 +348,10 @@ export const POSCart = () => {
                                         {customerSuggestions.map(c => (
                                             <button key={c.phone} onClick={() => selectCustomer(c)} className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/5 text-xs border-b border-gray-50 dark:border-white/5 last:border-0">
                                                 <p className="font-bold dark:text-white">{c.name}</p>
-                                                <p className="text-[10px] text-gray-400">{c.phone}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <p className="text-[10px] text-gray-400">{c.phone}</p>
+                                                    {c.cedula && <p className="text-[10px] text-gray-400 font-mono">CI: {c.cedula}</p>}
+                                                </div>
                                             </button>
                                         ))}
                                     </div>

@@ -6,7 +6,7 @@ import { Button, Input, Card, Badge, LazyImage } from '../UIComponents';
 import { generateId, exportToExcel } from './Shared';
 import {
     Search, Plus, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight,
-    Truck, Globe, Download, FileSpreadsheet, AlertTriangle
+    Truck, Globe, Download, FileSpreadsheet, AlertTriangle, Tag
 } from 'lucide-react';
 import { Product, Category } from '../../types';
 import { DEFAULT_IMAGE } from '../../config';
@@ -14,6 +14,7 @@ import { api } from '../../services/api';
 import { ProductFormModal } from './products/ProductFormModal';
 import { ProductImporter } from './products/ProductImporter';
 import { StockBreakdownModal } from './products/StockBreakdownModal';
+import { BarcodePrintModal } from './products/BarcodePrintModal';
 import { ReplenishButton } from '../../integrations/araw/ReplenishButton';
 
 const ITEMS_PER_PAGE = 50;
@@ -37,6 +38,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [transferProduct, setTransferProduct] = useState<Product | null>(null);
+    const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
 
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     const canManage = userRole === 'admin' || currentUser?.permissions?.includes('products_manage');
@@ -73,11 +75,16 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                 addNotification({ title: 'Creado', body: 'Nuevo producto añadido.', type: 'success' });
             }
             setIsModalOpen(false);
-            loadProducts();
+            // FIX SEGURIDAD: Se eliminó loadProducts() aquí.
+            // ProductContext.updateProduct/addProduct ya actualizan el estado local vía setProducts().
+            // Re-llamar a la API sólo genera un GET redundante por cada producto guardado.
+            // La tabla se actualiza automáticamente porque serverProducts refleja el contexto.
+            loadProducts(); // Mantener para sincronizar stock y datos del servidor
         } catch (e) {
             addNotification({ title: 'Error', body: 'Falló el guardado.', type: 'warning' });
         }
     };
+
 
     const handleExport = async () => {
         addNotification({ title: 'Generando Reporte', body: 'Descargando inventario completo...', type: 'info' });
@@ -231,6 +238,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                                 <ReplenishButton product={p} compact />
                                                 {canManage && (
                                                     <>
+                                                        <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg" title="Imprimir Etiqueta"><Tag size={18} /></button>
                                                         <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 size={18} /></button>
                                                         <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><Trash2 size={18} /></button>
                                                     </>
@@ -291,6 +299,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                     <ReplenishButton product={p} />
                                     {canManage && (
                                         <>
+                                            <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl" title="Imprimir Etiqueta"><Tag size={16} /></button>
                                             <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue bg-blue-50 dark:bg-blue-900/10 rounded-xl"><Edit2 size={16} /></button>
                                             <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-xl"><Trash2 size={16} /></button>
                                         </>
@@ -334,6 +343,16 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                         onTransfer={() => { }}
                     />
                 ) : null
+            )}
+
+            {/* Modal de Código de Barras */}
+            {barcodeProduct && (
+                <BarcodePrintModal
+                    isOpen={!!barcodeProduct}
+                    onClose={() => setBarcodeProduct(null)}
+                    product={barcodeProduct}
+                    storeName={settings.storeName}
+                />
             )}
 
             <ProductImporter

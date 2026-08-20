@@ -230,13 +230,22 @@ const ProductGrid = ({ onAdd, isFullScreen }: { onAdd: (p: Product) => void, isF
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Todas');
-    const debouncedSearch = useDebounce(search, 300);
+    const debouncedSearch = useDebounce(search, 400); // FIX: 400ms en lugar de 300ms
     
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const observerTarget = useRef(null);
+    // FIX SEGURIDAD: AbortController para cancelar peticiones anteriores en la búsqueda del POS.
+    // Sin esto, el vendedor tipea rápido y acumula 5-10 GETs concurrentes.
+    const abortRef = useRef<AbortController | null>(null);
 
     const loadProducts = async (reset = false) => {
+        // FIX SEGURIDAD: Cancelar la petición anterior antes de lanzar una nueva.
+        // Esto evita que búsquedas rápidas acumulen múltiples GETs en vuelo simultáneo.
+        if (abortRef.current) abortRef.current.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         if (loading && !reset) return;
         setLoading(true);
         if (reset) {
@@ -249,6 +258,9 @@ const ProductGrid = ({ onAdd, isFullScreen }: { onAdd: (p: Product) => void, isF
             const catFilter = selectedCategory === 'Todas' ? '' : selectedCategory;
             const res = await api.getProducts(p, 24, debouncedSearch, catFilter);
             
+            // Si la petición fue cancelada (abort), ignorar la respuesta
+            if (controller.signal.aborted) return;
+
             if (res && res.data) {
                 setProducts(prev => reset ? res.data : [...prev, ...res.data]);
                 setHasMore(res.data.length === 24);
@@ -257,10 +269,11 @@ const ProductGrid = ({ onAdd, isFullScreen }: { onAdd: (p: Product) => void, isF
                 if (reset) setProducts([]);
                 setHasMore(false);
             }
-        } catch (e) {
+        } catch (e: any) {
+            if (e?.name === 'AbortError') return; // Ignorar cancelaciones
             console.error(e);
         } finally { 
-            setLoading(false); 
+            if (!controller.signal.aborted) setLoading(false);
         }
     };
 

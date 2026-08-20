@@ -4,6 +4,24 @@ import { UserAccount, UserRole, ActivityLog } from '../types';
 import { api } from '../services/api';
 import { useSettings } from './SettingsContext';
 
+// FIX SEGURIDAD: Cache de módulo para api.getSettings()
+// Evita que addUser/updateUser/deleteUser hagan una petición GET cada una.
+// TTL: 30 segundos (suficiente para operaciones CRUD rápidas).
+let _settingsCache: { data: any; ts: number } | null = null;
+const SETTINGS_CACHE_TTL_MS = 30_000;
+
+const getCachedSettings = async () => {
+    if (_settingsCache && Date.now() - _settingsCache.ts < SETTINGS_CACHE_TTL_MS) {
+        return _settingsCache.data;
+    }
+    const data = await api.getSettings();
+    _settingsCache = { data, ts: Date.now() };
+    return data;
+};
+
+// Invalidar cache al guardar settings (para que el siguiente CRUD lea datos frescos)
+const invalidateSettingsCache = () => { _settingsCache = null; };
+
 // Helper de Hashing
 const hashPassword = async (text: string): Promise<string> => {
     if (!text) return '';
@@ -76,10 +94,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Auth Logic
     const login = async (username: string, password: string): Promise<boolean> => {
-        // LECTURA PREVIA: Obtener usuarios frescos (OPTIMIZADO)
+        // LECTURA PREVIA: Usar cache de settings (evita petición doble con el fetch inicial)
         let users: UserAccount[] = [];
         try {
-            const freshSettings = await api.getSettings();
+            const freshSettings = await getCachedSettings();
             let rawUsers = freshSettings?.users || settings.users;
             users = ensureArray<UserAccount>(rawUsers);
         } catch (e) {
@@ -127,8 +145,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // --- USER MANAGEMENT SEGURO Y OPTIMIZADO ---
 
     const addUser = async (user: UserAccount) => {
-        // 1. LECTURA (OPTIMIZADO)
-        const freshSettings = await api.getSettings();
+        // 1. LECTURA (con cache anti-rafága)
+        const freshSettings = await getCachedSettings();
         const rawUsers = freshSettings?.users || settings.users;
         const currentUsers = ensureArray<UserAccount>(rawUsers);
 
@@ -140,20 +158,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const hashedPassword = await hashPassword(user.password);
         const secureUser = { ...user, password: hashedPassword };
 
-        // 3. ESCRITURA
+        // 3. ESCRITURA + invalidar cache
+        invalidateSettingsCache();
         await updateSettings({ users: [...currentUsers, secureUser] });
         logActivity('create_user', `Creó usuario: ${user.username}`);
     };
 
     const updateUser = async (user: UserAccount) => {
-        // 1. LECTURA (OPTIMIZADO)
-        const freshSettings = await api.getSettings();
+        // 1. LECTURA (con cache anti-rafága)
+        const freshSettings = await getCachedSettings();
         const rawUsers = freshSettings?.users || settings.users;
         const currentUsers = ensureArray<UserAccount>(rawUsers);
 
         if (currentUsers.length === 0 && settings.users.length > 0) {
-            // Si la API devuelve vacío pero tenemos localmente, algo falló en la red momentáneamente
-            // Intentamos usar settings.users como fallback de seguridad
             console.warn("Fallo lectura usuarios API, usando local");
         }
 
@@ -162,19 +179,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         let secureUser = user;
 
         if (existingUser && user.password !== existingUser.password) {
-            // Solo hasheamos si cambió y no parece un hash ya
             if (user.password.length !== 64) {
                 const hashedPassword = await hashPassword(user.password);
                 secureUser = { ...user, password: hashedPassword };
             }
         }
 
-        // Si currentUsers está vacío (caso borde), usamos el usuario tal cual
         const newUsers = currentUsers.length > 0
             ? currentUsers.map((u: UserAccount) => u.id === user.id ? secureUser : u)
             : [secureUser];
 
-        // 3. ESCRITURA
+        // 3. ESCRITURA + invalidar cache
+        invalidateSettingsCache();
         await updateSettings({ users: newUsers });
 
         if (currentUser && currentUser.id === user.id) {
@@ -185,8 +201,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const deleteUser = async (id: string) => {
-        // 1. LECTURA (OPTIMIZADO)
-        const freshSettings = await api.getSettings();
+        // 1. LECTURA (con cache anti-rafága)
+        const freshSettings = await getCachedSettings();
         const rawUsers = freshSettings?.users || settings.users;
         const currentUsers = ensureArray<UserAccount>(rawUsers);
 
@@ -200,8 +216,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             logActivity('delete_product', `Eliminó usuario: ${userToDelete.username}`);
         }
 
-        // 3. ESCRITURA
-        await updateSettings({ users: newUsers }); // Ya no enviamos logs aquí
+        // 3. ESCRITURA + invalidar cache
+        invalidateSettingsCache();
+        await updateSettings({ users: newUsers });
     };
 
     return (

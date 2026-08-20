@@ -46,12 +46,11 @@ export const Admin = () => {
     // Verificar si es multi-sede
     const isMultiBranch = settings.planTier !== 'single';
 
-    // --- ANTI-CACHE: Forzar actualización al entrar al admin ---
-    useEffect(() => {
-        if (userRole) {
-            refreshStoreData();
-        }
-    }, [userRole]);
+    // NOTA SEGURIDAD: Se eliminó el refreshStoreData() automático aquí.
+    // El fetch inicial ya lo hace StoreContext.initStore() al montar la app.
+    // Re-dispararlo aquí causaba una ráfaga de 2-4 peticiones `get_all`
+    // simultáneas que saturaba el servidor y bloqueaba la IP del router.
+    // Usar el botón "Actualizar" manual si se necesita forzar una recarga.
 
     const hasPermission = (module: string) => {
         if (userRole === 'admin') return true;

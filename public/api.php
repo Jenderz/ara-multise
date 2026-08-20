@@ -1,8 +1,37 @@
 <?php
 
 /**
- * LYBERATE - MODULAR API GATEWAY V4 (CDN ENABLED)
+ * LYBERATE - MODULAR API GATEWAY V4
  */
+
+// ════════════════════════════════════════════════════════════════════
+// RATE LIMITER — Protección contra ráfagas (Imunify360 / Firewall)
+// Límite: 120 peticiones por minuto por IP (= 2 req/seg).
+// Si se excede → HTTP 429. El frontend lo ignora con gracia.
+// ════════════════════════════════════════════════════════════════════
+$_rl_ip     = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$_rl_file   = sys_get_temp_dir() . '/rl_' . md5($_rl_ip) . '.json';
+$_rl_now    = time();
+$_rl_window = 60;  // ventana de 60 segundos
+$_rl_max    = 120; // máximo 120 req/min por IP
+
+$_rl_data = @json_decode(@file_get_contents($_rl_file), true)
+    ?: ['count' => 0, 'start' => $_rl_now];
+
+if ($_rl_now - $_rl_data['start'] >= $_rl_window) {
+    $_rl_data = ['count' => 0, 'start' => $_rl_now];
+}
+$_rl_data['count']++;
+
+if ($_rl_data['count'] > $_rl_max) {
+    http_response_code(429);
+    header('Content-Type: application/json');
+    header('Retry-After: ' . ($_rl_window - ($_rl_now - $_rl_data['start'])));
+    echo json_encode(['error' => 'Too Many Requests']);
+    exit;
+}
+@file_put_contents($_rl_file, json_encode($_rl_data), LOCK_EX);
+// ════════════════════════════════════════════════════════════════════
 
 // 1. Cargar Núcleo
 require_once 'lib/config.php';
@@ -61,8 +90,8 @@ try {
             break;
         case 'save_customer':
             require_once 'lib/write.php';
-            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, address, total_spent, order_count, last_order_date, order_ids) VALUES (:p, :n, :a, :t, :c, :d, :i) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids)");
-            $stmt->execute([':p' => $input['phone'], ':n' => $input['name'], ':a' => $input['address'], ':t' => floatval($input['totalSpent']), ':c' => intval($input['orderCount']), ':d' => intval($input['lastOrderDate']), ':i' => safeJsonEncode($input['orderIds'])]);
+            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, cedula, address, total_spent, order_count, last_order_date, order_ids) VALUES (:p, :n, :cedula, :a, :t, :c, :d, :i) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), cedula=VALUES(cedula), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids)");
+            $stmt->execute([':p' => $input['phone'], ':n' => $input['name'], ':cedula' => $input['cedula'] ?? '', ':a' => $input['address'], ':t' => floatval($input['totalSpent']), ':c' => intval($input['orderCount']), ':d' => intval($input['lastOrderDate']), ':i' => safeJsonEncode($input['orderIds'])]);
             jsonResponse(['status' => 'success']);
             break;
         case 'save_settings':

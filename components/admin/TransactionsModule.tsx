@@ -91,7 +91,15 @@ export const TransactionsModule = () => {
         };
 
         fetchTransactions();
-    }, [currentPage, debouncedSearch, selectedSeller, selectedMethod, selectedStatus, dateStart, dateEnd, userRole, currentUser, pageSize, currentBranch]);
+    // FIX SEGURIDAD: Se cambiaron currentUser y currentBranch (objetos) por sus IDs (strings/numbers).
+    // Los objetos completos como dependencias de useEffect causan re-ejecuciones cuando el objeto
+    // cambia por referencia durante la hidratación del contexto, aunque el valor sea el mismo.
+    // Esto generaba 2-3 fetches automáticos al cargar el módulo de Transacciones.
+    }, [currentPage, debouncedSearch, selectedSeller, selectedMethod,
+        selectedStatus, dateStart, dateEnd,
+        currentUser?.id,     // Solo el ID, no el objeto completo
+        currentBranch?.id]); // Solo el ID, no el objeto completo
+
 
     const transactionGroups = useMemo(() => {
         const groups: Record<string, GroupedTransaction> = {};

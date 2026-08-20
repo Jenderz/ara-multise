@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Customer } from '../../../types';
 import { Button, Input } from '../../UIComponents';
-import { X, Save, User, Phone, MapPin } from 'lucide-react';
+import { X, Save, User, Phone, MapPin, CreditCard } from 'lucide-react';
 
 interface CustomerEditModalProps {
     customer: Customer;
@@ -61,6 +60,14 @@ export const CustomerEditModal: React.FC<CustomerEditModalProps> = ({ customer, 
                         onChange={e => setFormData({ ...formData, name: e.target.value })} 
                         icon={<User size={16}/>}
                         placeholder="Nombre del cliente"
+                    />
+
+                    <Input 
+                        label="Cédula / DNI" 
+                        value={formData.cedula || ''} 
+                        onChange={e => setFormData({ ...formData, cedula: e.target.value })} 
+                        icon={<CreditCard size={16}/>}
+                        placeholder="V-12345678 (opcional)"
                     />
                     
                     <div>

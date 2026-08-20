@@ -48,26 +48,11 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
         });
     }, [settings]);
 
-    useEffect(() => {
-        const fetchFreshData = async () => {
-            try {
-                const fresh = await api.getAllData();
-                if (fresh && fresh.settings) {
-                    setLocalSettings(prev => {
-                        const next = { ...fresh.settings };
-                        dirtyKeysRef.current.forEach(key => {
-                            // @ts-ignore
-                            next[key] = prev[key];
-                        });
-                        return next;
-                    });
-                }
-            } catch (e) {
-                console.error("Error background refresh", e);
-            }
-        };
-        fetchFreshData();
-    }, [activeSection]);
+    // FIX SEGURIDAD: Se eliminó el useEffect[activeSection] que llamaba api.getAllData()
+    // cada vez que el admin navegaba entre pestañas de configuración.
+    // Eso generaba hasta 8 peticiones GET pesadas por sesión de admin.
+    // Los datos ya están en el prop `settings` (sincronizado desde StoreContext).
+    // Si el admin necesita datos frescos, puede usar el botón "Descartar / Recargar".
 
     const handleLocalUpdate = (update: Partial<StoreSettings>) => {
         Object.keys(update).forEach(key => dirtyKeysRef.current.add(key));
@@ -79,9 +64,11 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
         lastSaveTime.current = Date.now();
 
         try {
-            const freshData = await api.getAllData();
-            const serverSettings = freshData?.settings || settings;
-            const finalSettings = { ...serverSettings };
+            // FIX SEGURIDAD: Se eliminó api.getAllData() pre-guardado.
+            // Usamos directamente settings (prop del contexto) como base,
+            // y aplicamos encima solo las claves modificadas (dirtyKeysRef).
+            // Esto elimina 1 GET por cada click en "Guardar Configuración".
+            const finalSettings = { ...settings };
 
             if (dirtyKeysRef.current.size > 0) {
                 dirtyKeysRef.current.forEach(key => {

@@ -19,12 +19,12 @@ function handleSaveProduct($pdo, $input, $branchId)
 
     // 1. Guardar Datos Maestros del Producto (JSON variants se guarda como referencia estructural)
     $stmt = $pdo->prepare("INSERT INTO `products` 
-        (id, code, title, description, cost, price, sale_price, images, category, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock) 
-        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock) 
+        (id, code, title, description, cost, price, sale_price, images, category, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean) 
+        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock, :barcode_ean) 
         ON DUPLICATE KEY UPDATE 
         code=VALUES(code), title=VALUES(title), description=VALUES(description), cost=VALUES(cost), price=VALUES(price), sale_price=VALUES(sale_price), 
         images=VALUES(images), category=VALUES(category), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
-        variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock)");
+        variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock), barcode_ean=VALUES(barcode_ean)");
 
     $stmt->execute([
         ':id' => $p['id'],
@@ -42,7 +42,8 @@ function handleSaveProduct($pdo, $input, $branchId)
         ':variants' => safeJsonEncode($p['variants'] ?? []),
         ':created_at' => time() * 1000, // FORCE SERVER TIME
         ':track_stock' => ($p['trackStock'] ?? true) ? 1 : 0,
-        ':min_stock' => intval($p['minStock'] ?? 5)
+        ':min_stock' => intval($p['minStock'] ?? 5),
+        ':barcode_ean' => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
     ]);
 
     // 2. Gestión de Inventario (PADRE)

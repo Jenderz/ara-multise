@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Product, Category, VariantOption, ProductVariant } from '../../../types';
 import { Button, Input, ImageUploader } from '../../UIComponents';
 import { ImageCropper } from '../../ImageCropper'; // Importar Cropper
 import { api } from '../../../services/api'; // Importar API
-import { X, Plus, Minus, Trash2, Save, Upload, AlertCircle, Lock, MapPin, Globe } from 'lucide-react';
+import { X, Plus, Minus, Trash2, Save, Upload, AlertCircle, Lock, MapPin, Globe, Tag, Printer } from 'lucide-react';
 import { generateId } from '../Shared';
 import { useStore } from '../../../context/StoreContext';
+import { generateEAN13, renderBarcodeSVG, normalizeToEAN13 } from '../../../utils/barcodeUtils';
+import { BarcodePrintModal } from './BarcodePrintModal';
 
 interface ProductFormModalProps {
     isOpen: boolean;
@@ -41,6 +43,19 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
     });
 
     const [activeTab, setActiveTab] = useState<'info' | 'variants'>('info');
+    const [showBarcodePrint, setShowBarcodePrint] = useState(false);
+
+    // EAN-13: si el usuario ingresó uno manualmente, normalizarlo a EAN-13; sino, generarlo al vuelo
+    const ean13 = useMemo(() => {
+        if (formData.barcodeEan) return normalizeToEAN13(formData.barcodeEan, formData.category, formData.code);
+        if (!formData.code || !formData.category) return null;
+        return generateEAN13(formData.category, formData.code);
+    }, [formData.barcodeEan, formData.code, formData.category]);
+
+    const barcodeSVGPreview = useMemo(() => {
+        if (!ean13) return null;
+        return renderBarcodeSVG(ean13, { height: 30, moduleWidth: 1.2, showText: true, fontSize: 7 });
+    }, [ean13]);
 
     useEffect(() => {
         if (isOpen) {
@@ -51,6 +66,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                 setFormData({
                     id: '',
                     code: '',
+                    barcodeEan: '',
                     title: '',
                     description: '',
                     cost: 0,
@@ -89,8 +105,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             alert('Nombre y precio son obligatorios');
             return;
         }
-        onSave(formData);
+        // Persistir el EAN-13 calculado (ya sea el ingresado manualmente o el autogenerado).
+        // El backend recibe el objeto completo con { ...p } en api.saveProduct(),
+        // por lo que barcodeEan se serializa en el JSON y se almacena automáticamente.
+        onSave({ ...formData, barcodeEan: formData.barcodeEan?.trim() || ean13 || '' });
     };
+
 
     const addOption = () => {
         setFormData(prev => ({
@@ -288,6 +308,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     <Input label="Nombre del Producto" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="Ej: Camiseta Básica" />
                                     <div className="grid grid-cols-2 gap-4">
                                         <Input label="Código / SKU" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} placeholder="Ej: CAM-001" />
+                                        
                                         <div>
                                             <label className="text-xs font-semibold text-gray-500 uppercase ml-1 block mb-1.5">Categoría</label>
                                             <select
@@ -298,6 +319,33 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                 {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                                             </select>
                                         </div>
+
+                                        <Input 
+                                            label="Código Barras / Escanear 🔫" 
+                                            value={formData.barcodeEan || ''} 
+                                            onChange={e => setFormData({ ...formData, barcodeEan: e.target.value })} 
+                                            placeholder="Si está vacío, se autogenera" 
+                                        />
+
+                                        {/* Preview EAN-13 inline */}
+                                        {ean13 && barcodeSVGPreview && (
+                                            <div className="bg-white dark:bg-black/20 border border-gray-100 dark:border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                                                <div
+                                                    className="flex-1 overflow-hidden flex items-center justify-center"
+                                                    dangerouslySetInnerHTML={{ __html: barcodeSVGPreview }}
+                                                />
+                                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                                    <span className="text-[9px] font-mono text-gray-400 tracking-widest">{ean13}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowBarcodePrint(true)}
+                                                        className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+                                                    >
+                                                        <Printer size={10} /> Imprimir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-3 gap-4">
                                         <Input label="Precio Venta ($)" type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })} />
@@ -427,11 +475,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                 <tr>
                                                     <th className="p-3 w-10 text-center"></th>
                                                     <th className="p-3">Variante</th>
-                                                    <th className="p-3 w-24">Precio</th>
-                                                    <th className="p-3 w-24">Oferta</th>
-                                                    <th className="p-3 w-32">Stock Local</th>
-                                                    <th className="p-3 w-32">SKU</th>
-                                                    <th className="p-3 w-20 text-center">Imagen</th>
+                                                    <th className="p-3 w-20">Precio</th>
+                                                    <th className="p-3 w-20">Oferta</th>
+                                                    <th className="p-3 w-28">Stock Local</th>
+                                                    <th className="p-3 w-24">SKU</th>
+                                                    <th className="p-3 w-28">Barcode 🔫</th>
+                                                    <th className="p-3 w-16 text-center">Imagen</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
@@ -498,6 +547,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 onChange={e => updateVariant(idx, 'sku', e.target.value)}
                                                             />
                                                         </td>
+                                                        <td className="p-3">
+                                                            <input
+                                                                className="w-full bg-transparent border-b border-gray-200 dark:border-white/10 focus:border-ios-blue outline-none text-xs py-1 dark:text-white font-mono"
+                                                                value={v.barcodeEan || ''}
+                                                                placeholder="Autogenerar"
+                                                                onChange={e => updateVariant(idx, 'barcodeEan', e.target.value)}
+                                                            />
+                                                        </td>
                                                         <td className="p-3 text-center align-middle">
                                                             <div className="w-10 h-10 mx-auto">
                                                                 <ImageUploader
@@ -542,14 +599,25 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 <span key={k} className="text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300 font-medium">{val}</span>
                                                             ))}
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] text-gray-400 uppercase font-bold block">SKU</label>
-                                                            <input
-                                                                className="text-xs font-mono uppercase bg-transparent w-full outline-none border-b border-gray-200 dark:border-white/10 dark:text-white"
-                                                                value={v.sku}
-                                                                onChange={e => updateVariant(idx, 'sku', e.target.value)}
-                                                                placeholder="SKU"
-                                                            />
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block">SKU</label>
+                                                                <input
+                                                                    className="text-xs font-mono uppercase bg-transparent w-full outline-none border-b border-gray-200 dark:border-white/10 dark:text-white"
+                                                                    value={v.sku}
+                                                                    onChange={e => updateVariant(idx, 'sku', e.target.value)}
+                                                                    placeholder="SKU"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] text-gray-400 uppercase font-bold block">Barcode 🔫</label>
+                                                                <input
+                                                                    className="text-xs font-mono bg-transparent w-full outline-none border-b border-gray-200 dark:border-white/10 dark:text-white"
+                                                                    value={v.barcodeEan || ''}
+                                                                    onChange={e => updateVariant(idx, 'barcodeEan', e.target.value)}
+                                                                    placeholder="Auto"
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -608,6 +676,15 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     onCropComplete={handleCropComplete}
                     onCancel={() => { setCropImage(null); setCroppingTarget(null); }}
                     aspectRatio={1} // Siempre cuadrado para productos
+                />
+            )}
+
+            {/* BARCODE PRINT MODAL — abierto desde el preview del formulario */}
+            {showBarcodePrint && ean13 && (
+                <BarcodePrintModal
+                    isOpen={showBarcodePrint}
+                    onClose={() => setShowBarcodePrint(false)}
+                    product={formData as Product}
                 />
             )}
         </div>

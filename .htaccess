@@ -1,8 +1,18 @@
 <IfModule mod_headers.c>
-    # CORS
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    # ═══════════════════════════════════════════════════════════════════
+    # CORS — PRODUCCIÓN: vebutterfly.com
+    # ═══════════════════════════════════════════════════════════════════
+    # Acepta peticiones de vebutterfly.com, www.vebutterfly.com y
+    # mayor.vebutterfly.com (cualquier subdominio *.vebutterfly.com).
+    # ═══════════════════════════════════════════════════════════════════
+
+    SetEnvIfNoCase Origin "^https://([a-zA-Z0-9-]+\.)?vebutterfly\.com$" CORS_ALLOWED=1
+    Header always set Access-Control-Allow-Origin "%{HTTP_ORIGIN}e" env=CORS_ALLOWED
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS" env=CORS_ALLOWED
+    Header always set Access-Control-Allow-Headers "Content-Type, X-Branch-ID, X-App-Token" env=CORS_ALLOWED
+    Header always set Access-Control-Max-Age "3600" env=CORS_ALLOWED
+
+
 
     # Seguridad
     Header always set X-Content-Type-Options "nosniff"
@@ -10,6 +20,8 @@
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
+
+
 
 <IfModule mod_rewrite.c>
   RewriteEngine On

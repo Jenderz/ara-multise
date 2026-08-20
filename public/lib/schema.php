@@ -19,7 +19,8 @@ function checkAndMigrateDB($pdo) {
                 `variants` LONGTEXT,
                 `created_at` BIGINT,
                 `track_stock` TINYINT(1) DEFAULT 1,
-                `min_stock` INT DEFAULT 5
+                `min_stock` INT DEFAULT 5,
+                `barcode_ean` VARCHAR(255)
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
             
             "orders" => "CREATE TABLE IF NOT EXISTS `orders` (
@@ -44,6 +45,7 @@ function checkAndMigrateDB($pdo) {
             "customers" => "CREATE TABLE IF NOT EXISTS `customers` (
                 `phone` VARCHAR(50) PRIMARY KEY,
                 `name` VARCHAR(255),
+                `cedula` VARCHAR(30) DEFAULT '',
                 `address` TEXT,
                 `total_spent` FLOAT DEFAULT 0,
                 `order_count` INT DEFAULT 0,
@@ -141,7 +143,7 @@ function checkAndMigrateDB($pdo) {
 
         // Migración de Columnas Faltantes
         $columns_to_check = [
-            'products' => ['track_stock' => "TINYINT(1) DEFAULT 1", 'min_stock' => "INT DEFAULT 5"],
+            'products' => ['track_stock' => "TINYINT(1) DEFAULT 1", 'min_stock' => "INT DEFAULT 5", 'barcode_ean' => "VARCHAR(255)"],
             'orders' => [
                 'branch_id' => "INT DEFAULT 1", 
                 'seller_id' => "VARCHAR(255)", 
@@ -150,6 +152,9 @@ function checkAndMigrateDB($pdo) {
                 'discount' => "FLOAT DEFAULT 0",
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",
                 'pickup_branch_id' => "INT DEFAULT 0"
+            ],
+            'customers' => [
+                'cedula' => "VARCHAR(30) DEFAULT ''"
             ]
         ];
         

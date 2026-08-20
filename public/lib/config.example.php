@@ -19,11 +19,6 @@ error_reporting(E_ALL);
 @ini_set('max_execution_time', '1200');
 date_default_timezone_set('America/Caracas');
 
-// --- CONFIGURACIÓN CDN ---
-// ⚠️ CAMBIA ESTOS VALORES POR LOS TUYOS
-define('CDN_URL', 'https://tu-dominio.com/cdn/receiver.php');
-define('CDN_PUBLIC_BASE', 'https://tu-dominio.com/uploads');
-define('CDN_API_KEY', 'TU_API_KEY_AQUI'); // ⚠️ CAMBIAR
 
 // --- MANEJADOR DE ERRORES FATALES ---
 register_shutdown_function(function () {
@@ -125,6 +120,7 @@ function mapProduct($p)
     $p['salePrice'] = (float)($p['sale_price'] ?? 0);
     $p['cost'] = (float)($p['cost'] ?? 0);
     $p['trackStock'] = isset($p['track_stock']) ? (bool)$p['track_stock'] : true;
+    $p['barcodeEan'] = $p['barcode_ean'] ?? ($p['barcodeEan'] ?? '');
     $p['images'] = safeJsonDecode($p['images']);
     $p['variantOptions'] = safeJsonDecode($p['variant_options']);
     $p['variants'] = safeJsonDecode($p['variants']);
@@ -161,5 +157,6 @@ function mapCustomer($c)
     $c['orderCount'] = (int)($c['order_count'] ?? 0);
     $c['lastOrderDate'] = (int)($c['last_order_date'] ?? 0);
     $c['orderIds'] = safeJsonDecode($c['order_ids']);
+    $c['cedula'] = $c['cedula'] ?? '';
     return $c;
 }

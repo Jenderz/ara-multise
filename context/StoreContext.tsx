@@ -30,6 +30,7 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
     const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
 
     const hasInitialLoad = useRef(false);
+    const hasEnforcedBranch = useRef(false); // FIX SEGURIDAD: flag anti-bucle
 
     // --- GESTIÓN DE SEDES ---
     const switchBranch = async (branchId: number) => {
@@ -235,15 +236,29 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
     }, []);
 
     // Re-check user restrictions on mount or user change
+    // FIX SEGURIDAD: Solo ejecutar UNA VEZ para evitar re-disparar refreshStoreData() en bucle.
+    // El problema era: currentUser cambia → switchBranch() → refreshStoreData() → re-render → repeat.
+    // FIX BUG: Se resetea el flag al hacer logout (currentUser = null) para que funcione
+    // correctamente si el mismo usuario cierra sesión e inicia sesión con una cuenta diferente.
     useEffect(() => {
-        if (currentUser && currentUser.assignedBranchId && currentUser.assignedBranchId > 0) {
+        if (!currentUser) {
+            // Logout: resetear el flag para que el próximo login aplique la restricción correctamente
+            hasEnforcedBranch.current = false;
+            return;
+        }
+        if (hasEnforcedBranch.current) return;
+        if (currentUser.assignedBranchId && currentUser.assignedBranchId > 0) {
             const currentId = parseInt(localStorage.getItem('lyberate_branch_id') || '0');
             if (currentId !== currentUser.assignedBranchId) {
-                console.log("Enforcing branch restriction for user...");
+                console.log("Enforcing branch restriction for user (once)...");
+                hasEnforcedBranch.current = true;
                 switchBranch(currentUser.assignedBranchId);
+            } else {
+                hasEnforcedBranch.current = true; // Ya está en la sede correcta, marcar como resuelto
             }
         }
     }, [currentUser]);
+
 
     // Exponer todo el contexto combinado
     return (

@@ -103,6 +103,13 @@
       @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes pulseSlow { from { transform: scale(1.0); } to { transform: scale(1.1); } }
       @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
+      @keyframes scanLine { 
+        0% { transform: translateY(-50px); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(50px); opacity: 0; }
+      }
+      .animate-scan-line { animation: scanLine 2s linear infinite; }
 
       .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
       .pt-safe { padding-top: env(safe-area-inset-top); }
