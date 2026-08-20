@@ -172,8 +172,10 @@ function handleGetProducts($pdo, $branchId)
         $params[':s'] = "%$search%";
     }
     if ($cat) {
-        $where[] = "p.category = :c";
-        $params[':c'] = $cat;
+        // Filtrar por categoría primaria O por alguna categoría extra (multi-categoría)
+        $where[] = "(p.category = :c OR (p.extra_categories IS NOT NULL AND p.extra_categories != '[]' AND p.extra_categories LIKE :clike))";
+        $params[':c']     = $cat;
+        $params[':clike'] = '%' . $cat . '%';
     }
 
     $whereSql = implode(" AND ", $where);

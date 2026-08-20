@@ -85,7 +85,14 @@ export interface Product {
   minStock?: number;
   trackStock?: boolean;
   images: string[];
+  /** Categoría primaria del producto (referencia para EAN-13, exportación, etc.) */
   category: string;
+  /**
+   * Categorías adicionales en las que aparece este producto.
+   * Permite que un producto unisex, por ejemplo, aparezca en múltiples secciones
+   * de la tienda sin duplicar el registro.
+   */
+  extraCategories?: string[];
   isVisible: boolean;
   isFeatured: boolean;
   variantOptions: VariantOption[];
@@ -94,6 +101,7 @@ export interface Product {
   /** Código de barras EAN-13 generado automáticamente (categoría + código producto) */
   barcodeEan?: string;
 }
+
 
 export interface Branch {
   id: number;

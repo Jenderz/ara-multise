@@ -19,31 +19,38 @@ function handleSaveProduct($pdo, $input, $branchId)
 
     // 1. Guardar Datos Maestros del Producto (JSON variants se guarda como referencia estructural)
     $stmt = $pdo->prepare("INSERT INTO `products` 
-        (id, code, title, description, cost, price, sale_price, images, category, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean) 
-        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock, :barcode_ean) 
+        (id, code, title, description, cost, price, sale_price, images, category, extra_categories, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean) 
+        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :extra_categories, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock, :barcode_ean) 
         ON DUPLICATE KEY UPDATE 
         code=VALUES(code), title=VALUES(title), description=VALUES(description), cost=VALUES(cost), price=VALUES(price), sale_price=VALUES(sale_price), 
-        images=VALUES(images), category=VALUES(category), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
+        images=VALUES(images), category=VALUES(category), extra_categories=VALUES(extra_categories), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
         variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock), barcode_ean=VALUES(barcode_ean)");
 
     $stmt->execute([
-        ':id' => $p['id'],
-        ':code' => $p['code'] ?? '',
-        ':title' => $p['title'] ?? '',
-        ':description' => $p['description'] ?? '',
-        ':cost' => floatval($p['cost'] ?? 0),
-        ':price' => floatval($p['price'] ?? 0),
-        ':sale_price' => floatval($p['salePrice'] ?? 0),
-        ':images' => safeJsonEncode($p['images'] ?? []),
-        ':category' => $p['category'] ?? 'General',
-        ':is_visible' => ($p['isVisible'] ?? true) ? 1 : 0,
-        ':is_featured' => ($p['isFeatured'] ?? false) ? 1 : 0,
-        ':variant_options' => safeJsonEncode($p['variantOptions'] ?? []),
-        ':variants' => safeJsonEncode($p['variants'] ?? []),
-        ':created_at' => time() * 1000, // FORCE SERVER TIME
-        ':track_stock' => ($p['trackStock'] ?? true) ? 1 : 0,
-        ':min_stock' => intval($p['minStock'] ?? 5),
-        ':barcode_ean' => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
+        ':id'               => $p['id'],
+        ':code'             => $p['code'] ?? '',
+        ':title'            => $p['title'] ?? '',
+        ':description'      => $p['description'] ?? '',
+        ':cost'             => floatval($p['cost'] ?? 0),
+        ':price'            => floatval($p['price'] ?? 0),
+        ':sale_price'       => floatval($p['salePrice'] ?? 0),
+        ':images'           => safeJsonEncode($p['images'] ?? []),
+        ':category'         => $p['category'] ?? 'General',
+        // extra_categories: array de strings de categorías adicionales
+        ':extra_categories' => safeJsonEncode(
+            array_values(array_filter(
+                array_map('strval', $p['extraCategories'] ?? []),
+                fn($c) => $c !== ''
+            ))
+        ),
+        ':is_visible'       => ($p['isVisible'] ?? true) ? 1 : 0,
+        ':is_featured'      => ($p['isFeatured'] ?? false) ? 1 : 0,
+        ':variant_options'  => safeJsonEncode($p['variantOptions'] ?? []),
+        ':variants'         => safeJsonEncode($p['variants'] ?? []),
+        ':created_at'       => time() * 1000, // FORCE SERVER TIME
+        ':track_stock'      => ($p['trackStock'] ?? true) ? 1 : 0,
+        ':min_stock'        => intval($p['minStock'] ?? 5),
+        ':barcode_ean'      => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
     ]);
 
     // 2. Gestión de Inventario (PADRE)

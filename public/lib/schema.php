@@ -13,6 +13,7 @@ function checkAndMigrateDB($pdo) {
                 `sale_price` FLOAT DEFAULT 0,
                 `images` LONGTEXT,
                 `category` VARCHAR(255),
+                `extra_categories` TEXT DEFAULT NULL,
                 `is_visible` TINYINT(1) DEFAULT 1,
                 `is_featured` TINYINT(1) DEFAULT 0,
                 `variant_options` LONGTEXT,
@@ -143,7 +144,12 @@ function checkAndMigrateDB($pdo) {
 
         // Migración de Columnas Faltantes
         $columns_to_check = [
-            'products' => ['track_stock' => "TINYINT(1) DEFAULT 1", 'min_stock' => "INT DEFAULT 5", 'barcode_ean' => "VARCHAR(255)"],
+            'products' => [
+                'track_stock'      => "TINYINT(1) DEFAULT 1",
+                'min_stock'        => "INT DEFAULT 5",
+                'barcode_ean'      => "VARCHAR(255)",
+                'extra_categories' => "TEXT DEFAULT NULL",  // Multi-categoría
+            ],
             'orders' => [
                 'branch_id' => "INT DEFAULT 1", 
                 'seller_id' => "VARCHAR(255)", 

@@ -35,6 +35,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
         stock: 0,
         images: [],
         category: 'General',
+        extraCategories: [],
         isVisible: true,
         isFeatured: false,
         variantOptions: [],
@@ -74,6 +75,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     stock: 0,
                     images: [],
                     category: categories.length > 0 ? categories[0].name : 'General',
+                    extraCategories: [],
                     isVisible: true,
                     isFeatured: false,
                     variantOptions: [],
@@ -310,15 +312,75 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         <Input label="Código / SKU" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} placeholder="Ej: CAM-001" />
                                         
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-500 uppercase ml-1 block mb-1.5">Categoría</label>
+                                            <label className="text-xs font-semibold text-gray-500 uppercase ml-1 block mb-1.5">Categoría Principal</label>
                                             <select
                                                 className="w-full bg-white dark:bg-black/20 border border-transparent rounded-2xl px-4 py-3 outline-none text-sm dark:text-white focus:ring-4 focus:ring-ios-blue/10 transition-all"
                                                 value={formData.category}
-                                                onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                                onChange={e => {
+                                                    const newPrimary = e.target.value;
+                                                    // Si la nueva primaria estaba en extra, quitarla
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        category: newPrimary,
+                                                        extraCategories: (prev.extraCategories ?? []).filter(c => c !== newPrimary)
+                                                    }));
+                                                }}
                                             >
                                                 {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                                             </select>
                                         </div>
+
+                                        {/* ── Multi-Categoría: Categorías Adicionales ── */}
+                                        {categories.length > 1 && (
+                                            <div>
+                                                <label className="text-xs font-semibold text-gray-500 uppercase ml-1 block mb-1.5">
+                                                    También en categorías
+                                                    {(formData.extraCategories ?? []).length > 0 && (
+                                                        <span className="ml-2 bg-ios-blue text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+                                                            +{(formData.extraCategories ?? []).length}
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <div className="bg-white dark:bg-black/20 border border-transparent rounded-2xl p-3 space-y-1.5 max-h-36 overflow-y-auto">
+                                                    {categories
+                                                        .filter(c => c.name !== formData.category)
+                                                        .map(c => {
+                                                            const isChecked = (formData.extraCategories ?? []).includes(c.name);
+                                                            return (
+                                                                <label
+                                                                    key={c.id}
+                                                                    className={`flex items-center gap-2.5 px-2 py-1.5 rounded-xl cursor-pointer transition-colors select-none ${
+                                                                        isChecked
+                                                                            ? 'bg-blue-50 dark:bg-blue-900/20'
+                                                                            : 'hover:bg-gray-50 dark:hover:bg-white/5'
+                                                                    }`}
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="w-4 h-4 accent-blue-500 rounded"
+                                                                        checked={isChecked}
+                                                                        onChange={e => {
+                                                                            const extras = formData.extraCategories ?? [];
+                                                                            setFormData(prev => ({
+                                                                                ...prev,
+                                                                                extraCategories: e.target.checked
+                                                                                    ? [...extras, c.name]
+                                                                                    : extras.filter(x => x !== c.name)
+                                                                            }));
+                                                                        }}
+                                                                    />
+                                                                    <span className={`text-xs font-medium ${
+                                                                        isChecked ? 'text-ios-blue dark:text-blue-300 font-bold' : 'dark:text-gray-300'
+                                                                    }`}>
+                                                                        {c.name}
+                                                                    </span>
+                                                                </label>
+                                                            );
+                                                        })
+                                                    }
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <Input 
                                             label="Código Barras / Escanear 🔫" 

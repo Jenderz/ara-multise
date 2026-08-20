@@ -111,19 +111,24 @@ function generateUniqueId()
 // --- MAPPERS DE OBJETOS ---
 function mapProduct($p)
 {
-    $p['isVisible'] = (bool)$p['is_visible'];
-    $p['isFeatured'] = (bool)$p['is_featured'];
-    $p['stock'] = (int)($p['stock'] ?? 0);
-    $p['globalStock'] = (int)($p['global_stock'] ?? 0);
-    $p['minStock'] = (int)($p['min_stock'] ?? 5);
-    $p['price'] = (float)$p['price'];
-    $p['salePrice'] = (float)($p['sale_price'] ?? 0);
-    $p['cost'] = (float)($p['cost'] ?? 0);
-    $p['trackStock'] = isset($p['track_stock']) ? (bool)$p['track_stock'] : true;
-    $p['barcodeEan'] = $p['barcode_ean'] ?? ($p['barcodeEan'] ?? '');
-    $p['images'] = safeJsonDecode($p['images']);
-    $p['variantOptions'] = safeJsonDecode($p['variant_options']);
-    $p['variants'] = safeJsonDecode($p['variants']);
+    $p['isVisible']        = (bool)$p['is_visible'];
+    $p['isFeatured']       = (bool)$p['is_featured'];
+    $p['stock']            = (int)($p['stock'] ?? 0);
+    $p['globalStock']      = (int)($p['global_stock'] ?? 0);
+    $p['minStock']         = (int)($p['min_stock'] ?? 5);
+    $p['price']            = (float)$p['price'];
+    $p['salePrice']        = (float)($p['sale_price'] ?? 0);
+    $p['cost']             = (float)($p['cost'] ?? 0);
+    $p['trackStock']       = isset($p['track_stock']) ? (bool)$p['track_stock'] : true;
+    $p['barcodeEan']       = $p['barcode_ean'] ?? ($p['barcodeEan'] ?? '');
+    $p['images']           = safeJsonDecode($p['images']);
+    $p['variantOptions']   = safeJsonDecode($p['variant_options']);
+    $p['variants']         = safeJsonDecode($p['variants']);
+    // Multi-categoría: deserializar array de categorías adicionales
+    $rawExtra = $p['extra_categories'] ?? null;
+    $p['extraCategories']  = (!empty($rawExtra) && $rawExtra !== 'null')
+        ? array_values(array_filter(safeJsonDecode($rawExtra), fn($c) => is_string($c) && $c !== ''))
+        : [];
     return $p;
 }
 

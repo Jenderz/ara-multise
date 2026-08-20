@@ -124,16 +124,23 @@ export const Shop = () => {
         if (!searchTerm) setIsSearchExpanded(false);
     }, [selectedCategory, searchTerm, showOffersOnly]);
 
-    // Lista de categorías única y normalizada
+    // Lista de categorías única y normalizada (incluye categorías extra de productos multi-categoría)
     const categories = useMemo(() => {
         const unique = new Set<string>(['Todos']);
         products.forEach(p => {
-            if (p.isVisible && p.category) {
-                // Capitalizar primera letra y trim para agrupar "ropa", "Ropa " y "ROPA"
+            if (!p.isVisible) return;
+            // Agregar categoría primaria
+            if (p.category) {
                 const clean = p.category.trim().toLowerCase();
-                const formatted = clean.charAt(0).toUpperCase() + clean.slice(1);
-                unique.add(formatted);
+                unique.add(clean.charAt(0).toUpperCase() + clean.slice(1));
             }
+            // Agregar categorías extra (multi-categoría)
+            (p.extraCategories ?? []).forEach(ec => {
+                if (ec) {
+                    const clean = ec.trim().toLowerCase();
+                    unique.add(clean.charAt(0).toUpperCase() + clean.slice(1));
+                }
+            });
         });
         return Array.from(unique).sort();
     }, [products]);
@@ -156,10 +163,15 @@ export const Shop = () => {
         const lowerSearch = searchTerm.toLowerCase().trim();
 
         return visible.filter(p => {
-            // 1. Filtro de Categoría (Insensible a mayúsculas)
+            // 1. Filtro de Categoría (Insensible a mayúsculas, incluye categorías extra)
             const productCatNormalized = p.category.trim().toLowerCase();
             const selectedCatNormalized = selectedCategory.trim().toLowerCase();
-            const matchesCategory = selectedCategory === 'Todos' || productCatNormalized === selectedCatNormalized;
+            const matchesCategory =
+                selectedCategory === 'Todos' ||
+                productCatNormalized === selectedCatNormalized ||
+                (p.extraCategories ?? []).some(
+                    ec => ec.trim().toLowerCase() === selectedCatNormalized
+                );
 
             // 2. Filtro de Búsqueda Profunda (Título, Categoría, SKU, Variantes)
             let matchesSearch = true;

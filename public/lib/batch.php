@@ -10,11 +10,11 @@ function handleBatchWrite($pdo, $input, $branchId) {
     try {
         if ($type === 'products') {
             $stmt = $pdo->prepare("INSERT INTO `products` 
-            (id, code, title, description, cost, price, sale_price, images, category, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock) 
-            VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock) 
+            (id, code, title, description, cost, price, sale_price, images, category, extra_categories, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock) 
+            VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :extra_categories, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock) 
             ON DUPLICATE KEY UPDATE 
             code=VALUES(code), title=VALUES(title), description=VALUES(description), cost=VALUES(cost), price=VALUES(price), sale_price=VALUES(sale_price), 
-            images=VALUES(images), category=VALUES(category), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
+            images=VALUES(images), category=VALUES(category), extra_categories=VALUES(extra_categories), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
             variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock)");
             
             // Preparar statement para inventario (usado tanto para padre como variantes)
@@ -26,23 +26,31 @@ function handleBatchWrite($pdo, $input, $branchId) {
                 $vOptions = is_string($p['variantOptions'] ?? '') ? $p['variantOptions'] : safeJsonEncode($p['variantOptions'] ?? []);
                 $variantsStr = is_string($p['variants'] ?? '') ? $p['variants'] : safeJsonEncode($p['variants'] ?? []);
 
+                $extraCats = $p['extraCategories'] ?? [];
+                if (is_string($extraCats)) {
+                    // Soporte CSV: "Cat A|Cat B" o "Cat A,Cat B"
+                    $extraCats = array_map('trim', preg_split('/[|,]/', $extraCats));
+                }
+                $extraCatsJson = safeJsonEncode(array_values(array_filter($extraCats, fn($c) => is_string($c) && $c !== '')));
+
                 $stmt->execute([
-                    ':id' => $p['id'] ?? generateUniqueId(), 
-                    ':code' => $p['code'] ?? '', 
-                    ':title' => $p['title'] ?? 'Sin Nombre', 
-                    ':description' => $p['description'] ?? '', 
-                    ':cost' => floatval($p['cost'] ?? 0),
-                    ':price' => floatval($p['price'] ?? 0), 
-                    ':sale_price' => floatval($p['salePrice'] ?? 0), 
-                    ':images' => $images,
-                    ':category' => $p['category'] ?? 'General', 
-                    ':is_visible' => ($p['isVisible'] ?? true) ? 1 : 0, 
-                    ':is_featured' => ($p['isFeatured'] ?? false) ? 1 : 0,
-                    ':variant_options' => $vOptions,
-                    ':variants' => $variantsStr,
-                    ':created_at' => $p['createdAt'] ?? time()*1000, 
-                    ':track_stock' => ($p['trackStock'] ?? true) ? 1 : 0, 
-                    ':min_stock' => intval($p['minStock'] ?? 5)
+                    ':id'               => $p['id'] ?? generateUniqueId(), 
+                    ':code'             => $p['code'] ?? '', 
+                    ':title'            => $p['title'] ?? 'Sin Nombre', 
+                    ':description'      => $p['description'] ?? '', 
+                    ':cost'             => floatval($p['cost'] ?? 0),
+                    ':price'            => floatval($p['price'] ?? 0), 
+                    ':sale_price'       => floatval($p['salePrice'] ?? 0), 
+                    ':images'           => $images,
+                    ':category'         => $p['category'] ?? 'General', 
+                    ':extra_categories' => $extraCatsJson,
+                    ':is_visible'       => ($p['isVisible'] ?? true) ? 1 : 0, 
+                    ':is_featured'      => ($p['isFeatured'] ?? false) ? 1 : 0,
+                    ':variant_options'  => $vOptions,
+                    ':variants'         => $variantsStr,
+                    ':created_at'       => $p['createdAt'] ?? time()*1000, 
+                    ':track_stock'      => ($p['trackStock'] ?? true) ? 1 : 0, 
+                    ':min_stock'        => intval($p['minStock'] ?? 5)
                 ]);
                 
                 // 1. Insertar stock del PADRE (Suma total)

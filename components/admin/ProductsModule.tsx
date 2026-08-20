@@ -210,7 +210,20 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                     <tr key={p.id} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
                                         <td className="p-5"><div className="w-12 h-12 rounded-xl overflow-hidden border border-black/5"><img src={p.images[0] || DEFAULT_IMAGE} className="w-full h-full object-cover" /></div></td>
                                         <td className="p-5"><p className="font-bold text-sm dark:text-white">{p.title}</p><p className="text-[10px] text-gray-400 font-mono">{p.code}</p></td>
-                                        <td className="p-5"><Badge color="gray">{p.category}</Badge></td>
+                                        <td className="p-5">
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                <Badge color="gray">{p.category}</Badge>
+                                                {(p.extraCategories ?? []).map(ec => (
+                                                    <span
+                                                        key={ec}
+                                                        title={`También en: ${ec}`}
+                                                        className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50"
+                                                    >
+                                                        {ec}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
                                         <td className="p-5 font-black text-sm dark:text-white">${p.price.toFixed(2)}</td>
                                         {showCost && <td className="p-5 font-medium text-xs text-gray-500">${p.cost.toFixed(2)}</td>}
                                         <td className="p-5">
@@ -269,9 +282,21 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                 <div>
                                     <h3 className="font-bold text-sm dark:text-white truncate pr-2 leading-tight mb-1">{p.title}</h3>
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Badge color="gray" size="sm">{p.category}</Badge>
-                                        <p className="text-[10px] text-gray-400 font-mono">{p.code}</p>
-                                    </div>
+                                            <Badge color="gray" size="sm">{p.category}</Badge>
+                                            {(p.extraCategories ?? []).slice(0, 2).map(ec => (
+                                                <span
+                                                    key={ec}
+                                                    title={`También en: ${ec}`}
+                                                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 whitespace-nowrap"
+                                                >
+                                                    {ec}
+                                                </span>
+                                            ))}
+                                            {(p.extraCategories ?? []).length > 2 && (
+                                                <span className="text-[9px] text-gray-400">+{(p.extraCategories ?? []).length - 2}</span>
+                                            )}
+                                            <p className="text-[10px] text-gray-400 font-mono">{p.code}</p>
+                                        </div>
                                     <div className="flex items-baseline gap-2">
                                         <span className="font-black text-lg dark:text-white">${p.price.toFixed(2)}</span>
                                         {showCost && <span className="text-xs text-gray-400">${p.cost.toFixed(2)}</span>}
