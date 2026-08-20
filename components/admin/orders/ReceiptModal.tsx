@@ -19,11 +19,13 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
 
     // --- CÁLCULOS FINANCIEROS ---
     const financialData = useMemo(() => {
-        const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        // Si el total guardado es menor al subtotal calculado, asumimos que hubo descuento
-        // Nota: Ajustamos flotantes para evitar errores de precisión (0.000001)
-        const discount = Math.max(0, subtotal - order.total);
-        const hasDiscount = discount > 0.01;
+        const subtotal = order.subtotal && order.subtotal > 0
+            ? order.subtotal
+            : order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discount = order.discount !== undefined && order.discount > 0
+            ? order.discount
+            : Math.max(0, subtotal - order.total);
+        const hasDiscount = discount > 0.009;
 
         return { subtotal, discount, hasDiscount };
     }, [order]);

@@ -21,7 +21,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({ settings, onUpdate
         'rgba(0, 122, 255, 0.8)', 'rgba(255, 59, 48, 0.8)', 'rgba(52, 199, 89, 0.8)'
     ];
 
-    const fontPresets = ['Inter', 'Playfair Display', 'Montserrat', 'Roboto', 'Lato', 'Poppins', 'System'];
+    const fontPresets = ['Inter', 'Outfit', 'Plus Jakarta Sans', 'Montserrat', 'Poppins', 'Roboto', 'Lato', 'Playfair Display', 'System'];
 
     return (
         <div className="space-y-6 animate-fade-in">

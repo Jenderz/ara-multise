@@ -29,7 +29,10 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
     const [manualItem, setManualItem] = useState({ title: '', price: '', qty: '1' });
 
     // --- ESTADO PARA DESCUENTO RÁPIDO ---
-    const [discountValue, setDiscountValue] = useState<string>('');
+    const initialDiscount = order.discount !== undefined && order.discount > 0 
+        ? order.discount.toString() 
+        : (order.subtotal && order.subtotal > order.total ? (order.subtotal - order.total).toFixed(2) : '');
+    const [discountValue, setDiscountValue] = useState<string>(initialDiscount);
     const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
 
     // Filtrar productos al escribir
@@ -59,7 +62,7 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
         setShowResults(true);
     }, [searchTerm, products]);
 
-    // Recalcular total automáticamente considerando descuento
+    // Recalcular subtotal y total automáticamente considerando descuento
     useEffect(() => {
         const subtotal = formData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
@@ -69,11 +72,16 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
         if (discountType === 'percent') {
             discountAmount = subtotal * (val / 100);
         } else {
-            discountAmount = val;
+            discountAmount = Math.min(subtotal, val);
         }
 
         const finalTotal = Math.max(0, subtotal - discountAmount);
-        setFormData(prev => ({ ...prev, total: finalTotal }));
+        setFormData(prev => ({ 
+            ...prev, 
+            subtotal, 
+            discount: discountAmount, 
+            total: finalTotal 
+        }));
     }, [formData.items, discountValue, discountType]);
 
     // Agregar producto del inventario al pedido
@@ -171,7 +179,19 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await onSave(formData);
+            const subtotal = formData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const val = parseFloat(discountValue) || 0;
+            const discountAmount = discountType === 'percent' ? subtotal * (val / 100) : Math.min(subtotal, val);
+            const finalTotal = Math.max(0, subtotal - discountAmount);
+
+            const finalOrderToSave: Order = {
+                ...formData,
+                subtotal,
+                discount: discountAmount,
+                total: finalTotal
+            };
+
+            await onSave(finalOrderToSave);
             onClose();
         } catch (e) {
             alert("Error al guardar");
@@ -353,7 +373,19 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
                             </div>
                         </div>
 
-                        <div className="flex justify-between items-end">
+                        <div className="flex justify-between items-center text-xs text-gray-500">
+                            <span>Subtotal</span>
+                            <span className="font-bold">${(formData.subtotal || formData.items.reduce((s, i) => s + (i.price * i.quantity), 0)).toFixed(2)}</span>
+                        </div>
+
+                        {parseFloat(discountValue) > 0 && (
+                            <div className="flex justify-between items-center text-xs text-green-500 font-bold">
+                                <span>Descuento aplicado</span>
+                                <span>-${(formData.discount || 0).toFixed(2)}</span>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-end pt-1">
                             <span className="text-xs font-bold text-gray-500 uppercase">Total Final</span>
                             <span className="text-2xl font-black text-ios-blue">${formData.total.toFixed(2)}</span>
                         </div>

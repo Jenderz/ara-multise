@@ -124,12 +124,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ): Promise<string> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
-        // Calcular subtotal real basado en items
-        const subtotalCalc = finalItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderTotal = total !== undefined ? total : subtotalCalc;
+        // Calcular subtotal real (usando originalPrice si hubo descuento individual en el item)
+        const subtotalCalc = finalItems.reduce((sum, item) => sum + ((item.originalPrice !== undefined && item.originalPrice > item.price ? item.originalPrice : item.price) * (item.quantity || 1)), 0);
+        
+        let orderTotal: number;
+        let orderDiscount: number;
 
-        // Si no se pasó descuento explícito, calcularlo por diferencia (para POS)
-        const orderDiscount = discount !== undefined ? discount : Math.max(0, subtotalCalc - orderTotal);
+        if (total !== undefined && discount !== undefined) {
+            orderTotal = total;
+            orderDiscount = discount;
+        } else if (total !== undefined) {
+            orderTotal = total;
+            orderDiscount = Math.max(0, subtotalCalc - orderTotal);
+        } else if (discount !== undefined) {
+            orderDiscount = discount;
+            orderTotal = Math.max(0, subtotalCalc - orderDiscount);
+        } else {
+            orderTotal = subtotalCalc;
+            orderDiscount = 0;
+        }
 
         const activeSellerId = currentUser ? currentUser.id : 'web-client';
         const activeSellerName = currentUser ? currentUser.name : 'Tienda Online';
@@ -274,8 +287,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const addCoupon = (coupon: Coupon) => {
-        setCoupons(prev => [...prev, coupon]);
-        api.saveCoupon(coupon).catch(console.error);
+        const cleanCoupon: Coupon = {
+            code: coupon.code.toUpperCase().replace(/\s/g, ''),
+            discountType: coupon.discountType || 'percentage',
+            value: Number(coupon.value) || 0,
+            active: coupon.active !== undefined ? Boolean(coupon.active) : true
+        };
+        setCoupons(prev => [...prev.filter(c => c.code !== cleanCoupon.code), cleanCoupon]);
+        api.saveCoupon(cleanCoupon).catch(console.error);
     };
     const toggleCoupon = (code: string) => {
         setCoupons(prev => prev.map(c => {

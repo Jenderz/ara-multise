@@ -164,8 +164,15 @@ try {
             break;
         case 'save_coupon':
             $c = $input;
+            $code = strtoupper(trim(preg_replace('/\s+/', '', (string)($c['code'] ?? ''))));
+            if (empty($code)) {
+                jsonResponse(['error' => 'Código de cupón requerido'], 400);
+            }
+            $discountType = (isset($c['discountType']) && $c['discountType'] === 'fixed') || (isset($c['discount_type']) && $c['discount_type'] === 'fixed') ? 'fixed' : 'percentage';
+            $value = floatval($c['value'] ?? 0);
+            $active = isset($c['active']) ? ($c['active'] ? 1 : 0) : 1;
             $stmt = $pdo->prepare("INSERT INTO `coupons` (code, discount_type, value, active) VALUES (:c, :t, :v, :a) ON DUPLICATE KEY UPDATE discount_type=:t, value=:v, active=:a");
-            $stmt->execute([':c' => $c['code'], ':t' => $c['discountType'], ':v' => $c['value'], ':a' => $c['active'] ? 1 : 0]);
+            $stmt->execute([':c' => $code, ':t' => $discountType, ':v' => $value, ':a' => $active]);
             jsonResponse(['status' => 'success']);
             break;
         case 'delete_coupon':

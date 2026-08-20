@@ -165,3 +165,13 @@ function mapCustomer($c)
     $c['cedula'] = $c['cedula'] ?? '';
     return $c;
 }
+
+function mapCoupon($c)
+{
+    return [
+        'code' => strtoupper(trim((string)($c['code'] ?? ''))),
+        'discountType' => (isset($c['discount_type']) && $c['discount_type'] === 'fixed') || (isset($c['discountType']) && $c['discountType'] === 'fixed') ? 'fixed' : 'percentage',
+        'value' => (float)($c['value'] ?? 0),
+        'active' => !empty($c['active']),
+    ];
+}

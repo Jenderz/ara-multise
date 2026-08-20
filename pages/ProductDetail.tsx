@@ -232,7 +232,13 @@ export const ProductDetail = () => {
                         )}
                     </div>
 
-                    <p className="text-ios-subtext dark:text-gray-400 text-lg leading-relaxed mb-8 font-light border-l-2 border-ios-blue/20 pl-6 italic">{product.description}</p>
+                    {product.description && (
+                        <div className="mb-8">
+                            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg leading-relaxed font-normal whitespace-pre-line border-l-2 border-ios-blue/40 pl-5 tracking-normal">
+                                {product.description}
+                            </p>
+                        </div>
+                    )}
 
                     {/* --- DISPONIBILIDAD EN SEDES (MODIFICADO: SOLO AL COMPLETAR SELECCIÓN) --- */}
                     {!loadingAvailability && branchAvailability.length > 0 && (!hasVariants || isSelectionComplete) && (

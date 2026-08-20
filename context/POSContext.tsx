@@ -211,7 +211,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const confirmCheckout = async () => {
-        const finalTotal = checkoutDetails.totalOverride;
+        const finalTotal = checkoutDetails.totalOverride !== undefined ? checkoutDetails.totalOverride : total;
+        const subtotalCalc = cart.reduce((sum, item) => sum + ((item.originalPrice !== undefined && item.originalPrice > item.price ? item.originalPrice : item.price) * (item.quantity || 1)), 0);
+        const discountAmount = Math.max(0, subtotalCalc - finalTotal);
 
         await createOrder(
             checkoutDetails.name,
@@ -221,7 +223,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             finalTotal,
             checkoutDetails.finalPaymentMethod,
             'completed',
-            undefined,
+            discountAmount,
             'pos',
             currentBranch?.id || 1
         );

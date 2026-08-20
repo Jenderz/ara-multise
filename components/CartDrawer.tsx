@@ -35,9 +35,9 @@ export const CartDrawer = () => {
     const subtotal = (cart || []).reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
 
     const discountAmount = appliedCoupon
-        ? (appliedCoupon.discountType === 'percentage'
+        ? ((appliedCoupon.discountType === 'percentage' || (appliedCoupon as any).discount_type === 'percentage')
             ? subtotal * (appliedCoupon.value / 100)
-            : appliedCoupon.value)
+            : Math.min(subtotal, appliedCoupon.value))
         : 0;
 
     const total = Math.max(0, subtotal - discountAmount);
@@ -100,16 +100,26 @@ export const CartDrawer = () => {
     };
 
     const handleApplyCoupon = () => {
-        if (!couponCode.trim()) return;
+        const clean = couponCode.trim().toUpperCase().replace(/\s/g, '');
+        if (!clean) return;
 
-        const found = coupons.find(c => c.code === couponCode.toUpperCase().replace(/\s/g, '') && c.active);
+        const found = coupons.find(c => c.code.toUpperCase().replace(/\s/g, '') === clean && c.active);
 
         if (found) {
-            setAppliedCoupon(found);
-            setCouponMessage({ type: 'success', text: `¡Descuento aplicado!` });
+            const normalizedCoupon: Coupon = {
+                code: found.code.toUpperCase().trim(),
+                discountType: (found.discountType === 'fixed' || (found as any).discount_type === 'fixed') ? 'fixed' : 'percentage',
+                value: Number(found.value) || 0,
+                active: Boolean(found.active)
+            };
+            setAppliedCoupon(normalizedCoupon);
+            const discountLabel = normalizedCoupon.discountType === 'percentage' 
+                ? `${normalizedCoupon.value}%` 
+                : `$${normalizedCoupon.value}`;
+            setCouponMessage({ type: 'success', text: `¡Cupón aplicado exitosamente! (-${discountLabel})` });
         } else {
             setAppliedCoupon(null);
-            setCouponMessage({ type: 'error', text: 'Cupón inválido o expirado' });
+            setCouponMessage({ type: 'error', text: 'Cupón inválido o inactivo' });
         }
     };
 
@@ -146,8 +156,19 @@ export const CartDrawer = () => {
     };
 
     const handleConfirmOrder = async () => {
-        // Enviar método de entrega y sede seleccionada (si aplica)
-        await createOrder(customerInfo.name, customerInfo.phone, deliveryMethod === 'delivery' ? customerInfo.address : 'Retiro en Tienda', undefined, undefined, undefined, 'pending', undefined, deliveryMethod, pickupBranchId);
+        // Enviar método de entrega, total y descuento aplicados correctamente
+        await createOrder(
+            customerInfo.name, 
+            customerInfo.phone, 
+            deliveryMethod === 'delivery' ? customerInfo.address : 'Retiro en Tienda', 
+            cart, 
+            total, 
+            'WhatsApp', 
+            'pending', 
+            discountAmount, 
+            deliveryMethod, 
+            pickupBranchId
+        );
         setStep('processing');
     };
 
@@ -313,6 +334,7 @@ export const CartDrawer = () => {
                                         className="flex-1 bg-gray-50 dark:bg-white/5 rounded-xl px-4 py-2 text-sm outline-none border border-transparent focus:border-ios-blue/30 transition-all uppercase font-mono"
                                         value={couponCode}
                                         onChange={(e) => setCouponCode(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' && !appliedCoupon) { e.preventDefault(); handleApplyCoupon(); } }}
                                         disabled={!!appliedCoupon}
                                     />
                                     {appliedCoupon ? (

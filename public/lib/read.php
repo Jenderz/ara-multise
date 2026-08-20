@@ -134,10 +134,20 @@ function handleGetAll($pdo, $branchId)
 
     $customers = array_map('mapCustomer', $pdo->query("SELECT * FROM `customers` ORDER BY `last_order_date` DESC LIMIT 1000")->fetchAll());
 
-    $coupons = $pdo->query("SELECT * FROM `coupons`")->fetchAll();
-    foreach ($coupons as &$cp) {
-        $cp['active'] = (bool)$cp['active'];
+    if (!function_exists('mapCoupon')) {
+        function mapCoupon($c)
+        {
+            return [
+                'code' => strtoupper(trim((string)($c['code'] ?? ''))),
+                'discountType' => (isset($c['discount_type']) && $c['discount_type'] === 'fixed') || (isset($c['discountType']) && $c['discountType'] === 'fixed') ? 'fixed' : 'percentage',
+                'value' => (float)($c['value'] ?? 0),
+                'active' => !empty($c['active']),
+            ];
+        }
     }
+
+    $rawCoupons = $pdo->query("SELECT * FROM `coupons`")->fetchAll();
+    $coupons = array_map('mapCoupon', $rawCoupons);
 
     $branches = array_map(function ($b) {
         $b['isActive'] = (bool)$b['is_active'];

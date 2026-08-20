@@ -240,6 +240,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         document.documentElement.style.setProperty('--color-navbar', settings.navbarColor);
         document.documentElement.style.setProperty('--color-navbar-text', settings.navbarTextColor);
 
+        if (settings.fontFamily) {
+            const fontVal = settings.fontFamily === 'System'
+                ? "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                : `'${settings.fontFamily}', sans-serif`;
+            document.documentElement.style.setProperty('--font-main', fontVal);
+        }
+
         document.title = settings.seoTitle || settings.storeName;
 
         let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;

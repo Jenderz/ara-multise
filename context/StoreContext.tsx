@@ -196,9 +196,18 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
             }).sort((a: Order, b: Order) => b.date - a.date);
         };
 
+        const normalizeCoupons = (rawCoupons: any[]): Coupon[] => {
+            return (rawCoupons || []).map(c => ({
+                code: String(c.code || '').toUpperCase().trim(),
+                discountType: (c.discountType === 'fixed' || c.discount_type === 'fixed') ? 'fixed' : 'percentage',
+                value: Number(c.value) || 0,
+                active: c.active !== undefined ? Boolean(c.active) : true
+            }));
+        };
+
         setOrders(normalizeOrders(data.orders || []));
         setCustomers(data.customers || []);
-        setCoupons(data.coupons || []);
+        setCoupons(normalizeCoupons(data.coupons || []));
     };
 
     const refreshStoreData = async () => {

@@ -108,7 +108,23 @@ export const OrderDetailsModal = ({ order, onClose }: { order: Order, onClose: (
                         <span className="text-gray-400">Vendedor: </span>
                         <span className="text-gray-700 dark:text-gray-300 font-bold">{order.sellerName || 'Sistema'}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end">
+                        {(() => {
+                            const subtotal = order.subtotal && order.subtotal > 0
+                                ? order.subtotal
+                                : order.items.reduce((s, i) => s + (i.price * i.quantity), 0);
+                            const discount = order.discount !== undefined && order.discount > 0
+                                ? order.discount
+                                : Math.max(0, subtotal - order.total);
+                            const hasDiscount = discount > 0.009;
+
+                            return hasDiscount ? (
+                                <div className="flex gap-3 text-xs text-gray-500 mb-1">
+                                    <span>Subtotal: <span className="font-bold text-gray-700 dark:text-gray-300">${subtotal.toFixed(2)}</span></span>
+                                    <span className="text-green-500 font-bold">Descuento: -${discount.toFixed(2)}</span>
+                                </div>
+                            ) : null;
+                        })()}
                         <p className="text-[10px] font-bold text-gray-400 uppercase">Total Pedido</p>
                         <p className="text-3xl font-black text-ios-text dark:text-white leading-none">${order.total.toFixed(2)}</p>
                     </div>
