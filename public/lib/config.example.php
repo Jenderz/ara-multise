@@ -88,9 +88,9 @@ function jsonResponse($data, $code = 200)
 function safeJsonDecode($str)
 {
     if (is_array($str)) return $str;
-    if (!is_string($str) || empty($str)) return [];
+    if (!is_string($str) || empty(trim($str))) return [];
     $decoded = json_decode($str, true);
-    return (json_last_error() === JSON_ERROR_NONE) ? $decoded : [];
+    return (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [];
 }
 
 function safeJsonEncode($data)
@@ -153,6 +153,7 @@ function mapOrder($o)
         : 'pos'
     );
     $o['pickupBranchId'] = (int)($o['pickup_branch_id'] ?? 0);
+    $o['stockDeducted'] = (bool)($o['stock_deducted'] ?? 0);
     return $o;
 }
 

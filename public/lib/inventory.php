@@ -6,17 +6,39 @@ function handleAdjustStock($pdo, $input, $branchId)
     $targetBid = $p['targetBranchId'] ?? $branchId;
     $pdo->prepare("INSERT IGNORE INTO `inventory` (product_id, branch_id, stock) VALUES (?, ?, 0)")->execute([$p['productId'], $targetBid]);
 
-    $mod = ($p['type'] === 'entry' || $p['type'] === 'transfer_in' || $p['type'] === 'return') ? $p['amount'] : -$p['amount'];
+    if ($p['type'] === 'adjustment') {
+        // Ajuste por conteo físico directo: fija el stock exactamente a la cantidad contada
+        $newStock = max(0, intval($p['amount']));
+        $stmtCur = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+        $stmtCur->execute([$p['productId'], $targetBid]);
+        $before = intval($stmtCur->fetchColumn() ?: 0);
+        $diff = $newStock - $before;
 
-    $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
-        ->execute([$mod, time(), $p['productId'], $targetBid]);
+        $pdo->prepare("UPDATE `inventory` SET `stock` = ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
+            ->execute([$newStock, time(), $p['productId'], $targetBid]);
 
-    $after = $pdo->query("SELECT `stock` FROM `inventory` WHERE `product_id` = '{$p['productId']}' AND `branch_id` = $targetBid")->fetchColumn();
+        $after = $newStock;
+        $loggedAmount = abs($diff);
+        $refStr = $p['reference'] . " (Conteo Físico: $before -> $newStock)";
+        $movType = $diff >= 0 ? 'entry' : 'exit';
+    } else {
+        $mod = ($p['type'] === 'entry' || $p['type'] === 'transfer_in' || $p['type'] === 'return') ? intval($p['amount']) : -intval($p['amount']);
+
+        $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
+            ->execute([$mod, time(), $p['productId'], $targetBid]);
+
+        $stmtAfter = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+        $stmtAfter->execute([$p['productId'], $targetBid]);
+        $after = $stmtAfter->fetchColumn();
+        $loggedAmount = intval($p['amount']);
+        $refStr = $p['reference'];
+        $movType = $p['type'];
+    }
 
     $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
-        ->execute([generateUniqueId(), $p['productId'], $targetBid, $p['userId'], $p['userName'], $p['type'], $p['amount'], $after, $p['reference'], time() * 1000]);
+        ->execute([generateUniqueId(), $p['productId'], $targetBid, $p['userId'], $p['userName'], $movType, $loggedAmount, $after, $refStr, time() * 1000]);
 
-    jsonResponse(['status' => 'success']);
+    jsonResponse(['status' => 'success', 'stock' => $after]);
 }
 
 function handleTransferStock($pdo, $input)
@@ -26,6 +48,7 @@ function handleTransferStock($pdo, $input)
     // Validaciones Básicas
     if ($p['amount'] <= 0) jsonResponse(['error' => 'Cantidad inválida'], 400);
     if ($p['fromBranchId'] == $p['toBranchId']) jsonResponse(['error' => 'La sede destino debe ser diferente'], 400);
+    $originalParentId = strval($p['productId'] ?? '');
 
     // --- FIX: RESOLUCIÓN DE ID DE VARIANTE ---
     // El frontend envía el ID del Padre + Nombre de Variante.
@@ -57,8 +80,8 @@ function handleTransferStock($pdo, $input)
 
     $pdo->beginTransaction();
     try {
-        // 1. Verificar Stock en Origen
-        $stmtCheck = $pdo->prepare("SELECT stock FROM `inventory` WHERE product_id = ? AND branch_id = ?");
+        // 1. Verificar Stock en Origen con Bloqueo de Fila
+        $stmtCheck = $pdo->prepare("SELECT stock FROM `inventory` WHERE product_id = ? AND branch_id = ? FOR UPDATE");
         $stmtCheck->execute([$p['productId'], $p['fromBranchId']]);
         $currentStock = $stmtCheck->fetchColumn();
 
@@ -103,18 +126,23 @@ function handleTransferStock($pdo, $input)
             }
         }
 
-        if ($currentStock < $p['amount']) {
+        if (intval($currentStock) < intval($p['amount'])) {
             throw new Exception("Stock insuficiente en la sede de origen. Disponible: " . ($currentStock ?: 0));
         }
 
-        // 3. Descontar de Origen
+        // 3. Descontar de Origen de forma atómica
         $normId = (string)$p['productId'];
-
-        $updStmt = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ? WHERE `product_id` = ? AND `branch_id` = ?");
-        $updStmt->execute([$p['amount'], $normId, $p['fromBranchId']]);
+        $updStmt = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ? AND `stock` >= ?");
+        $updStmt->execute([$p['amount'], time(), $normId, $p['fromBranchId'], $p['amount']]);
 
         if ($updStmt->rowCount() === 0) {
-            throw new Exception("Error crítico: No se pudo descontar el stock. Verifique si el producto cambió mientras operaba.");
+            throw new Exception("Error crítico: El stock de origen cambió concurrentemente durante el traspaso.");
+        }
+
+        // Si es una variante, ajustar también el stock consolidado del padre en la sede origen
+        if (!empty($originalParentId) && $originalParentId !== $normId) {
+            $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
+                ->execute([$p['amount'], time(), $originalParentId, $p['fromBranchId']]);
         }
 
         // 2. Construir Referencia Detallada (Incluyendo Variante)
@@ -129,15 +157,20 @@ function handleTransferStock($pdo, $input)
         $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
             ->execute([generateUniqueId(), (string)$p['productId'], $p['fromBranchId'], $p['userId'], $p['userName'], 'transfer_out', $p['amount'], $stockAfterOrigin, "Traspaso a Sede #" . $p['toBranchId'] . $variantInfo, time() * 1000]);
 
-        // 5. Sumar a Destino (Crear fila si no existe)
-        $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, 0, ?) ON DUPLICATE KEY UPDATE `updated_at` = VALUES(`updated_at`)")
-            ->execute([(string)$p['productId'], $p['toBranchId'], time()]);
+        // 5. Sumar a Destino (Crear fila si no existe o incrementar)
+        $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `stock` = `stock` + VALUES(`stock`), `updated_at` = VALUES(`updated_at`)")
+            ->execute([(string)$p['productId'], $p['toBranchId'], $p['amount'], time()]);
 
-        $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ? WHERE `product_id` = ? AND `branch_id` = ?")
-            ->execute([$p['amount'], (string)$p['productId'], $p['toBranchId']]);
+        // Si es una variante, sumar también al consolidado del padre en la sede destino
+        if (!empty($originalParentId) && $originalParentId !== $normId) {
+            $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `stock` = `stock` + VALUES(`stock`), `updated_at` = VALUES(`updated_at`)")
+                ->execute([(string)$originalParentId, $p['toBranchId'], $p['amount'], time()]);
+        }
 
         // Obtener stock final destino para el log
-        $stockAfterDest = $pdo->query("SELECT stock FROM `inventory` WHERE product_id = '{$p['productId']}' AND branch_id = {$p['toBranchId']}")->fetchColumn();
+        $stmtDest = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+        $stmtDest->execute([(string)$p['productId'], $p['toBranchId']]);
+        $stockAfterDest = $stmtDest->fetchColumn() ?: 0;
 
         // 6. Registrar Movimiento Entrada en Destino
         $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
@@ -246,8 +279,37 @@ function handleGetMovements($pdo)
 
 function handleStockBreakdown($pdo)
 {
-    $stmt = $pdo->prepare("SELECT b.id as `branchId`, b.name as `branchName`, COALESCE(i.stock, 0) as `stock` FROM `branches` b LEFT JOIN `inventory` i ON b.id = i.branch_id AND i.product_id = ? WHERE b.is_active = 1");
-    $stmt->execute([$_GET['product_id']]);
-    jsonResponse($stmt->fetchAll());
+    $pid = strval($_GET['product_id'] ?? '');
+    if (empty($pid)) {
+        jsonResponse([]);
+    }
+
+    // Comprobar si es un producto padre con variantes en la base de datos
+    $stmtP = $pdo->prepare("SELECT variants FROM `products` WHERE id = ?");
+    $stmtP->execute([$pid]);
+    $rowP = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+    $idsToMatch = [$pid];
+    if ($rowP && !empty($rowP['variants'])) {
+        $vars = safeJsonDecode($rowP['variants']);
+        if (!empty($vars)) {
+            $varIds = array_column($vars, 'id');
+            if (!empty($varIds)) {
+                $idsToMatch = $varIds;
+            }
+        }
+    }
+
+    $placeholders = implode(',', array_fill(0, count($idsToMatch), '?'));
+    $sql = "SELECT b.id as `branchId`, b.name as `branchName`, COALESCE(SUM(i.stock), 0) as `stock` 
+            FROM `branches` b 
+            LEFT JOIN `inventory` i ON b.id = i.branch_id AND i.product_id IN ($placeholders) 
+            WHERE b.is_active = 1 
+            GROUP BY b.id, b.name 
+            ORDER BY b.id ASC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($idsToMatch);
+    jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
 }
 ?>

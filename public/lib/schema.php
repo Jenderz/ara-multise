@@ -40,7 +40,8 @@ function checkAndMigrateDB($pdo) {
                 `seller_id` VARCHAR(255),
                 `seller_name` VARCHAR(255),
                 `delivery_method` VARCHAR(50) DEFAULT 'pos',
-                `pickup_branch_id` INT DEFAULT 0
+                `pickup_branch_id` INT DEFAULT 0,
+                `stock_deducted` TINYINT(1) DEFAULT 0
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "customers" => "CREATE TABLE IF NOT EXISTS `customers` (
@@ -157,7 +158,8 @@ function checkAndMigrateDB($pdo) {
                 'subtotal' => "FLOAT DEFAULT 0",
                 'discount' => "FLOAT DEFAULT 0",
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",
-                'pickup_branch_id' => "INT DEFAULT 0"
+                'pickup_branch_id' => "INT DEFAULT 0",
+                'stock_deducted' => "TINYINT(1) DEFAULT 0"
             ],
             'customers' => [
                 'cedula' => "VARCHAR(30) DEFAULT ''"
@@ -170,6 +172,21 @@ function checkAndMigrateDB($pdo) {
                     $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$col` $definition");
                 } catch (Exception $e) { /* Ignorar si ya existe */ }
             }
+        }
+
+        // Índices para evitar Full Table Scans y acelerar consultas
+        $indexes = [
+            "CREATE INDEX idx_orders_branch_date ON `orders` (`branch_id`, `date`)",
+            "CREATE INDEX idx_orders_status ON `orders` (`status`)",
+            "CREATE INDEX idx_product_movements_prod_branch ON `product_movements` (`product_id`, `branch_id`)",
+            "CREATE INDEX idx_product_movements_date ON `product_movements` (`date`)",
+            "CREATE INDEX idx_products_category ON `products` (`category`)",
+            "CREATE INDEX idx_products_barcode ON `products` (`barcode_ean`)"
+        ];
+        foreach ($indexes as $idxSql) {
+            try {
+                $pdo->exec($idxSql);
+            } catch (Exception $e) { /* Ignorar si el índice ya existe */ }
         }
 
         // Sede Principal Default

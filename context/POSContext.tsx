@@ -40,6 +40,11 @@ interface POSContextType {
     activeTab: 'catalog' | 'cart';
     setActiveTab: (tab: 'catalog' | 'cart') => void;
     addCustomItemToCart: (title: string, price: number, quantity?: number) => void;
+
+    ticketModalOpen: boolean;
+    setTicketModalOpen: (v: boolean) => void;
+    lastCompletedOrder: any;
+    setLastCompletedOrder: (o: any) => void;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -47,7 +52,7 @@ const POSContext = createContext<POSContextType | undefined>(undefined);
 export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { createOrder, activeExchangeRate, refreshStoreData, currentBranch } = useStore(); // Modified useStore destructuring
     const { currentUser, userRole } = useAuth(); // Added useAuth hook
-    const { adjustStockLocally } = useProduct(); // Added useProduct hook
+    const { adjustStockLocally, products } = useProduct(); // Added useProduct hook
     const { addNotification } = useNotification();
 
     // --- ESTADO DEL CARRITO ---
@@ -66,6 +71,8 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'catalog' | 'cart'>('catalog');
     const [checkoutDetails, setCheckoutDetails] = useState<any>({});
+    const [ticketModalOpen, setTicketModalOpen] = useState(false);
+    const [lastCompletedOrder, setLastCompletedOrder] = useState<any>(null);
 
     // Persistencia de órdenes pausadas
     useEffect(() => {
@@ -133,7 +140,27 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const updateQuantity = (cartId: string, delta: number) => {
         setCart(prev => prev.map(item => {
-            if (item.cartId === cartId) return { ...item, quantity: Math.max(1, item.quantity + delta) };
+            if (item.cartId === cartId) {
+                if (delta > 0) {
+                    const prod = products.find(p => p.id === item.productId);
+                    if (prod && (prod.trackStock !== false)) {
+                        let maxStock = prod.stock;
+                        if (item.variantId && prod.variants) {
+                            const v = prod.variants.find(vr => vr.id === item.variantId);
+                            if (v) maxStock = v.stock;
+                        }
+                        if (item.quantity + delta > maxStock) {
+                            addNotification({
+                                title: 'Límite de Stock',
+                                body: `Solo hay ${maxStock} unidades disponibles en esta sede.`,
+                                type: 'warning'
+                            });
+                            return item;
+                        }
+                    }
+                }
+                return { ...item, quantity: Math.max(1, item.quantity + delta) };
+            }
             return item;
         }));
     };
@@ -215,29 +242,57 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const subtotalCalc = cart.reduce((sum, item) => sum + ((item.originalPrice !== undefined && item.originalPrice > item.price ? item.originalPrice : item.price) * (item.quantity || 1)), 0);
         const discountAmount = Math.max(0, subtotalCalc - finalTotal);
 
-        await createOrder(
-            checkoutDetails.name,
-            checkoutDetails.phone,
-            checkoutDetails.finalAddress,
-            cart,
-            finalTotal,
-            checkoutDetails.finalPaymentMethod,
-            'completed',
-            discountAmount,
-            'pos',
-            currentBranch?.id || 1
-        );
+        try {
+            const orderId = await createOrder(
+                checkoutDetails.name,
+                checkoutDetails.phone,
+                checkoutDetails.finalAddress,
+                cart,
+                finalTotal,
+                checkoutDetails.finalPaymentMethod,
+                'completed',
+                discountAmount,
+                'pos',
+                currentBranch?.id || 1
+            );
 
-        addNotification({ title: 'Venta Exitosa', body: 'Recargando sistema...', type: 'success' });
+            // 1. Descontar optimistamente el stock en la memoria local
+            cart.forEach(item => {
+                if (item.productId && !item.productId.startsWith('custom') && !item.productId.startsWith('manual-')) {
+                    adjustStockLocally(item.productId, -(item.quantity || 1), item.variantId);
+                }
+            });
 
-        // Force full reload to update stock from server
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+            // 2. Guardar orden para emitir ticket térmico
+            const completedOrder = {
+                id: orderId,
+                customerName: checkoutDetails.name || 'Cliente Mostrador',
+                customerPhone: checkoutDetails.phone || '',
+                customerAddress: checkoutDetails.finalAddress || '',
+                items: [...cart],
+                total: finalTotal,
+                subtotal: subtotalCalc,
+                discount: discountAmount,
+                paymentMethod: checkoutDetails.finalPaymentMethod,
+                branchId: currentBranch?.id || 1,
+                date: Date.now(),
+                status: 'completed'
+            };
+            setLastCompletedOrder(completedOrder);
+            setTicketModalOpen(true);
 
-        // Fallback states in case reload is cancelled or slow
-        setCart([]);
-        setCheckoutModalOpen(false);
+            addNotification({ title: 'Venta Exitosa', body: `Ticket #${orderId} registrado.`, type: 'success' });
+
+            // 3. Limpiar carrito y cerrar modal de pago sin recargar página
+            setCart([]);
+            setCheckoutModalOpen(false);
+        } catch (error: any) {
+            addNotification({ 
+                title: 'Error en la venta', 
+                body: error.message || 'No se pudo procesar la venta.', 
+                type: 'warning' 
+            });
+        }
     };
 
     // --- UI HELPERS ---
@@ -268,7 +323,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             total, totalBs,
             isFullScreen, toggleFullScreen,
             activeTab, setActiveTab,
-            addCustomItemToCart
+            addCustomItemToCart,
+            ticketModalOpen, setTicketModalOpen,
+            lastCompletedOrder, setLastCompletedOrder
         }}>
             {children}
         </POSContext.Provider>

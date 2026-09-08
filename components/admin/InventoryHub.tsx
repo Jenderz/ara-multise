@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { ProductsModule } from './ProductsModule';
 import { CategoriesModule } from './CategoriesModule';
+import { InventoryAnalyticsModule } from './InventoryAnalyticsModule';
 import { Product, Category } from '../../types';
-import { Package, Tags } from 'lucide-react';
+import { Package, Tags, BarChart2 } from 'lucide-react';
 
 interface InventoryHubProps {
     products: Product[];
@@ -17,7 +18,7 @@ interface InventoryHubProps {
 }
 
 export const InventoryHub: React.FC<InventoryHubProps> = (props) => {
-    const [activeTab, setActiveTab] = useState<'management' | 'categories'>('management');
+    const [activeTab, setActiveTab] = useState<'management' | 'categories' | 'analytics'>('management');
 
     return (
         <div className="space-y-6 h-full flex flex-col">
@@ -25,7 +26,7 @@ export const InventoryHub: React.FC<InventoryHubProps> = (props) => {
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
                 <div>
                     <h2 className="text-2xl font-bold dark:text-white">Inventario General</h2>
-                    <p className="text-xs text-gray-500">Gestión centralizada de stock, categorías y mermas.</p>
+                    <p className="text-xs text-gray-500">Gestión centralizada de stock, categorías, mermas y analítica de valor.</p>
                 </div>
                 
                 {/* Switcher tipo iOS */}
@@ -50,6 +51,16 @@ export const InventoryHub: React.FC<InventoryHubProps> = (props) => {
                     >
                         <Tags size={16} /> Categorías
                     </button>
+                    <button 
+                        onClick={() => setActiveTab('analytics')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                            activeTab === 'analytics' 
+                            ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm' 
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'
+                        }`}
+                    >
+                        <BarChart2 size={16} /> Analítica
+                    </button>
                 </div>
             </div>
 
@@ -67,6 +78,10 @@ export const InventoryHub: React.FC<InventoryHubProps> = (props) => {
                         updateCategory={props.updateCategory}
                         deleteCategory={props.deleteCategory} 
                     />
+                )}
+
+                {activeTab === 'analytics' && (
+                    <InventoryAnalyticsModule products={props.products} />
                 )}
             </div>
         </div>

@@ -107,27 +107,51 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
      */
     const adjustStockLocally = (productId: string, delta: number, variantId?: string) => {
         setProducts(prev => prev.map(p => {
-            if (p.id !== productId) return p;
+            // Caso 1: El productId recibido coincide con el id del producto padre
+            if (p.id === productId) {
+                let newVariants = p.variants;
+                if (variantId && p.variants && p.variants.length > 0) {
+                    newVariants = p.variants.map(v => {
+                        if (v.id === variantId) {
+                            return { ...v, stock: Math.max(0, v.stock + delta) };
+                        }
+                        return v;
+                    });
+                    const sumStock = newVariants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+                    return {
+                        ...p,
+                        stock: sumStock,
+                        globalStock: p.globalStock !== undefined ? Math.max(0, p.globalStock + delta) : sumStock,
+                        variants: newVariants
+                    };
+                }
 
-            // Si es un producto simple (sin variantes o no se especificó variante)
-            // O si es producto padre
-            let newStock = p.stock + delta;
+                const newStock = Math.max(0, p.stock + delta);
+                return {
+                    ...p,
+                    stock: newStock,
+                    globalStock: p.globalStock !== undefined ? Math.max(0, p.globalStock + delta) : newStock
+                };
+            }
 
-            // Si hay variante, actualizamos también la variante específica
-            let newVariants = p.variants;
-            if (variantId && p.variants) {
-                newVariants = p.variants.map(v => {
-                    if (v.id === variantId) {
-                        return { ...v, stock: v.stock + delta };
+            // Caso 2: El productId recibido era directamente el id de la variante
+            if (p.variants && p.variants.some(v => v.id === productId)) {
+                const newVariants = p.variants.map(v => {
+                    if (v.id === productId) {
+                        return { ...v, stock: Math.max(0, v.stock + delta) };
                     }
                     return v;
                 });
+                const sumStock = newVariants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+                return {
+                    ...p,
+                    stock: sumStock,
+                    globalStock: p.globalStock !== undefined ? Math.max(0, p.globalStock + delta) : sumStock,
+                    variants: newVariants
+                };
             }
 
-            // Si el producto no usa trackStock, no cambiamos nada (o depende de la lógica de negocio)
-            // Pero asumimos que sí para reflejar visualmente.
-
-            return { ...p, stock: newStock, variants: newVariants };
+            return p;
         }));
     };
 
@@ -163,18 +187,47 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             if (isCurrentBranch) {
                 setProducts(prev => prev.map(p => {
-                    if (p.id === productId) {
+                    const isParentMatch = p.id === productId;
+                    const variantMatch = p.variants?.find(v => v.id === productId);
+
+                    if (isParentMatch) {
                         let newStock = p.stock;
-                        if (type === 'exit' || type === 'sale') newStock = p.stock - amount;
+                        if (type === 'exit' || type === 'sale') newStock = Math.max(0, p.stock - amount);
                         else if (type === 'entry') newStock = p.stock + amount;
-                        return { ...p, stock: Math.max(0, newStock) };
+                        else if (type === 'adjustment') newStock = Math.max(0, amount);
+
+                        const delta = newStock - p.stock;
+                        return {
+                            ...p,
+                            stock: newStock,
+                            globalStock: p.globalStock !== undefined ? Math.max(0, p.globalStock + delta) : newStock
+                        };
+                    } else if (variantMatch && p.variants) {
+                        const newVariants = p.variants.map(v => {
+                            if (v.id === productId) {
+                                let vStock = v.stock;
+                                if (type === 'exit' || type === 'sale') vStock = Math.max(0, v.stock - amount);
+                                else if (type === 'entry') vStock = v.stock + amount;
+                                else if (type === 'adjustment') vStock = Math.max(0, amount);
+                                return { ...v, stock: vStock };
+                            }
+                            return v;
+                        });
+                        const sumStock = newVariants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+                        const delta = sumStock - p.stock;
+                        return {
+                            ...p,
+                            stock: sumStock,
+                            globalStock: p.globalStock !== undefined ? Math.max(0, p.globalStock + delta) : sumStock,
+                            variants: newVariants
+                        };
                     }
                     return p;
                 }));
             }
 
             if (type !== 'sale') {
-                const product = products.find(p => p.id === productId);
+                const product = products.find(p => p.id === productId || p.variants?.some(v => v.id === productId));
                 const productName = product ? product.title : 'Producto Desconocido';
                 logActivity('update_product', `${type}: ${productName}. Cant: ${amount}. Ref: ${reference}`);
             }

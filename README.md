@@ -1,262 +1,239 @@
-# 🛍️ Ara E-commerce Multisede
+# 🛍️ Ara E-commerce & POS Multisede — Manual Técnico y de Arquitectura Senior
 
 <div align="center">
   <img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5.8.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-6.2.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Vite-6.4.3-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP" />
+  <img src="https://img.shields.io/badge/MySQL-MariaDB-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
   <img src="https://img.shields.io/badge/PWA-Enabled-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
 </div>
 
-## 📋 Descripción
+---
 
-**Ara E-commerce Multisede** es una plataforma de comercio electrónico profesional con gestión completa de inventario, punto de venta (POS), y soporte para múltiples sucursales. Desarrollada como Progressive Web App (PWA) instalable en cualquier dispositivo.
+## 📖 Índice
 
-### ✨ Características Principales
-
-- 🏢 **Sistema Multisede** - Gestión de múltiples sucursales con inventario independiente
-- 🛒 **E-commerce Completo** - Catálogo, carrito, variantes de productos, wishlist
-- 📊 **Panel Admin Avanzado** - Dashboard, reportes, estadísticas con gráficos
-- 💳 **POS Integrado** - Punto de venta para vendedores
-- 📱 **PWA** - Instalable, funciona offline, push notifications
-- 🎨 **Diseño Premium** - UI moderna estilo iOS con glassmorphism y modo oscuro
-- 🤖 **IA Integrada** - Asistente inteligente con Gemini AI
-- 📸 **Almacenamiento Local de Imágenes** - Subida optimizada en servidor local con soporte Base64
-- 🔐 **Sistema de Roles** - Admin, Vendedor, Master con permisos granulares
-- 📈 **Analytics** - Productos más vendidos, reportes de ventas, CRM
+1. [Visión General del Sistema](#1-visión-general-del-sistema)
+2. [Estructura del Proyecto y Módulos](#2-estructura-del-proyecto-y-módulos)
+3. [Modelo de Datos y Base de Datos](#3-modelo-de-datos-y-base-de-datos)
+4. [Motor de Integridad Transaccional de Inventario](#4-motor-de-integridad-transaccional-de-inventario)
+5. [Arquitectura y Reglas del Sistema Multisede](#5-arquitectura-y-reglas-del-sistema-multisede)
+6. [Punto de Venta (POS) Profesional](#6-punto-de-venta-pos-profesional)
+7. [Kardex y Trazabilidad (`product_movements`)](#7-kardex-y-trazabilidad-product_movements)
+8. [Integración B2B con Almacén Central (ARAW)](#8-integración-b2b-con-almacén-central-araw)
+9. [Guía de Configuración, Despliegue y Troubleshooting](#9-guía-de-configuración-despliegue-y-troubleshooting)
 
 ---
 
-## 🚀 Inicio Rápido
+## 1. Visión General del Sistema
 
-### Prerrequisitos
+**Ara E-commerce Multisede** es una solución enterprise para comercio minorista y mayorista omnicanal. Combina:
+- **Tienda Web PWA** de alto rendimiento orientada a conversión y pedidos por WhatsApp/Delivery.
+- **Punto de Venta (POS)** ágil para cajeros y mostradores con atajos de teclado e impresión térmica.
+- **Backoffice Administrativo** con analítica, gestión de existencias, compras, mermas y catálogo.
+- **Backend API Gateway modular en PHP 8+** con bloqueo pesimista de concurrencia y tolerancia a fallos.
 
-- **Node.js** 18+ ([Descargar](https://nodejs.org/))
-- **PHP** 8.0+ con MySQL
-- **Servidor Web** (Apache/Nginx) o XAMPP/WAMP
+---
 
-### Instalación
+## 2. Estructura del Proyecto y Módulos
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tu-usuario/ara-multisede.git
-   cd ara-multisede
-   ```
+```
+c:\Users\pc\Documents\ARA\
+├── components/                  # Componentes de Interfaz de Usuario
+│   ├── admin/                   # Módulos del Panel Administrativo
+│   │   ├── pos/                 # POS: POSLayout, POSCart, POSTicketModal, POSProductGrid
+│   │   ├── products/            # Productos: ProductFormModal, StockAdjustmentModal, StockBreakdownModal
+│   │   ├── InventoryHub.tsx     # Hub central (Productos, Categorías, Analítica)
+│   │   ├── InventoryAnalyticsModule.tsx # Métricas de rotación y valorización
+│   │   └── OrdersModule.tsx     # Gestión y edición de pedidos
+│   ├── CartDrawer.tsx           # Carrito de compras web
+│   └── UIComponents.tsx         # Sistema de diseño y átomos UI
+├── context/                     # Gestión de Estado Reactivo
+│   ├── StoreContext.tsx         # Estado general de tienda y sedes
+│   ├── ProductContext.tsx       # Catálogo, mutaciones optimistas y stock local
+│   ├── POSContext.tsx           # Carrito POS, pagos, atajos y órdenes en espera
+│   ├── CartContext.tsx          # Carrito web y persistencia de pedidos
+│   └── AuthContext.tsx          # Autenticación, roles (Admin/Vendedor/Master) y auditoría
+├── integrations/                # Integraciones Externas
+│   └── araw/                    # Conector B2B con Almacén Central (ARAW)
+├── services/
+│   └── api.ts                   # Cliente API fetch con anti-caché y header X-Branch-ID
+├── public/                      # Backend PHP y API Gateway
+│   ├── api.php                  # Entrada principal y enrutador modular
+│   └── lib/
+│       ├── config.example.php   # Plantilla de credenciales y helpers JSON/UUID
+│       ├── config.php           # Configuración activa del entorno (ignorado en Git)
+│       ├── schema.php           # Esquema DDL, migraciones e índices
+│       ├── write.php            # Mutaciones: órdenes, productos, borrados y ajustes
+│       ├── read.php             # Consultas: catálogo, hidratación de variantes y pedidos
+│       └── inventory.php        # Traspasos entre sedes, ajustes de stock y kardex
+├── types.ts                     # Definiciones de Tipos TypeScript
+└── config.ts                    # Constantes frontend (API_URL, DEFAULT_IMAGE)
+```
 
-2. **Instalar dependencias**
+---
+
+## 3. Modelo de Datos y Base de Datos
+
+El motor de persistencia utiliza MySQL/MariaDB bajo InnoDB. El archivo `public/lib/schema.php` gestiona la creación y migración automática:
+
+### ⚠️ Regla de Oro del Inventario
+> La tabla `products` **NO almacena las existencias físicas en una columna**. 
+> La única fuente de verdad para el stock reside en la tabla `inventory` indexada por `(product_id, branch_id)`.
+
+### Tablas Principales
+
+| Tabla | Clave Primaria | Propósito y Particularidades |
+| :--- | :--- | :--- |
+| `products` | `id VARCHAR(255)` | Catálogo maestro. Contiene metadatos, fotos y la estructura JSON en `variants`. |
+| `inventory` | `(product_id, branch_id)` | **Existencia real.** Para productos simples, `product_id` es el ID del producto. Para variantes, `product_id` es el ID único de la variante. Además, el producto padre posee una fila que representa la suma consolidada de sus variantes en esa sede. |
+| `product_movements` | `id VARCHAR(255)` | Kardex de auditoría inmutable (`entry`, `exit`, `sale`, `adjustment`, `transfer_in`, `transfer_out`). Registra `stock_after` y usuario. |
+| `orders` | `id VARCHAR(255)` | Pedidos web y POS. Incluye `branch_id`, `items` (JSON), `status` y el flag crítico `stock_deducted TINYINT(1) DEFAULT 0`. |
+| `branches` | `id INT AUTO_INCREMENT` | Sucursales físicas activas. La Sede 1 es la sede principal por defecto. |
+| `customers` | `phone VARCHAR(50)` | Directorio de clientes con historial de consumo acumulado. |
+| `settings` | `setting_key VARCHAR(255)` | Pares clave-valor de configuración (usuarios, monedas, pasarelas). |
+
+### Índices de Alto Rendimiento Configurados
+- `orders(branch_id, date)` y `orders(status)`: Aceleración de filtros en panel y listados.
+- `product_movements(product_id, branch_id)` y `product_movements(date)`: Trazabilidad de kardex en milisegundos.
+- `products(category)` y `products(barcode_ean)`: Búsqueda rápida y lecturas con pistola de código de barras.
+
+---
+
+## 4. Motor de Integridad Transaccional de Inventario
+
+El archivo `public/lib/write.php` implementa las reglas de negocio más críticas de la plataforma:
+
+### A. Bloqueo Pesimista contra Carreras de Condición (`FOR UPDATE`)
+Cuando se procesa o cobra una orden en `handleSaveOrder`:
+1. Se inicia una transacción atómica con `$pdo->beginTransaction()`.
+2. Se consulta la orden con `SELECT ... FOR UPDATE` para serializar peticiones concurrentes y evitar que dos cajeros o procesos cobren la misma orden simultáneamente.
+3. Se verifica la existencia real con `SELECT stock FROM inventory WHERE ... FOR UPDATE`.
+
+### B. Descuento Atómico Estricto
+El descuento se ejecuta mediante sentencias condicionales que impiden números negativos:
+```sql
+UPDATE `inventory` 
+SET `stock` = `stock` - :qty, `updated_at` = :time 
+WHERE `product_id` = :targetId AND `branch_id` = :branchId AND `stock` >= :qty;
+```
+Si `rowCount() === 0`, significa que no hay unidades suficientes o hubo un conflicto; la transacción hace `ROLLBACK` y retorna HTTP 409.
+
+### C. Ciclo de Vida del Pedido y Bandera de Idempotencia (`stock_deducted`)
+- **Venta Web / WhatsApp:** Nace con estado `pending`. **NO** descuenta stock hasta que un administrador confirma el pedido pasando a `completed`.
+- **Venta POS:** Nace con estado `completed` y `processStock: true`. Descuenta inmediatamente en 0ms y marca `stock_deducted = 1`.
+- **Edición de Pedidos:** Si un pedido ya tiene `stock_deducted = 1` y se modifican sus productos, el sistema revierte los ítems anteriores y descuenta los nuevos sin duplicar rebajas.
+- **Anulación / Cancelación:** Si la orden cancelada tenía `stock_deducted = 1`, devuelve automáticamente las unidades a la sede de origen, registra la entrada en `product_movements` y marca `stock_deducted = 0`.
+- **Eliminación (`handleDelete`):** Si un administrador elimina una orden completada, el backend restituye el stock a la sede antes de eliminar el registro físico.
+- **Traslado de Sede:** Si una orden completada cambia de sede (ej. de Sede 1 a Sede 2), revierte el stock en la Sede 1 y lo descuenta con chequeo en la Sede 2.
+
+### D. Agregación de Demandas (Multi-Item del Mismo Producto)
+Si el carrito incluye el mismo producto o variante en varias líneas (por promociones o notas distintas), el validador consolida primero la cantidad total requerida por cada ID (`$demands[$targetId]`) antes de evaluar el stock disponible, evitando errores prematuros de concurrencia.
+
+---
+
+## 5. Arquitectura y Reglas del Sistema Multisede
+
+El sistema permite operar múltiples tiendas físicas independientes con una sola base de datos y un único catálogo central:
+
+### 1. Concepto de Sede 0 (Vista Global)
+- `branchId = 0` es un identificador virtual utilizado por administradores y la tienda online para ver el stock consolidado de toda la empresa.
+- **Regla Estricta:** Nunca se debe escribir inventario físico en `branch_id = 0`. `handleSaveProduct` fuerza automáticamente `$effectiveBranchId = $branchId > 0 ? $branchId : 1;`.
+
+### 2. Soporte para `branchStock` Distribuido
+Al crear o actualizar productos con variantes o simples, el frontend envía un mapa de existencias:
+```json
+{
+  "id": "var-123",
+  "branchStock": {
+    "1": 15,
+    "2": 30
+  }
+}
+```
+`handleSaveProduct` itera cada entrada de `branchStock`, persiste el inventario en su respectiva sede y actualiza la fila padre consolidada.
+
+### 3. Traspasos Seguros entre Sedes (`handleTransferStock`)
+Ubicado en `public/lib/inventory.php`:
+1. Bloquea el stock en la sede origen (`FOR UPDATE`).
+2. Valida existencias y descuenta atómicamente (`AND stock >= :qty`).
+3. Registra movimiento `transfer_out` en origen.
+4. Suma a la sede destino mediante `ON DUPLICATE KEY UPDATE stock = stock + VALUES(stock)`.
+5. Registra movimiento `transfer_in` en destino.
+6. Sincroniza las filas consolidadas de los productos padre en ambas sedes.
+
+### 4. Desglose Multisede Unificado (`handleStockBreakdown`)
+Al consultar existencias por sucursal desde el catálogo o modal:
+- Si el ID pertenece a una variante específica, consulta el stock de esa variante en cada sede.
+- Si el ID pertenece a un producto padre con variantes, ejecuta un `SUM(i.stock)` de todas sus variantes hijas agrupado por sede, entregando el inventario total real por tienda.
+
+---
+
+## 6. Punto de Venta (POS) Profesional
+
+El POS en `components/admin/pos/` está optimizado para velocidad en caja:
+
+### Experiencia Reactiva sin Recarga
+- Se erradicó el antiguo `window.location.reload()`.
+- La actualización de stock tras la venta es optimista e instantánea mediante `adjustStockLocally` en `ProductContext.tsx`.
+
+### Impresión Térmica de Tickets (`POSTicketModal.tsx`)
+- Formato optimizado para rollos térmicos de **80mm y 58mm**.
+- Estilos CSS `@media print` para impresión limpia y directa con un clic (`window.print()`).
+- Envío directo de resumen del ticket al cliente por **WhatsApp**.
+
+### Atajos de Teclado para Cajeros (`POSCart.tsx`)
+- **`F2`**: Enfocar instantáneamente el buscador de productos / lector de código de barras.
+- **`F4`**: Abrir la pasarela de cobro rápido.
+- **`F8`**: Poner la venta actual en espera (*Hold / Park Order*).
+
+---
+
+## 7. Kardex y Trazabilidad (`product_movements`)
+
+Cada alteración de existencias queda registrada en el kardex:
+- **`entry`**: Entradas por compras, devoluciones o restitución por cancelación de venta.
+- **`exit`**: Salidas por mermas, daños o vencimiento.
+- **`sale`**: Descuento automático por venta en POS o pedido web despachado.
+- **`adjustment`**: Ajuste directo por conteo físico en tienda (fija el stock real y registra la variación matemática: `Conteo Físico: Anterior -> Nuevo`).
+- **`transfer_out` / `transfer_in`**: Movimientos apareados de traspaso entre sucursales.
+
+---
+
+## 8. Integración B2B con Almacén Central (ARAW)
+
+El sistema soporta conexión con el almacén central (WMS) mediante el módulo `integrations/araw/`:
+- **Modo Solicitante (*Requester Mode*):** Permite a las tiendas subordinadas consultar el catálogo del centro de distribución y solicitar reposición de stock.
+- **Botón `ReplenishButton`:** Integrado en el catálogo para generar pedidos de reabastecimiento directo hacia el depósito central.
+
+---
+
+## 9. Guía de Configuración, Despliegue y Troubleshooting
+
+### Instalación en Servidor (Producción)
+1. **Frontend:**
    ```bash
    npm install
+   npm run build
    ```
+   Desplegar el contenido de la carpeta `dist/` en tu servidor web o CDN.
+2. **Backend PHP:**
+   - Asegurarse de tener PHP 8.0+ con extensiones `pdo_mysql`, `json`, `curl`.
+   - Copiar `public/lib/config.example.php` a `public/lib/config.php` y ajustar credenciales MySQL.
+   - El sistema crea y migra automáticamente las tablas e índices en la primera petición.
 
-3. **Configurar variables de entorno**
-   ```bash
-   # Copiar archivo de ejemplo
-   cp .env.local.example .env.local
-   
-   # Editar y agregar tu API Key de Gemini
-   # GEMINI_API_KEY=tu_api_key_aqui
-   ```
+### Troubleshooting Frecuente
 
-4. **Configurar Backend**
-   ```bash
-   # Copiar archivo de configuración
-   cp public/lib/config.example.php public/lib/config.php
-   
-   # Editar public/lib/config.php con tus credenciales:
-   # - Base de datos (host, nombre, usuario, contraseña)
-   # - CDN API Key
-   ```
-
-5. **Crear base de datos**
-   - Crear una base de datos MySQL
-   - Las tablas se crearán automáticamente en la primera ejecución
-
-6. **Ejecutar en desarrollo**
-   ```bash
-   npm run dev
-   ```
-
-7. **Abrir en navegador**
-   ```
-   http://localhost:5173
-   ```
-
----
-
-## 📦 Scripts Disponibles
-
-```bash
-npm run dev      # Servidor de desarrollo
-npm run build    # Build de producción
-npm run preview  # Preview del build
-```
-
----
-
-## 🏗️ Estructura del Proyecto
-
-```
-ara-multisede/
-├── 📁 components/          # Componentes React
-│   ├── admin/             # Módulos del panel admin
-│   ├── Layout.tsx         # Layout principal
-│   ├── ProductCard.tsx    # Tarjeta de producto
-│   └── ...
-├── 📁 context/            # Contextos de estado global
-│   ├── StoreContext.tsx   # Estado principal
-│   ├── AuthContext.tsx    # Autenticación
-│   └── ...
-├── 📁 pages/              # Páginas principales
-│   ├── Home.tsx           # Landing page
-│   ├── Shop.tsx           # Catálogo
-│   ├── Admin.tsx          # Panel admin
-│   └── ...
-├── 📁 services/           # Servicios
-│   ├── api.ts             # Cliente API
-│   └── geminiService.ts   # IA
-├── 📁 public/             # Backend PHP
-│   ├── api.php            # Gateway API
-│   └── lib/               # Librerías PHP
-├── App.tsx                # Componente raíz
-├── types.ts               # Tipos TypeScript
-└── config.ts              # Configuración
-```
-
----
-
-## 🔧 Configuración
-
-### Frontend (`config.ts`)
-
-```typescript
-export const API_URL = 'https://tu-dominio.com/api.php';
-export const DEFAULT_IMAGE = 'URL_imagen_placeholder';
-```
-
-### Backend (`public/lib/config.php`)
-
-```php
-// Base de datos
-$host = 'localhost';
-$db   = 'nombre_base_datos';
-$user = 'usuario';
-$pass = 'contraseña';
-```
-
----
-
-## 🎨 Personalización
-
-### Temas y Colores
-
-Edita desde el panel de administración:
-- **Admin → Configuración → Apariencia**
-- Color primario
-- Color de navbar
-- Modo oscuro
-- Fuente personalizada
-
-### Hero Section
-
-Configura el carrusel principal:
-- **Admin → Configuración → Hero**
-- Múltiples slides
-- Imágenes desktop/mobile
-- Alineación y efectos
-
----
-
-## 📱 PWA - Instalación
-
-La aplicación puede instalarse como app nativa:
-
-1. **En Chrome/Edge**: Click en el ícono de instalación en la barra de direcciones
-2. **En móviles**: "Agregar a pantalla de inicio"
-
-### Características PWA
-
-- ✅ Funciona offline
-- ✅ Caché inteligente
-- ✅ Push notifications
-- ✅ Atajos de app
-- ✅ Actualización controlada
-
----
-
-## 🔐 Seguridad
-
-### Archivos Sensibles
-
-**NUNCA subir a Git:**
-- `public/lib/config.php` (credenciales DB)
-- `.env.local` (API keys)
-- Archivos con contraseñas
-
-### Buenas Prácticas
-
-1. Cambiar contraseñas por defecto
-2. Usar HTTPS en producción
-3. Habilitar `CURLOPT_SSL_VERIFYPEER` en producción
-4. Rotar API keys periódicamente
-5. Limitar permisos de usuarios
-
----
-
-## 🚢 Despliegue
-
-### Frontend (Vercel/Netlify)
-
-```bash
-npm run build
-# Subir carpeta dist/
-```
-
-### Backend (cPanel/VPS)
-
-1. Subir carpeta `public/` al servidor
-2. Configurar `config.php`
-3. Asegurar permisos de escritura en uploads
-4. Configurar CORS si es necesario
-
----
-
-## 🤝 Contribuir
-
-Las contribuciones son bienvenidas:
-
-1. Fork el proyecto
-2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto es privado. Todos los derechos reservados.
-
----
-
-## 🆘 Soporte
-
-Para soporte o consultas:
-- 📧 Email: soporte@tudominio.com
-- 💬 WhatsApp: [Tu número]
-- 🌐 Web: https://tudominio.com
-
----
-
-## 🙏 Agradecimientos
-
-- [React](https://react.dev/)
-- [Vite](https://vitejs.dev/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [Lucide Icons](https://lucide.dev/)
-- [Recharts](https://recharts.org/)
+| Síntoma | Causa Probable | Solución |
+| :--- | :--- | :--- |
+| **HTTP 403 "Security Token Missing"** | La petición no incluye la cabecera `X-App-Token`. | Asegurarse de que el frontend pase el token `'AraEcom_v5_Secure'` configurado en `services/api.ts`. |
+| **HTTP 429 "Too Many Requests"** | El rate limiter de `api.php` superó 120 req/min por IP. | Esperar el tiempo indicado en la cabecera `Retry-After` o ajustar `$_rl_max` en `public/api.php`. |
+| **Stock aparece en 0 al cambiar de sede** | El producto fue creado en un entorno anterior sin registro en la tabla `inventory`. | Editar el producto o registrar un ajuste en la sede correspondiente para que se genere la fila en `inventory`. |
+| **Error 409 al cobrar en POS** | La cantidad en carrito supera las existencias físicas de la sede activa. | Verificar existencias en el selector de sedes o realizar un ajuste/traspaso de inventario. |
 
 ---
 
 <div align="center">
-  <p>Hecho con ❤️ por tu equipo</p>
-  <p>© 2026 Ara E-commerce Multisede</p>
+  <p><b>Ara E-commerce Multisede</b> — Arquitectura Diseñada para Alta Disponibilidad e Integridad Transaccional</p>
+  <p>© 2026 Todos los derechos reservados.</p>
 </div>

@@ -34,8 +34,12 @@ if ($_rl_data['count'] > $_rl_max) {
 // ════════════════════════════════════════════════════════════════════
 
 // 1. Cargar Núcleo
-require_once 'lib/config.php';
-require_once 'lib/schema.php';
+if (file_exists(__DIR__ . '/lib/config.php')) {
+    require_once __DIR__ . '/lib/config.php';
+} else {
+    require_once __DIR__ . '/lib/config.example.php';
+}
+require_once __DIR__ . '/lib/schema.php';
 
 // --- SEGURIDAD DE APLICACIÓN (PARA EVITAR BLOQUEOS ANTIVIRUS) ---
 if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {

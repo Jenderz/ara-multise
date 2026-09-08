@@ -53,45 +53,68 @@ function handleSaveProduct($pdo, $input, $branchId)
         ':barcode_ean'      => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
     ]);
 
-    // 2. Gestión de Inventario (PADRE)
-    // Siempre guardamos el registro del padre en inventory
-    $newStockParent = intval($p['stock'] ?? 0);
+    // 2. Gestión de Inventario MULTISEDE (PADRE y VARIANTES)
+    $effectiveBranchId = $branchId > 0 ? $branchId : 1;
+    $hasVariants = !empty($p['variants']) && is_array($p['variants']);
+    $invStmt = $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE stock = VALUES(stock), updated_at = VALUES(updated_at)");
 
-    // Si tiene variantes, el stock del padre es la suma de las variantes para mantener coherencia
-    if (!empty($p['variants']) && is_array($p['variants'])) {
-        $newStockParent = 0;
-        foreach ($p['variants'] as $v) {
-            $newStockParent += intval($v['stock'] ?? 0);
+    if ($hasVariants) {
+        $parentBranchSums = [];
+
+        foreach ($p['variants'] as $variant) {
+            if (empty($variant['id'])) continue;
+            $vId = $variant['id'];
+
+            // Si la variante trae inventario distribuido en branchStock
+            if (!empty($variant['branchStock']) && (is_array($variant['branchStock']) || is_object($variant['branchStock']))) {
+                foreach ((array)$variant['branchStock'] as $bId => $bStock) {
+                    $bId = intval($bId);
+                    if ($bId <= 0) continue;
+                    $stkVal = max(0, intval($bStock));
+                    $invStmt->execute([$vId, $bId, $stkVal, time()]);
+                    $parentBranchSums[$bId] = ($parentBranchSums[$bId] ?? 0) + $stkVal;
+                }
+            } else {
+                // Si no trae branchStock, se guarda en la sede activa
+                $vStock = max(0, intval($variant['stock'] ?? 0));
+                $invStmt->execute([$vId, $effectiveBranchId, $vStock, time()]);
+                $parentBranchSums[$effectiveBranchId] = ($parentBranchSums[$effectiveBranchId] ?? 0) + $vStock;
+            }
+        }
+
+        // Sincronizar stock consolidado del producto padre en cada sede afectada
+        foreach ($parentBranchSums as $bId => $sumStock) {
+            $invStmt->execute([$p['id'], $bId, $sumStock, time()]);
+        }
+    } else {
+        // Producto simple sin variantes
+        if (!empty($p['branchStock']) && (is_array($p['branchStock']) || is_object($p['branchStock']))) {
+            foreach ((array)$p['branchStock'] as $bId => $bStock) {
+                $bId = intval($bId);
+                if ($bId <= 0) continue;
+                $stkVal = max(0, intval($bStock));
+                $invStmt->execute([$p['id'], $bId, $stkVal, time()]);
+            }
+        } else {
+            $newStockParent = max(0, intval($p['stock'] ?? 0));
+            $invStmt->execute([$p['id'], $effectiveBranchId, $newStockParent, time()]);
         }
     }
 
-    $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE stock = VALUES(stock), updated_at = VALUES(updated_at)")
-        ->execute([$p['id'], $branchId, $newStockParent, time()]);
+    // Auditoría para la sede efectiva
+    $stmtAfterCheck = $pdo->prepare("SELECT stock FROM `inventory` WHERE product_id = ? AND branch_id = ?");
+    $stmtAfterCheck->execute([$p['id'], $effectiveBranchId]);
+    $currentParentStock = intval($stmtAfterCheck->fetchColumn() ?: 0);
 
-    // Auditoría Padre
-    if ($newStockParent !== $prevStock) {
-        $diff = $newStockParent - $prevStock;
+    if ($currentParentStock !== $prevStock) {
+        $diff = $currentParentStock - $prevStock;
         $type = $diff > 0 ? 'entry' : 'exit';
         $userId = $p['userId'] ?? 'system';
         $userName = $p['userName'] ?? ($isNew ? 'Creador' : 'Editor');
         $ref = $isNew ? "Stock Inicial" : "Ajuste Manual";
 
         $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
-            ->execute([generateUniqueId(), $p['id'], $branchId, $userId, $userName, $type, abs($diff), $newStockParent, $ref, time() * 1000]);
-    }
-
-    // 3. Gestión de Inventario (VARIANTES - CRÍTICO PARA MULTISEDE)
-    // Desglosamos cada variante y guardamos su stock específico en la tabla inventory usando el ID de la variante
-    if (!empty($p['variants']) && is_array($p['variants'])) {
-        $invStmt = $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE stock = VALUES(stock), updated_at = VALUES(updated_at)");
-
-        foreach ($p['variants'] as $variant) {
-            if (empty($variant['id'])) continue;
-
-            // Usamos el ID de la variante como 'product_id' en la tabla inventory
-            $vStock = intval($variant['stock'] ?? 0);
-            $invStmt->execute([$variant['id'], $branchId, $vStock, time()]);
-        }
+            ->execute([generateUniqueId(), $p['id'], $effectiveBranchId, $userId, $userName, $type, abs($diff), $currentParentStock, $ref, time() * 1000]);
     }
 
     jsonResponse(['status' => 'success']);
@@ -104,97 +127,240 @@ function handleSaveOrder($pdo, $input, $branchId)
 
     $pdo->beginTransaction();
     try {
-        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, delivery_method, pickup_branch_id) VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :delivery_method, :pickup_branch_id) 
-        ON DUPLICATE KEY UPDATE 
-        `status`=VALUES(`status`), 
-        `branch_id`=VALUES(`branch_id`), 
-        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id)";
-        
-        $stmt = $pdo->prepare($smtInsert);
-
-        // LÓGICA DE ASIGNACIÓN DE SEDE (CRÍTICA):
-        // 1. Si viene 'branchId' explícito en el input, ÚSALO (permite reasignar la orden a otra sede).
-        // 2. Si NO viene, usa la sede del usuario que está escribiendo ($branchId).
-        // 3. Si aún así es 0 o null, usa 1 (Principal).
-        $activeBranchId = intval($o['branchId'] ?? ($o['branch_id'] ?? $branchId));
-        if ($activeBranchId <= 0) $activeBranchId = 1;
-
-        // --- LÓGICA DE CAMBIO DE ESTADO Y STOCK (NUEVO) ---
-        // Verificar estado anterior si existe la orden
-        $stmtCheck = $pdo->prepare("SELECT status, items FROM orders WHERE id = ?");
+        // 1. Verificar orden existente y su estado de stock previo con bloqueo de fila
+        $stmtCheck = $pdo->prepare("SELECT status, items, stock_deducted, branch_id FROM `orders` WHERE id = ? FOR UPDATE");
         $stmtCheck->execute([strval($o['id'])]);
         $existingOrder = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-        $newStatus = $o['status'] ?? 'pending';
-        $oldStatus = $existingOrder ? $existingOrder['status'] : null;
-
-        // 1. RESTAURAR STOCK AL CANCELAR (Si estaba completada)
-        if ($oldStatus === 'completed' && $newStatus === 'cancelled') {
-            $itemsArr = safeJsonDecode($existingOrder['items']);
-            $stockRestore = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ? WHERE `product_id` = ? AND `branch_id` = ?");
-            $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
-
-            foreach ($itemsArr as $item) {
-                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
-                    $qty = intval($item['quantity']);
-                    $prodId = $item['productId'];
-
-                    // Restaurar Padre
-                    $stockRestore->execute([$qty, $prodId, $activeBranchId]);
-
-                    // Restaurar Variante si existe
-                    if (!empty($item['variantId'])) {
-                        $stockRestore->execute([$qty, $item['variantId'], $activeBranchId]);
-                    }
-
-                    // Log Movimiento
-                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
-                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "Anulación Venta #" . $o['id'], time() * 1000]);
-                }
+        // LÓGICA DE ASIGNACIÓN DE SEDE SEGURA:
+        // Si no se especifica sede en la petición, preservar la sede original de la orden existente
+        $activeBranchId = intval($o['branchId'] ?? ($o['branch_id'] ?? 0));
+        if ($activeBranchId <= 0) {
+            if ($existingOrder && !empty($existingOrder['branch_id']) && intval($existingOrder['branch_id']) > 0) {
+                $activeBranchId = intval($existingOrder['branch_id']);
+            } else {
+                $activeBranchId = intval($branchId > 0 ? $branchId : 1);
             }
         }
 
-        // 1.5. AJUSTAR STOCK AL EDITAR PEDIDO COMPLETADO
-        $oldItemsJson = $existingOrder ? $existingOrder['items'] : '[]';
-        if ($oldStatus === 'completed' && $newStatus === 'completed' && $oldItemsJson !== $itemsJson) {
-            $stockRestore = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ? WHERE `product_id` = ? AND `branch_id` = ?");
-            $stockUpdate = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ? WHERE `product_id` = ? AND `branch_id` = ?");
-            $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
+        $newStatus = $o['status'] ?? 'pending';
+        $oldStatus = $existingOrder ? $existingOrder['status'] : null;
+        $isDeducted = $existingOrder ? intval($existingOrder['stock_deducted'] ?? 0) : 0;
+        $oldBranchId = $existingOrder ? intval($existingOrder['branch_id'] ?: $activeBranchId) : $activeBranchId;
 
-            // Revertir items viejos
+        $stockRestore = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?");
+        $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
+        $stockFetch = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+        $trackStmt = $pdo->prepare("SELECT track_stock, title FROM `products` WHERE `id` = ?");
+
+        // 2. RESTAURAR STOCK AL CANCELAR O VOLVER A PENDIENTE (Solo si fue descontado previamente)
+        $branchToRestore = (!empty($existingOrder['branch_id']) && intval($existingOrder['branch_id']) > 0) ? intval($existingOrder['branch_id']) : $activeBranchId;
+
+        if ($isDeducted === 1 && ($newStatus === 'cancelled' || $newStatus === 'pending')) {
+            $itemsArr = safeJsonDecode($existingOrder['items']);
+            foreach ($itemsArr as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
+                    $prodId = $item['productId'];
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+
+                    $stockRestore->execute([$qty, time(), $targetId, $branchToRestore]);
+                    if ($targetId !== $prodId) {
+                        $stockRestore->execute([$qty, time(), $prodId, $branchToRestore]);
+                    }
+
+                    $stockFetch->execute([$targetId, $branchToRestore]);
+                    $currentStock = $stockFetch->fetchColumn() ?: 0;
+
+                    $refAction = $newStatus === 'cancelled' ? 'Anulación' : 'Retorno a Pendiente';
+                    $movementInsert->execute([generateUniqueId(), $targetId, $branchToRestore, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refAction Venta #" . $o['id'], time() * 1000]);
+                }
+            }
+            $isDeducted = 0;
+        }
+
+        // 3. AJUSTAR STOCK AL EDITAR PEDIDO YA DESCONTADO (O TRASLADO DE SEDE)
+        $oldItemsJson = $existingOrder ? $existingOrder['items'] : '[]';
+        $itemsChanged = ($oldItemsJson !== $itemsJson);
+        $branchChanged = ($oldBranchId !== $activeBranchId);
+
+        if ($isDeducted === 1 && $oldStatus === 'completed' && $newStatus === 'completed' && ($itemsChanged || $branchChanged)) {
+            // A. Revertir items anteriores usando la sede de la orden original
             $itemsArrOld = safeJsonDecode($oldItemsJson);
             foreach ($itemsArrOld as $item) {
-                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
-                    $qty = intval($item['quantity']);
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
                     $prodId = $item['productId'];
-                    $stockRestore->execute([$qty, $prodId, $activeBranchId]);
-                    if (!empty($item['variantId'])) {
-                        $stockRestore->execute([$qty, $item['variantId'], $activeBranchId]);
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+
+                    $stockRestore->execute([$qty, time(), $targetId, $oldBranchId]);
+                    if ($targetId !== $prodId) {
+                        $stockRestore->execute([$qty, time(), $prodId, $oldBranchId]);
                     }
-                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
-                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "Reversión por Edición Venta #" . $o['id'], time() * 1000]);
+
+                    $stockFetch->execute([$targetId, $oldBranchId]);
+                    $currentStock = $stockFetch->fetchColumn() ?: 0;
+
+                    $refReason = $branchChanged ? "Reversión por Cambio de Sede (#{$oldBranchId} -> #{$activeBranchId})" : "Reversión por Edición";
+                    $movementInsert->execute([generateUniqueId(), $targetId, $oldBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refReason Venta #" . $o['id'], time() * 1000]);
                 }
             }
 
-            // Descontar items nuevos
+            // B. Descontar nuevos items con chequeo atómico en la nueva sede
             $itemsArrNew = safeJsonDecode($itemsJson);
+            $stockUpdateAtomic = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ? AND `stock` >= ?");
+            $stockUpdateNoLimit = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?");
+
             foreach ($itemsArrNew as $item) {
-                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
-                    $qty = intval($item['quantity']);
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
                     $prodId = $item['productId'];
-                    $stockUpdate->execute([$qty, $prodId, $activeBranchId]);
-                    if (!empty($item['variantId'])) {
-                        $stockUpdate->execute([$qty, $item['variantId'], $activeBranchId]);
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+
+                    $trackStmt->execute([$prodId]);
+                    $pData = $trackStmt->fetch(PDO::FETCH_ASSOC);
+                    $trackStock = $pData ? (bool)($pData['track_stock'] ?? 1) : true;
+                    $title = $item['productTitle'] ?? ($pData['title'] ?? $prodId);
+
+                    if ($trackStock) {
+                        $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
+                        if ($stockUpdateAtomic->rowCount() === 0) {
+                            throw new Exception("Stock insuficiente para '{$title}' en la edición.");
+                        }
+                        if ($targetId !== $prodId) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);
+                        }
+                    } else {
+                        $stockUpdateNoLimit->execute([$qty, time(), $targetId, $activeBranchId]);
+                        if ($targetId !== $prodId) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);
+                        }
                     }
-                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
-                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'sale', $qty, intval($currentStock), "Re-Descuento Edición Venta #" . $o['id'], time() * 1000]);
+
+                    $stockFetch->execute([$targetId, $activeBranchId]);
+                    $currentStock = $stockFetch->fetchColumn() ?: 0;
+
+                    $movementInsert->execute([generateUniqueId(), $targetId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'sale', $qty, intval($currentStock), "Re-Descuento Edición Venta #" . $o['id'], time() * 1000]);
                 }
             }
-
-            // Como ya se ajustó el stock por la edición, evitamos que processStock lo vuelva a descontar
             $o['processStock'] = false;
         }
 
+        // 4. DESCONTAR STOCK EN COMPLETADO NUEVO O TRANSICIÓN A COMPLETED
+        $shouldProcessStock = filter_var($o['processStock'] ?? false, FILTER_VALIDATE_BOOLEAN) || (!isset($o['processStock']) && $newStatus === 'completed' && $isDeducted === 0);
+
+        if ($isDeducted === 0 && $newStatus === 'completed' && $shouldProcessStock) {
+            $itemsArr = safeJsonDecode($itemsJson);
+            $checkStmt = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ? FOR UPDATE");
+
+            // Fase 1: Agregación de demandas para validación de stock consolidada
+            $demands = [];
+            foreach ($itemsArr as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
+                    $prodId = $item['productId'];
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+                    $title = $item['productTitle'] ?? $prodId;
+
+                    if (!isset($demands[$targetId])) {
+                        $demands[$targetId] = ['qty' => 0, 'prodId' => $prodId, 'title' => $title];
+                    }
+                    $demands[$targetId]['qty'] += $qty;
+                }
+            }
+
+            foreach ($demands as $targetId => $d) {
+                $prodId = $d['prodId'];
+                $totQty = $d['qty'];
+                $title = $d['title'];
+
+                $trackStmt->execute([$prodId]);
+                $pData = $trackStmt->fetch(PDO::FETCH_ASSOC);
+                $trackStock = $pData ? (bool)($pData['track_stock'] ?? 1) : true;
+
+                if ($trackStock) {
+                    $checkStmt->execute([$targetId, $activeBranchId]);
+                    $curStock = $checkStmt->fetchColumn();
+
+                    // Auto-healing si no existe el registro en la sede
+                    if ($curStock === false) {
+                        $initialStock = 0;
+                        $stmtV = $pdo->prepare("SELECT variants FROM products WHERE id = ?");
+                        $stmtV->execute([$prodId]);
+                        $prodRow = $stmtV->fetch(PDO::FETCH_ASSOC);
+                        if ($prodRow && !empty($prodRow['variants'])) {
+                            $vars = safeJsonDecode($prodRow['variants']);
+                            foreach ($vars as $v) {
+                                if (!empty($v['id']) && $v['id'] === $targetId) {
+                                    $initialStock = intval($v['stock'] ?? 0);
+                                    if (!empty($v['branchStock']) && isset($v['branchStock'][$activeBranchId])) {
+                                        $initialStock = intval($v['branchStock'][$activeBranchId]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE stock = VALUES(stock)")
+                            ->execute([$targetId, $activeBranchId, $initialStock, time()]);
+                        $curStock = $initialStock;
+                    }
+
+                    if (intval($curStock) < $totQty) {
+                        throw new Exception("Stock insuficiente para '{$title}'. Disponible: {$curStock}, Requerido: {$totQty}");
+                    }
+                }
+            }
+
+            // Fase 2: Descuento atómico y registro de movimientos
+            $stockUpdateAtomic = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ? AND `stock` >= ?");
+            $stockUpdateNoLimit = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?");
+
+            foreach ($itemsArr as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
+                    $prodId = $item['productId'];
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+
+                    $trackStmt->execute([$prodId]);
+                    $pData = $trackStmt->fetch(PDO::FETCH_ASSOC);
+                    $trackStock = $pData ? (bool)($pData['track_stock'] ?? 1) : true;
+                    $title = $item['productTitle'] ?? ($pData['title'] ?? $prodId);
+
+                    if ($trackStock) {
+                        $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
+                        if ($stockUpdateAtomic->rowCount() === 0) {
+                            throw new Exception("Conflicto de concurrencia: El stock de '{$title}' cambió durante la venta.");
+                        }
+                        if ($targetId !== $prodId) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);
+                        }
+                    } else {
+                        $stockUpdateNoLimit->execute([$qty, time(), $targetId, $activeBranchId]);
+                        if ($targetId !== $prodId) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);
+                        }
+                    }
+
+                    $stockFetch->execute([$targetId, $activeBranchId]);
+                    $currentStock = $stockFetch->fetchColumn() ?: 0;
+
+                    $saleType = (!empty($o['deliveryMethod']) && $o['deliveryMethod'] === 'pos') ? 'POS' : 'Web';
+                    $refStr = "Venta $saleType #" . $o['id'];
+                    $movementInsert->execute([generateUniqueId(), $targetId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'Sistema', 'sale', $qty, intval($currentStock), $refStr, time() * 1000]);
+                }
+            }
+            $isDeducted = 1;
+        }
+
+        // 5. Guardar Orden con estado de stock_deducted actualizado
+        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, delivery_method, pickup_branch_id, stock_deducted) 
+        VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :delivery_method, :pickup_branch_id, :stock_deducted) 
+        ON DUPLICATE KEY UPDATE 
+        `status`=VALUES(`status`), 
+        `branch_id`=VALUES(`branch_id`), 
+        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted)";
+
+        $stmt = $pdo->prepare($smtInsert);
         $stmt->execute([
             ':id' => strval($o['id']),
             ':branch_id' => $activeBranchId,
@@ -205,90 +371,23 @@ function handleSaveOrder($pdo, $input, $branchId)
             ':subtotal' => floatval($o['subtotal'] ?? 0),
             ':discount' => floatval($o['discount'] ?? 0),
             ':total' => floatval($o['total'] ?? 0),
-            ':status' => $o['status'] ?? 'pending',
-            // FIX: Usar tiempo del servidor para evitar órdenes "invisibles" por reloj desajustado del cliente
-            ':date' => time() * 1000,
+            ':status' => $newStatus,
+            ':date' => intval($o['date'] ?? (time() * 1000)),
             ':payment_method' => $o['paymentMethod'] ?? '',
             ':seller_id' => $o['sellerId'] ?? '',
             ':seller_name' => $o['sellerName'] ?? '',
             ':delivery_method' => $o['deliveryMethod'] ?? (
-                // Lógica de Inferencia Inteligente para fallback
-                (empty($o['sellerId']) || $o['sellerId'] === 'web-client' || $o['sellerId'] === 'online') 
-                ? 'delivery' 
-                : 'pos'
+                (empty($o['sellerId']) || $o['sellerId'] === 'web-client' || $o['sellerId'] === 'online') ? 'delivery' : 'pos'
             ),
-            ':pickup_branch_id' => intval($o['pickupBranchId'] ?? 0)
+            ':pickup_branch_id' => intval($o['pickupBranchId'] ?? 0),
+            ':stock_deducted' => $isDeducted
         ]);
 
-        // Procesar descuento de stock
-        if (($o['processStock'] ?? false) && $o['status'] === 'completed') {
-            $itemsArr = safeJsonDecode($itemsJson);
-            $stockUpdate = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` - ? WHERE `product_id` = ? AND `branch_id` = ?");
-            $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
-
-            foreach ($itemsArr as $item) {
-                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-')) {
-                    $qty = intval($item['quantity']);
-                    $prodId = $item['productId'];
-
-                    // 1. Descontar del Producto Padre (Para control global)
-                    $stockUpdate->execute([$qty, $prodId, $activeBranchId]);
-
-                    // 2. Si es una variante (tiene variantId), descontar de su registro de inventario específico
-                    if (!empty($item['variantId'])) {
-                        $variantId = $item['variantId'];
-                        $stockUpdate->execute([$qty, $variantId, $activeBranchId]);
-
-                        // AUTO-HEALING: Si el update no afectó filas (rowCount == 0),
-                        // significa que la variante existe en el JSON pero NO en la tabla inventory.
-                        // Debemos crear el registro en inventory "on the fly" usando el stock del JSON.
-                        if ($stockUpdate->rowCount() == 0) {
-                            // a. Buscar el producto padre para leer su JSON de variantes
-                            $stmtProd = $pdo->prepare("SELECT variants FROM products WHERE id = ?");
-                            $stmtProd->execute([$prodId]);
-                            $prodVariantsJson = $stmtProd->fetchColumn();
-
-                            if ($prodVariantsJson) {
-                                $variantsArr = safeJsonDecode($prodVariantsJson);
-                                $foundVariant = null;
-
-                                // b. Encontrar la variante específica en el JSON
-                                foreach ($variantsArr as $vObj) {
-                                    if (isset($vObj['id']) && $vObj['id'] === $variantId) {
-                                        $foundVariant = $vObj;
-                                        break;
-                                    }
-                                }
-
-                                // c. Si encontramos la variante, insertamos su stock "legacy" menos la venta actual
-                                if ($foundVariant) {
-                                    $currentJsonStock = intval($foundVariant['stock'] ?? 0);
-                                    $newRealStock = $currentJsonStock - $qty;
-
-                                    // Insertar en inventory
-                                    $insertFix = $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?)");
-                                    $insertFix->execute([$variantId, $activeBranchId, $newRealStock, time()]);
-                                }
-                            }
-                        }
-                    }
-
-                    // Registrar Movimiento
-                    $currentStock = $pdo->query("SELECT stock FROM inventory WHERE product_id = '$prodId' AND branch_id = $activeBranchId")->fetchColumn();
-                    
-                    $saleType = (!empty($o['deliveryMethod']) && $o['deliveryMethod'] === 'pos') ? 'POS' : 'Web';
-                    $refStr = "Venta $saleType #" . $o['id'];
-                    
-                    $movementInsert->execute([generateUniqueId(), $prodId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'Sistema', 'sale', $qty, intval($currentStock), $refStr, time() * 1000]);
-                }
-            }
-        }
-
         $pdo->commit();
-        jsonResponse(['status' => 'success']);
+        jsonResponse(['status' => 'success', 'stock_deducted' => $isDeducted]);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        jsonResponse(['error' => 'Error al guardar pedido', 'details' => $e->getMessage()], 500);
+        jsonResponse(['error' => $e->getMessage()], 400);
     }
 }
 
@@ -306,6 +405,47 @@ function handleSaveSettings($pdo, $input)
 
 function handleDelete($pdo, $table, $idField, $idValue)
 {
+    // Si se elimina una orden que ya había descontado inventario, restituir stock
+    if ($table === 'orders') {
+        $stmtOrd = $pdo->prepare("SELECT branch_id, items, stock_deducted, status FROM `orders` WHERE `$idField` = ?");
+        $stmtOrd->execute([$idValue]);
+        $order = $stmtOrd->fetch(PDO::FETCH_ASSOC);
+
+        if ($order && intval($order['stock_deducted'] ?? 0) === 1) {
+            $branchId = intval($order['branch_id'] ?: 1);
+            $items = safeJsonDecode($order['items'] ?? '[]');
+
+            $stockRestore = $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?");
+            $movementInsert = $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)");
+            $stockFetch = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+
+            foreach ($items as $item) {
+                if (!empty($item['productId']) && !str_starts_with($item['productId'], 'manual-') && !str_starts_with($item['productId'], 'custom')) {
+                    $qty = intval($item['quantity'] ?? 1);
+                    $prodId = $item['productId'];
+                    $targetId = !empty($item['variantId']) ? $item['variantId'] : $prodId;
+
+                    $stockRestore->execute([$qty, time(), $targetId, $branchId]);
+                    $stockFetch->execute([$targetId, $branchId]);
+                    $currentStock = $stockFetch->fetchColumn() ?: 0;
+
+                    $movementInsert->execute([
+                        generateUniqueId(),
+                        $targetId,
+                        $branchId,
+                        'system',
+                        'Administrador',
+                        'entry',
+                        $qty,
+                        intval($currentStock),
+                        "Devolución por Eliminación Pedido #" . $idValue,
+                        time() * 1000
+                    ]);
+                }
+            }
+        }
+    }
+
     $pdo->prepare("DELETE FROM `$table` WHERE `$idField` = ?")->execute([$idValue]);
 
     // Limpieza en cascada manual si es producto

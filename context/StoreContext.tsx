@@ -191,6 +191,7 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
                     sellerName: o.sellerName || o.seller_name || 'Tienda',
                     deliveryMethod: o.deliveryMethod || o.delivery_method,
                     pickupBranchId: parseInt(o.pickupBranchId || o.pickup_branch_id || '0'),
+                    stockDeducted: Boolean(o.stockDeducted || o.stock_deducted),
                     items: Array.isArray(parsedItems) ? parsedItems : []
                 };
             }).sort((a: Order, b: Order) => b.date - a.date);

@@ -4,6 +4,7 @@ import { usePOS } from '../../../context/POSContext';
 import { POSProductGrid } from './POSProductGrid';
 import { POSCart } from './POSCart';
 import { VariantSelectorModal, CheckoutModal } from './POSModals';
+import { POSTicketModal } from './POSTicketModal';
 import { ShoppingCart, LayoutDashboard } from 'lucide-react';
 
 export const POSLayout = () => {
@@ -20,7 +21,10 @@ export const POSLayout = () => {
         checkoutDetails,
         cart,
         activeTab,
-        setActiveTab
+        setActiveTab,
+        ticketModalOpen,
+        setTicketModalOpen,
+        lastCompletedOrder
     } = usePOS();
 
     return (
@@ -73,6 +77,12 @@ export const POSLayout = () => {
                 total={checkoutDetails.totalOverride !== undefined ? checkoutDetails.totalOverride : total}
                 cart={cart}
                 customerName={checkoutDetails.name}
+            />
+
+            <POSTicketModal
+                isOpen={ticketModalOpen}
+                order={lastCompletedOrder}
+                onClose={() => setTicketModalOpen(false)}
             />
         </div>
     );

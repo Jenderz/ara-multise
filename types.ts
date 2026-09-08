@@ -168,6 +168,7 @@ export interface Order {
   sellerName?: string;
   deliveryMethod?: 'delivery' | 'pickup' | 'pos';
   pickupBranchId?: number;
+  stockDeducted?: boolean;
 }
 
 export interface Customer {

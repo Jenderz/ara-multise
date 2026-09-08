@@ -164,6 +164,26 @@ export const POSCart = () => {
         if (order.customer) selectCustomer(order.customer);
     };
 
+    // --- ATAJOS DE TECLADO RÁPIDOS (HOTKEYS) ---
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'F4') {
+                e.preventDefault();
+                if (cart.length > 0) handleCheckoutClick();
+            } else if (e.key === 'F8') {
+                e.preventDefault();
+                handlePark();
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                const searchInput = document.querySelector('.pos-search') as HTMLInputElement;
+                if (searchInput) searchInput.focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [cart, finalTotal, selectedCustomer, customerInput, customerPhone, orderNote, paymentMethod, isMixedPayment, mixedPayments]);
+
     return (
         <div className="w-full md:w-[400px] xl:w-[450px] bg-white dark:bg-zinc-900 border-t md:border-t-0 md:border-l border-gray-100 dark:border-white/5 flex flex-col h-full shadow-2xl z-20">
             {/* Header POS */}

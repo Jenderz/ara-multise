@@ -6,7 +6,7 @@ import { Button, Input, Card, Badge, LazyImage } from '../UIComponents';
 import { generateId, exportToExcel } from './Shared';
 import {
     Search, Plus, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight,
-    Truck, Globe, Download, FileSpreadsheet, AlertTriangle, Tag
+    Truck, Globe, Download, FileSpreadsheet, AlertTriangle, Tag, SlidersHorizontal
 } from 'lucide-react';
 import { Product, Category } from '../../types';
 import { DEFAULT_IMAGE } from '../../config';
@@ -15,6 +15,7 @@ import { ProductFormModal } from './products/ProductFormModal';
 import { ProductImporter } from './products/ProductImporter';
 import { StockBreakdownModal } from './products/StockBreakdownModal';
 import { BarcodePrintModal } from './products/BarcodePrintModal';
+import { StockAdjustmentModal } from './products/StockAdjustmentModal';
 import { ReplenishButton } from '../../integrations/araw/ReplenishButton';
 
 const ITEMS_PER_PAGE = 50;
@@ -39,6 +40,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [transferProduct, setTransferProduct] = useState<Product | null>(null);
     const [barcodeProduct, setBarcodeProduct] = useState<Product | null>(null);
+    const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
 
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     const canManage = userRole === 'admin' || currentUser?.permissions?.includes('products_manage');
@@ -251,6 +253,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                                 <ReplenishButton product={p} compact />
                                                 {canManage && (
                                                     <>
+                                                        <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Ajuste Rápido de Stock"><SlidersHorizontal size={18} /></button>
                                                         <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg" title="Imprimir Etiqueta"><Tag size={18} /></button>
                                                         <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 size={18} /></button>
                                                         <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><Trash2 size={18} /></button>
@@ -324,6 +327,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                     <ReplenishButton product={p} />
                                     {canManage && (
                                         <>
+                                            <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl" title="Ajuste Rápido de Stock"><SlidersHorizontal size={16} /></button>
                                             <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl" title="Imprimir Etiqueta"><Tag size={16} /></button>
                                             <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue bg-blue-50 dark:bg-blue-900/10 rounded-xl"><Edit2 size={16} /></button>
                                             <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-xl"><Trash2 size={16} /></button>
@@ -377,6 +381,16 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                     onClose={() => setBarcodeProduct(null)}
                     product={barcodeProduct}
                     storeName={settings.storeName}
+                />
+            )}
+
+            {/* Modal de Ajuste Rápido de Stock */}
+            {adjustingProduct && (
+                <StockAdjustmentModal
+                    isOpen={!!adjustingProduct}
+                    product={adjustingProduct}
+                    onClose={() => setAdjustingProduct(null)}
+                    onSuccess={loadProducts}
                 />
             )}
 
