@@ -149,6 +149,8 @@ export interface CartItem {
   image: string;
   selectedOptions: Record<string, string>;
   quantity: number;
+  maxStock?: number;
+  trackStock?: boolean;
 }
 
 export interface Order {
@@ -237,6 +239,8 @@ export interface GeneralConfig {
   businessHours?: string;
   /** Ocultar el logo y nombre de la tienda en el footer */
   hideFooterBrand?: boolean;
+  /** Permitir ventas sin stock / stock negativo en POS */
+  allowNegativeStock?: boolean;
 }
 
 export interface ThemeConfig {

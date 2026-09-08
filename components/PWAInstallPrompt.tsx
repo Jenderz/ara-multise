@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
 export const PWAInstallPrompt = () => {
+    const { settings } = useStore();
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isInstalled, setIsInstalled] = useState(false);
+
+    const appIcon = settings?.appIconUrl || settings?.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
 
     useEffect(() => {
         // Detectar si ya está instalada
@@ -66,27 +70,37 @@ export const PWAInstallPrompt = () => {
     if (isInstalled || !isVisible) return null;
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center animate-slide-up">
-            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-4 max-w-sm w-full border border-gray-100 dark:border-white/10">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-4 right-4 z-50 flex justify-center animate-slide-up">
+            <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl rounded-2xl shadow-2xl p-3 sm:p-4 flex items-center justify-between gap-3 max-w-sm w-full border border-gray-100 dark:border-white/10">
                 <div className="flex items-center gap-3">
-                    <div className="bg-ios-blue/10 p-2.5 rounded-xl text-ios-blue">
-                        <Download size={24} />
+                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-700 shadow-md border border-gray-100 dark:border-white/10 overflow-hidden p-0.5 shrink-0 flex items-center justify-center">
+                        <img 
+                            src={appIcon} 
+                            alt="Icono de la App" 
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                                if (settings?.logoUrl && e.currentTarget.src !== settings.logoUrl) {
+                                    e.currentTarget.src = settings.logoUrl;
+                                }
+                            }}
+                        />
                     </div>
                     <div>
-                        <h4 className="font-bold text-sm dark:text-white">Instalar App</h4>
-                        <p className="text-xs text-gray-500 max-w-[180px]">Mejor experiencia, uso sin conexión y notificaciones.</p>
+                        <h4 className="font-bold text-sm dark:text-white leading-tight">Instalar {settings?.storeName || 'App'}</h4>
+                        <p className="text-[11px] text-gray-500 max-w-[170px] leading-tight mt-0.5">Acceso rápido desde tu pantalla de inicio.</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                     <button
                         onClick={handleDismiss}
-                        className="p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full"
+                        aria-label="Cerrar"
+                        className="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
                     >
                         <X size={18} />
                     </button>
                     <button
                         onClick={handleInstallClick}
-                        className="px-4 py-2 bg-ios-blue text-white text-xs font-bold rounded-xl shadow-lg shadow-ios-blue/30 hover:scale-105 transition-transform"
+                        className="px-3.5 py-2 bg-ios-blue text-white text-xs font-bold rounded-xl shadow-lg shadow-ios-blue/30 hover:scale-105 active:scale-95 transition-all"
                     >
                         Instalar
                     </button>

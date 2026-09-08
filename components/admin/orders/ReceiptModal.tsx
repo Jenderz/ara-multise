@@ -30,6 +30,13 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
         return { subtotal, discount, hasDiscount };
     }, [order]);
 
+    const activeBranchName = useMemo(() => {
+        if (!order.branchId && !order.pickupBranchId) return '';
+        const targetId = order.pickupBranchId || order.branchId;
+        const b = branches.find(branch => branch.id === targetId);
+        return b?.name || '';
+    }, [branches, order.branchId, order.pickupBranchId]);
+
     // --- LÓGICA DE FORMATO DE PRECIO ---
     const formatPrice = (amount: number) => {
         const mode = settings.priceDisplayMode || 'both';
@@ -120,8 +127,10 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
         const deliveryInfo = order.deliveryMethod === 'delivery'
             ? `<div><b>Dirección:</b> ${order.customerAddress || 'No registrada'}</div>`
             : order.deliveryMethod === 'pickup'
-                ? `<div><b>Retiro en:</b> ${branches.find(b => b.id === order.pickupBranchId)?.name || 'Tienda'}</div>`
-                : '';
+                ? `<div><b>Retiro en Sede:</b> ${activeBranchName || 'Tienda'}</div>`
+                : order.deliveryMethod === 'pos'
+                    ? `<div><b>Tipo:</b> Venta en Mostrador (POS)</div>`
+                    : '';
 
         const itemsHtml = order.items.map(item => `
             <tr>
@@ -145,13 +154,15 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
                         <div class="font-bold" style="font-size:11px; margin: 4px 0;">RECIBO NO FISCAL</div>
                         <div class="text-xs">${settings.contactAddress || ''}</div>
                         <div class="text-xs">Tel: ${settings.whatsappNumber || ''}</div>
-                        <div class="text-xs">${new Date(order.date).toLocaleString()}</div>
+                        <div class="text-xs">${new Date(order.date || Date.now()).toLocaleString()}</div>
                     </div>
 
                     <div class="border-b"></div>
 
                     <div class="text-xs">
                         <div><b>Orden:</b> #${order.id.slice(0, 8)}</div>
+                        ${activeBranchName ? `<div><b>Sede:</b> ${activeBranchName}</div>` : ''}
+                        ${order.sellerName ? `<div><b>Vendedor:</b> ${order.sellerName}</div>` : ''}
                         <div><b>Cliente:</b> ${order.customerName}</div>
                         ${order.customerPhone ? `<div><b>Tel:</b> ${order.customerPhone}</div>` : ''}
                         ${deliveryInfo}
@@ -274,20 +285,50 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
             const canvas = await generateCanvas();
             if (!canvas) throw new Error("Error Canvas");
 
-            canvas.toBlob(async (blob) => {
-                if (!blob) return;
-                const file = new File([blob], `ticket_${order.id}.png`, { type: 'image/png' });
+            const shareViaWhatsappText = () => {
+                const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
+                const itemsText = order.items.map(i => `• ${i.quantity}x ${i.productTitle} - $${(i.price * i.quantity).toFixed(2)}`).join('\n');
+                const totalBs = (order.total * activeExchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 });
+                const message = `🛍️ *COMPROBANTE DE COMPRA*\n` +
+                    `*${settings.storeName || 'Tienda'}*\n` +
+                    (activeBranchName ? `Sede: ${activeBranchName}\n` : '') +
+                    `Ticket: #${order.id.slice(0, 8)}\n` +
+                    `Fecha: ${new Date(order.date || Date.now()).toLocaleString()}\n\n` +
+                    `*Detalle:*\n${itemsText}\n\n` +
+                    `Subtotal: $${financialData.subtotal.toFixed(2)}\n` +
+                    (financialData.hasDiscount ? `Descuento: -$${financialData.discount.toFixed(2)}\n` : '') +
+                    `*TOTAL: $${order.total.toFixed(2)} (${totalBs} Bs)*\n` +
+                    `Método: ${order.paymentMethod}\n\n` +
+                    `¡Gracias por su compra! 🙏`;
+                const encoded = encodeURIComponent(message);
+                const url = phone ? `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}` : `https://api.whatsapp.com/send?text=${encoded}`;
+                window.open(url, '_blank');
+            };
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: `Recibo #${order.id}`,
-                        text: `Gracias por tu compra en ${settings.storeName}!`
-                    });
-                } else {
-                    handleDownloadImage();
-                }
-            }, 'image/png');
+            if (navigator.canShare) {
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        shareViaWhatsappText();
+                        return;
+                    }
+                    const file = new File([blob], `ticket_${order.id}.png`, { type: 'image/png' });
+                    if (navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: `Recibo #${order.id.slice(0, 8)}`,
+                                text: `Gracias por tu compra en ${settings.storeName}!`
+                            });
+                        } catch (err) {
+                            shareViaWhatsappText();
+                        }
+                    } else {
+                        shareViaWhatsappText();
+                    }
+                }, 'image/png');
+            } else {
+                shareViaWhatsappText();
+            }
         } catch (e) {
             alert("No soportado en este dispositivo.");
         } finally {
@@ -315,13 +356,16 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
                             <p className="text-xs font-bold uppercase mt-1 mb-1">Recibo No Fiscal</p>
                             <p className="text-[10px]">{settings.contactAddress}</p>
                             <p className="text-[10px]">Tel: {settings.whatsappNumber}</p>
-                            <p className="text-[10px] mt-1">{new Date().toLocaleString()}</p>
+                            <p className="text-[10px] mt-1">{new Date(order.date || Date.now()).toLocaleString()}</p>
                         </div>
 
                         {/* Divisor sólido para evitar overlapping */}
                         <div className="w-full border-b border-dashed border-black mb-3 mt-1"></div>
 
                         <div className="flex flex-col gap-1 mb-3">
+                            <div className="flex justify-between"><span>Orden:</span><span className="font-bold">#{order.id.slice(0, 8)}</span></div>
+                            {activeBranchName && <div className="flex justify-between"><span>Sede:</span><span>{activeBranchName}</span></div>}
+                            {order.sellerName && <div className="flex justify-between"><span>Vendedor:</span><span>{order.sellerName}</span></div>}
                             <div className="flex justify-between"><span>Cliente:</span><span className="font-bold">{order.customerName}</span></div>
                             {order.customerPhone && <div className="flex justify-between"><span>Tel:</span><span>{order.customerPhone}</span></div>}
 
@@ -334,7 +378,13 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
                             {order.deliveryMethod === 'pickup' && (
                                 <div className="flex justify-between items-start mt-1">
                                     <span>Retiro:</span>
-                                    <span className="font-bold text-right max-w-[60%]">{branches.find(b => b.id === order.pickupBranchId)?.name || 'Tienda'}</span>
+                                    <span className="font-bold text-right max-w-[60%]">{activeBranchName || 'Tienda'}</span>
+                                </div>
+                            )}
+                            {order.deliveryMethod === 'pos' && (
+                                <div className="flex justify-between items-start mt-1">
+                                    <span>Tipo:</span>
+                                    <span className="font-bold text-right">Venta en Mostrador (POS)</span>
                                 </div>
                             )}
                         </div>

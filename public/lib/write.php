@@ -153,6 +153,17 @@ function handleSaveOrder($pdo, $input, $branchId)
         $stockFetch = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
         $trackStmt = $pdo->prepare("SELECT track_stock, title FROM `products` WHERE `id` = ?");
 
+        // Soporte de configuración para permitir stock negativo (sobregiro en POS)
+        $allowNegativeStock = false;
+        try {
+            $stmtSet = $pdo->prepare("SELECT setting_value FROM `settings` WHERE setting_key = 'allowNegativeStock' OR setting_key = 'allow_negative_stock' LIMIT 1");
+            $stmtSet->execute();
+            $val = $stmtSet->fetchColumn();
+            if ($val !== false) {
+                $allowNegativeStock = filter_var($val, FILTER_VALIDATE_BOOLEAN);
+            }
+        } catch (Exception $ignore) {}
+
         // 2. RESTAURAR STOCK AL CANCELAR O VOLVER A PENDIENTE (Solo si fue descontado previamente)
         $branchToRestore = (!empty($existingOrder['branch_id']) && intval($existingOrder['branch_id']) > 0) ? intval($existingOrder['branch_id']) : $activeBranchId;
 
@@ -223,9 +234,13 @@ function handleSaveOrder($pdo, $input, $branchId)
                     $title = $item['productTitle'] ?? ($pData['title'] ?? $prodId);
 
                     if ($trackStock) {
-                        $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
-                        if ($stockUpdateAtomic->rowCount() === 0) {
-                            throw new Exception("Stock insuficiente para '{$title}' en la edición.");
+                        if ($allowNegativeStock) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $targetId, $activeBranchId]);
+                        } else {
+                            $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
+                            if ($stockUpdateAtomic->rowCount() === 0) {
+                                throw new Exception("Stock insuficiente para '{$title}' en la edición.");
+                            }
                         }
                         if ($targetId !== $prodId) {
                             $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);
@@ -305,7 +320,7 @@ function handleSaveOrder($pdo, $input, $branchId)
                         $curStock = $initialStock;
                     }
 
-                    if (intval($curStock) < $totQty) {
+                    if (!$allowNegativeStock && intval($curStock) < $totQty) {
                         throw new Exception("Stock insuficiente para '{$title}'. Disponible: {$curStock}, Requerido: {$totQty}");
                     }
                 }
@@ -327,9 +342,13 @@ function handleSaveOrder($pdo, $input, $branchId)
                     $title = $item['productTitle'] ?? ($pData['title'] ?? $prodId);
 
                     if ($trackStock) {
-                        $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
-                        if ($stockUpdateAtomic->rowCount() === 0) {
-                            throw new Exception("Conflicto de concurrencia: El stock de '{$title}' cambió durante la venta.");
+                        if ($allowNegativeStock) {
+                            $stockUpdateNoLimit->execute([$qty, time(), $targetId, $activeBranchId]);
+                        } else {
+                            $stockUpdateAtomic->execute([$qty, time(), $targetId, $activeBranchId, $qty]);
+                            if ($stockUpdateAtomic->rowCount() === 0) {
+                                throw new Exception("Conflicto de concurrencia: El stock de '{$title}' cambió durante la venta.");
+                            }
                         }
                         if ($targetId !== $prodId) {
                             $stockUpdateNoLimit->execute([$qty, time(), $prodId, $activeBranchId]);

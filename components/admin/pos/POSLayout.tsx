@@ -1,13 +1,15 @@
 
 import React from 'react';
 import { usePOS } from '../../../context/POSContext';
+import { useStore } from '../../../context/StoreContext';
 import { POSProductGrid } from './POSProductGrid';
 import { POSCart } from './POSCart';
 import { VariantSelectorModal, CheckoutModal } from './POSModals';
-import { POSTicketModal } from './POSTicketModal';
+import { ReceiptModal } from '../orders/ReceiptModal';
 import { ShoppingCart, LayoutDashboard } from 'lucide-react';
 
 export const POSLayout = () => {
+    const { settings } = useStore();
     const {
         isFullScreen,
         variantModalOpen,
@@ -39,8 +41,8 @@ export const POSLayout = () => {
                 <POSCart />
             </div>
 
-            {/* Selector de Pestañas Móvil (Floating) */}
-            <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 flex bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl p-1 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl z-[100] scale-110">
+            {/* Selector de Pestañas Móvil (Floating con respeto a barra de gestos iOS) */}
+            <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-1/2 -translate-x-1/2 flex bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl z-[100] scale-110">
                 <button
                     onClick={() => setActiveTab('catalog')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'catalog' ? 'bg-ios-blue text-white shadow-lg' : 'text-gray-500'}`}
@@ -79,11 +81,13 @@ export const POSLayout = () => {
                 customerName={checkoutDetails.name}
             />
 
-            <POSTicketModal
-                isOpen={ticketModalOpen}
-                order={lastCompletedOrder}
-                onClose={() => setTicketModalOpen(false)}
-            />
+            {ticketModalOpen && lastCompletedOrder && (
+                <ReceiptModal
+                    order={lastCompletedOrder}
+                    settings={settings}
+                    onClose={() => setTicketModalOpen(false)}
+                />
+            )}
         </div>
     );
 };

@@ -17,18 +17,25 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
     const isGlobalView = currentBranch?.id === 0;
 
     // --- ESTADOS INVENTARIO (AUDITORÍA & PAGINACIÓN) ---
-    const [movements, setMovements] = useState<(StockMovement & { product_title?: string, product_code?: string, branch_id?: number })[]>([]);
+    const [movements, setMovements] = useState<(StockMovement & { product_title?: string, product_code?: string, branch_id?: number, user_name?: string })[]>([]);
     const [loadingMovements, setLoadingMovements] = useState(false);
     const [auditSearch, setAuditSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [auditType, setAuditType] = useState('all');
-    const [selectedProductId, setSelectedProductId] = useState<string>(''); // Nuevo filtro por producto
+    const [selectedProductId, setSelectedProductId] = useState<string>(''); // Filtro por producto
+    const [selectedBranchId, setSelectedBranchId] = useState<number | 'all'>(isGlobalView ? 'all' : (currentBranch?.id || 1));
 
     // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [pageSize] = useState(50); // Registros por página
+
+    // Sincronizar filtro de sede si cambia la sede activa
+    useEffect(() => {
+        setSelectedBranchId(isGlobalView ? 'all' : (currentBranch?.id || 1));
+        setCurrentPage(1);
+    }, [currentBranch?.id, isGlobalView]);
 
     // Debounce para búsqueda de texto
     useEffect(() => {
@@ -43,7 +50,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
         const loadAuditData = async () => {
             setLoadingMovements(true);
             try {
-                const data = await api.getMovements(currentPage, pageSize, selectedProductId, auditType, debouncedSearch);
+                const data = await api.getMovements(currentPage, pageSize, selectedProductId, auditType, debouncedSearch, selectedBranchId);
 
                 // Compatibilidad con formato nuevo (paginado) y antiguo (array directo)
                 if (data && data.movements && Array.isArray(data.movements)) {
@@ -67,7 +74,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
             }
         };
         loadAuditData();
-    }, [currentPage, selectedProductId, auditType, debouncedSearch]);
+    }, [currentPage, selectedProductId, auditType, debouncedSearch, selectedBranchId]);
 
     const metrics = useMemo(() => {
         let totalCost = 0;
@@ -81,9 +88,10 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
         const categoryValue: Record<string, number> = {};
 
         products.forEach(p => {
-            const pStock = p.stock || 0;
-            const pCostVal = pStock * (p.cost || 0);
-            const pRetailVal = pStock * (p.price || 0);
+            // En Vista Global se usa globalStock consolidado si está disponible; en sede local, stock de la sede
+            const pStock = (isGlobalView && p.globalStock !== undefined) ? Number(p.globalStock) : (Number(p.stock) || 0);
+            const pCostVal = pStock * (Number(p.cost) || 0);
+            const pRetailVal = pStock * (Number(p.price) || 0);
 
             totalCost += pCostVal;
             totalRetailValue += pRetailVal;
@@ -118,12 +126,13 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
             chartData,
             profitMargin: totalRetailValue > 0 ? ((totalRetailValue - totalCost) / totalRetailValue) * 100 : 0,
         };
-    }, [products]);
+    }, [products, isGlobalView]);
 
     const resetAuditFilters = () => {
         setAuditSearch('');
         setAuditType('all');
         setSelectedProductId('');
+        setSelectedBranchId(isGlobalView ? 'all' : (currentBranch?.id || 1));
         setCurrentPage(1);
     };
 
@@ -199,10 +208,10 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm">
                     <h3 className="font-bold text-lg dark:text-white flex items-center gap-2 mb-6"><Layers size={18} className="text-ios-blue" /> Valor por Categoría</h3>
-                    <div className="h-[300px] w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={metrics.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8E8E93' }} /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8E8E93' }} tickFormatter={(val) => `$${val / 1000}k`} /><Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} /><Bar dataKey="value" name="value" radius={[4, 4, 0, 0]} barSize={30}>{metrics.chartData.map((entry, index) => (<Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}</Bar></BarChart></ResponsiveContainer></div>
+                    <div className="h-[300px] w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={metrics.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8E8E93' }} /><YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8E8E93' }} tickFormatter={(val) => val >= 1000 ? `$${(val / 1000).toFixed(0)}k` : `$${val}`} /><Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} /><Bar dataKey="value" name="value" radius={[4, 4, 0, 0]} barSize={30}>{metrics.chartData.map((entry, index) => (<Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}</Bar></BarChart></ResponsiveContainer></div>
                 </div>
                 <div className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm flex flex-col">
-                    <h3 className="font-bold text-lg dark:text-white mb-4">Top Stock (Unidades)</h3>
+                    <h3 className="font-bold text-lg dark:text-white mb-4">Stock por Categoría</h3>
                     <div className="flex-1 overflow-y-auto space-y-4 pr-2">{metrics.chartData.map((cat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-2xl"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}>{idx + 1}</div><div><p className="font-bold text-sm dark:text-white">{cat.name}</p><p className="text-[10px] text-gray-500">${cat.value.toLocaleString()} en valor</p></div></div><div className="bg-white dark:bg-black/20 px-3 py-1 rounded-lg text-xs font-bold dark:text-white shadow-sm">{cat.count} u.</div></div>))}</div>
                 </div>
             </div>
@@ -229,17 +238,18 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                     </div>
 
                     {/* Filtros */}
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
                         {/* Selector de Producto */}
-                        <div className="relative md:col-span-2">
+                        <div className="relative">
                             <Package size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             <select
                                 className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 appearance-none cursor-pointer focus:border-ios-blue transition-colors"
                                 value={selectedProductId}
-                                onChange={e => setSelectedProductId(e.target.value)}
+                                onChange={e => { setSelectedProductId(e.target.value); setCurrentPage(1); }}
                             >
                                 <option value="">Todos los Productos</option>
                                 {products
+                                    .slice()
                                     .sort((a, b) => a.title.localeCompare(b.title))
                                     .map(p => (
                                         <option key={p.id} value={p.id}>
@@ -249,21 +259,34 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                             </select>
                         </div>
 
-                        <div className="md:col-span-2 relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            <input
-                                placeholder="Buscar referencia o sede..."
-                                className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 focus:border-ios-blue transition-colors"
-                                value={auditSearch}
-                                onChange={e => setAuditSearch(e.target.value)}
-                            />
+                        {/* Selector de Sede */}
+                        <div className="relative">
+                            <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <select
+                                className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 appearance-none cursor-pointer focus:border-ios-blue transition-colors"
+                                value={selectedBranchId}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    setSelectedBranchId(val === 'all' ? 'all' : Number(val));
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                <option value="all">Todas las Sedes</option>
+                                {branches.map(b => (
+                                    <option key={b.id} value={b.id}>
+                                        {b.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <div className="relative md:col-span-2">
+
+                        {/* Selector de Tipo */}
+                        <div className="relative">
                             <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                             <select
                                 className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 appearance-none cursor-pointer focus:border-ios-blue transition-colors"
                                 value={auditType}
-                                onChange={e => setAuditType(e.target.value)}
+                                onChange={e => { setAuditType(e.target.value); setCurrentPage(1); }}
                             >
                                 <option value="all">Todos los Tipos</option>
                                 <option value="entry">Entradas</option>
@@ -271,6 +294,17 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                 <option value="sale">Ventas</option>
                                 <option value="adjustment">Ajustes / Variantes</option>
                             </select>
+                        </div>
+
+                        {/* Buscador */}
+                        <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <input
+                                placeholder="Buscar referencia o usuario..."
+                                className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 focus:border-ios-blue transition-colors"
+                                value={auditSearch}
+                                onChange={e => setAuditSearch(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -281,7 +315,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                             <tr>
                                 <th className="pb-3 pl-2 w-32">Fecha</th>
                                 <th className="pb-3 w-40">Producto</th>
-                                <th className="pb-3 w-28">Sede</th> {/* NUEVA COLUMNA */}
+                                <th className="pb-3 w-28">Sede</th>
                                 <th className="pb-3 w-32">Tipo</th>
                                 <th className="pb-3 w-20 text-center">Cant.</th>
                                 <th className="pb-3 text-right pr-2">Detalle / Referencia</th>
@@ -302,16 +336,15 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                     if (isAdj && mov.reference.includes('+')) isPositiveAdj = true;
 
                                     // RESOLUCIÓN DE NOMBRE DE SEDE (Frontend Side)
-                                    // La API devuelve 'branch_id' (snake_case) o 'branchId' según el mapper.
-                                    // Usamos fallback para asegurar compatibilidad.
                                     const rawBid = mov.branchId || mov.branch_id || 1;
                                     const branchObj = branches.find(b => b.id === Number(rawBid));
                                     const branchName = branchObj ? branchObj.name : 'Sede Principal';
+                                    const authorName = mov.userName || (mov as any).user_name || 'Sistema';
 
                                     return (
                                         <tr key={mov.id} className="group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="py-3 pl-2 text-xs text-gray-500 font-mono whitespace-nowrap">
-                                                {new Date(mov.date).toLocaleString('es-ES')}
+                                                {new Date(Number(mov.date) || mov.date).toLocaleString('es-ES')}
                                             </td>
                                             <td className="py-3">
                                                 <p className="text-xs font-bold dark:text-white truncate max-w-[200px]">{mov.product_title || 'Producto Eliminado'}</p>
@@ -347,7 +380,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                                 </span>
                                             </td>
                                             <td className="py-3 text-right pr-2 text-xs text-gray-600 dark:text-gray-400 font-medium truncate max-w-[250px]">
-                                                {mov.reference} <span className="text-[9px] opacity-60">({mov.userName})</span>
+                                                {mov.reference} <span className="text-[9px] opacity-60">({authorName})</span>
                                             </td>
                                         </tr>
                                     );

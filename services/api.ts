@@ -56,30 +56,42 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
 
         const text = await response.text();
 
-        try {
-            const json = JSON.parse(text);
-            if (!response.ok) {
-                throw new Error(json.error || json.details || `Error ${response.status}`);
-            }
-            if (json.error) {
-                throw new Error(json.error + (json.details ? `: ${json.details}` : ''));
-            }
-            return json;
-        } catch (e) {
-            console.error("Respuesta no válida del servidor (RAW):", text);
-            if (!response.ok) throw new Error(`Server Error ${response.status}`);
+        let json: any = null;
+        let parseFailed = false;
 
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            parseFailed = true;
             const firstBrace = text.indexOf('{');
             const lastBrace = text.lastIndexOf('}');
             if (firstBrace !== -1 && lastBrace !== -1) {
                 try {
-                    return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+                    json = JSON.parse(text.substring(firstBrace, lastBrace + 1));
+                    parseFailed = false;
                 } catch (retryErr) {
-                    throw new Error("Respuesta del servidor corrupta.");
+                    parseFailed = true;
                 }
             }
+        }
+
+        if (parseFailed) {
+            console.error("Respuesta no válida del servidor (RAW):", text);
+            if (!response.ok) throw new Error(`Server Error ${response.status}`);
             throw new Error("El servidor devolvió datos inválidos.");
         }
+
+        if (!response.ok) {
+            const errorMsg = json?.error || json?.details || json?.message || `Server Error ${response.status}`;
+            throw new Error(errorMsg);
+        }
+
+        if (json?.error) {
+            const errorMsg = json.error + (json.details ? `: ${json.details}` : '');
+            throw new Error(errorMsg);
+        }
+
+        return json;
 
     } catch (error: any) {
         clearTimeout(id);
@@ -137,13 +149,14 @@ export const api = {
     getTransactions: (filters: any) => api.getOrders({ ...filters, limit: 1000 }).then(res => res?.data || []),
     getProductHistory: (pid: string) => fetchApi(`get_product_history&product_id=${encodeURIComponent(pid)}`),
 
-    getMovements: (page = 1, limit = 50, productId = '', type = '', search = '') => {
+    getMovements: (page = 1, limit = 50, productId = '', type = '', search = '', branchId: number | string = '') => {
         const params = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
             ...(productId && { product_id: productId }),
             ...(type && type !== 'all' && { type }),
-            ...(search && { search })
+            ...(search && { search }),
+            ...(branchId && branchId !== 'all' && { branch_id: branchId.toString() })
         });
         return fetchApi(`get_movements&${params.toString()}`);
     },

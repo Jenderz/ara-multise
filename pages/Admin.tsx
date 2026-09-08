@@ -18,7 +18,7 @@ import { SmartAssistant } from '../components/admin/SmartAssistant';
 
 import {
     LayoutDashboard, ShoppingCart, Users, Megaphone, Settings,
-    LogOut, Menu, Home, Rocket, BarChart3, Store, Calculator, UserCog, Box, Wallet, ChevronDown, Check
+    LogOut, Menu, Home, Rocket, BarChart3, Store, Calculator, UserCog, Box, Wallet, ChevronDown, Check, X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -175,14 +175,25 @@ export const Admin = () => {
         );
     }
 
+    const handleTabClick = (tab: typeof activeTab) => {
+        setActiveTab(tab);
+        setIsSidebarOpen(false);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col lg:flex-row relative">
             <SEO title={`Panel ${userRole === 'admin' ? 'Administrador' : 'Vendedor'}`} description="Gestión interna de la tienda." />
 
-            {/* Mobile Header */}
-            <div className="lg:hidden bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-white/10 p-4 pt-safe flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            {/* Mobile Header con soporte para Notch / Dynamic Island de iPhone */}
+            <div className="lg:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 px-4 header-safe pb-3 flex justify-between items-center sticky top-0 z-30 shadow-sm">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-ios-text dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-full"><Menu size={24} /></button>
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        aria-label="Abrir Menú"
+                        className="p-2.5 -ml-1 text-ios-text dark:text-white bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 active:scale-95 transition-all rounded-xl flex items-center justify-center shadow-sm"
+                    >
+                        <Menu size={22} />
+                    </button>
                     <div className="flex flex-col">
                         <span className="font-bold text-sm text-ios-text dark:text-white leading-none">Panel {userRole === 'admin' ? 'Admin' : 'Vendedor'}</span>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{currentBranch?.name}</span>
@@ -192,8 +203,11 @@ export const Admin = () => {
                 {/* Quick Branch Switcher Mobile (Solo si Multi) */}
                 {isMultiBranch && (
                     <div className="relative">
-                        <button onClick={() => setIsBranchMenuOpen(!isBranchMenuOpen)} className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2 py-1.5 rounded-lg">
-                            <Store size={16} className="text-ios-blue" />
+                        <button
+                            onClick={() => setIsBranchMenuOpen(!isBranchMenuOpen)}
+                            className="flex items-center gap-1.5 bg-gray-100 dark:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold active:scale-95 transition-all"
+                        >
+                            <Store size={15} className="text-ios-blue" />
                             <ChevronDown size={14} className="text-gray-500" />
                         </button>
                         {/* Mobile Dropdown */}
@@ -202,7 +216,11 @@ export const Admin = () => {
                                 <div className="fixed inset-0 z-40" onClick={() => setIsBranchMenuOpen(false)}></div>
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/10 z-50 overflow-hidden">
                                     {branches.map(branch => (
-                                        <button key={branch.id} onClick={() => { switchBranch(branch.id); setIsBranchMenuOpen(false); }} className={`w-full text-left px-3 py-2 text-xs font-bold border-b border-gray-50 dark:border-white/5 last:border-0 ${currentBranch?.id === branch.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}>
+                                        <button
+                                            key={branch.id}
+                                            onClick={() => { switchBranch(branch.id); setIsBranchMenuOpen(false); }}
+                                            className={`w-full text-left px-3 py-2 text-xs font-bold border-b border-gray-50 dark:border-white/5 last:border-0 ${currentBranch?.id === branch.id ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'}`}
+                                        >
                                             {branch.name}
                                         </button>
                                     ))}
@@ -213,24 +231,40 @@ export const Admin = () => {
                 )}
             </div>
 
-            {isSidebarOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
 
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-white/10 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 pt-safe ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 pb-2">
-                    <Link to="/" className="flex flex-col items-center gap-2 group cursor-pointer mb-6">
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-white/10 flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 sidebar-safe-top sidebar-safe-bottom shadow-2xl lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="px-6 pb-2 pt-2 lg:pt-6 flex items-center justify-between">
+                    <Link to="/" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 group cursor-pointer">
                         {settings.logoUrl ? (
-                            <img src={settings.logoUrl} alt="Store Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
+                            <img src={settings.logoUrl} alt="Store Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
                         ) : (
-                            <div className="w-12 h-12 bg-ios-blue rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:shadow-blue-500/30 transition-shadow">
+                            <div className="w-10 h-10 bg-ios-blue rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-blue-500/30 transition-shadow">
                                 {settings.storeName.charAt(0).toUpperCase()}
                             </div>
                         )}
-                        <h1 className="text-lg font-bold text-ios-text dark:text-white truncate w-full text-center group-hover:text-ios-blue transition-colors">{settings.storeName}</h1>
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-white/10 rounded-full">
-                            <div className={`w-2 h-2 rounded-full ${userRole === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}`}></div>
-                            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{currentUser?.name?.split(' ')[0] || 'Usuario'}</p>
+                        <div className="flex flex-col text-left">
+                            <h1 className="text-base font-bold text-ios-text dark:text-white truncate max-w-[140px] group-hover:text-ios-blue transition-colors">{settings.storeName}</h1>
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <div className={`w-2 h-2 rounded-full ${userRole === 'admin' ? 'bg-purple-500' : 'bg-blue-500'}`}></div>
+                                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">{currentUser?.name?.split(' ')[0] || 'Usuario'}</p>
+                            </div>
                         </div>
                     </Link>
+
+                    {/* Botón de cierre visible en móvil */}
+                    <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        aria-label="Cerrar Menú"
+                        className="lg:hidden p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 <BranchSwitcher />
@@ -239,15 +273,15 @@ export const Admin = () => {
                     {/* --- GRUPO 1: PRINCIPAL --- */}
                     <div className="pb-2">
                         <p className="px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Principal</p>
-                        {hasPermission('dashboard') && <NavButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />}
-                        {hasPermission('pos') && <NavButton active={activeTab === 'pos'} onClick={() => setActiveTab('pos')} icon={<Calculator size={20} />} label="Punto de Venta" />}
+                        {hasPermission('dashboard') && <NavButton active={activeTab === 'dashboard'} onClick={() => handleTabClick('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />}
+                        {hasPermission('pos') && <NavButton active={activeTab === 'pos'} onClick={() => handleTabClick('pos')} icon={<Calculator size={20} />} label="Punto de Venta" />}
                     </div>
 
                     {/* --- GRUPO 2: CATÁLOGO --- */}
                     {hasPermission('inventory') && (
                         <div className="pb-2">
                             <p className="px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Catálogo</p>
-                            <NavButton active={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} icon={<Box size={20} />} label="Inventario" />
+                            <NavButton active={activeTab === 'inventory'} onClick={() => handleTabClick('inventory')} icon={<Box size={20} />} label="Inventario" />
                         </div>
                     )}
 
@@ -255,8 +289,8 @@ export const Admin = () => {
                     {(hasPermission('orders') || hasPermission('transactions')) && (
                         <div className="pb-2">
                             <p className="px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Ventas y Finanzas</p>
-                            {hasPermission('orders') && <NavButton active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon={<ShoppingCart size={20} />} label="Pedidos" badge={orders.filter(o => o.status === 'pending').length} />}
-                            {hasPermission('transactions') && <NavButton active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} icon={<Wallet size={20} />} label="Transacciones" />}
+                            {hasPermission('orders') && <NavButton active={activeTab === 'orders'} onClick={() => handleTabClick('orders')} icon={<ShoppingCart size={20} />} label="Pedidos" badge={orders.filter(o => o.status === 'pending').length} />}
+                            {hasPermission('transactions') && <NavButton active={activeTab === 'transactions'} onClick={() => handleTabClick('transactions')} icon={<Wallet size={20} />} label="Transacciones" />}
                         </div>
                     )}
 
@@ -264,8 +298,8 @@ export const Admin = () => {
                     {(hasPermission('customers') || (userRole === 'admin')) && (
                         <div className="pb-2">
                             <p className="px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Crecimiento</p>
-                            {hasPermission('customers') && <NavButton active={activeTab === 'customers'} onClick={() => setActiveTab('customers')} icon={<Users size={20} />} label="Clientes" />}
-                            {userRole === 'admin' && <NavButton active={activeTab === 'marketing'} onClick={() => setActiveTab('marketing')} icon={<Megaphone size={20} />} label="Marketing" />}
+                            {hasPermission('customers') && <NavButton active={activeTab === 'customers'} onClick={() => handleTabClick('customers')} icon={<Users size={20} />} label="Clientes" />}
+                            {userRole === 'admin' && <NavButton active={activeTab === 'marketing'} onClick={() => handleTabClick('marketing')} icon={<Megaphone size={20} />} label="Marketing" />}
                         </div>
                     )}
 
@@ -273,14 +307,14 @@ export const Admin = () => {
                     {(hasPermission('statistics') || userRole === 'admin') && (
                         <div className="pb-2">
                             <p className="px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Sistema</p>
-                            {hasPermission('statistics') && <NavButton active={activeTab === 'statistics'} onClick={() => setActiveTab('statistics')} icon={<BarChart3 size={20} />} label="Estadísticas" />}
-                            {userRole === 'admin' && <NavButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={<UserCog size={20} />} label="Equipo" />}
-                            {userRole === 'admin' && <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings size={20} />} label="Configuración" />}
+                            {hasPermission('statistics') && <NavButton active={activeTab === 'statistics'} onClick={() => handleTabClick('statistics')} icon={<BarChart3 size={20} />} label="Estadísticas" />}
+                            {userRole === 'admin' && <NavButton active={activeTab === 'users'} onClick={() => handleTabClick('users')} icon={<UserCog size={20} />} label="Equipo" />}
+                            {userRole === 'admin' && <NavButton active={activeTab === 'settings'} onClick={() => handleTabClick('settings')} icon={<Settings size={20} />} label="Configuración" />}
                         </div>
                     )}
                 </nav>
-                <div className="p-4 border-t border-gray-100 dark:border-white/5 space-y-2">
-                    <button onClick={() => navigate('/')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-500 hover:text-ios-blue hover:bg-gray-50 dark:hover:bg-white/5">
+                <div className="p-4 border-t border-gray-100 dark:border-white/5 space-y-2 pb-safe">
+                    <button onClick={() => { setIsSidebarOpen(false); navigate('/'); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-500 hover:text-ios-blue hover:bg-gray-50 dark:hover:bg-white/5">
                         <Store size={20} />
                         <span className="font-medium text-sm">Ver Tienda</span>
                     </button>
@@ -288,10 +322,14 @@ export const Admin = () => {
                         <LogOut size={20} />
                         <span className="font-medium text-sm">Cerrar Sesión</span>
                     </button>
+                    <div className="pt-2 px-2 flex items-center justify-between text-[11px] text-gray-400">
+                        <span className="font-bold tracking-wide">ARA</span>
+                        <span className="font-mono bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full font-semibold text-[10px]">v0.3.0</span>
+                    </div>
                 </div>
             </aside>
 
-            <main className="flex-1 overflow-y-auto h-[calc(100vh-65px)] lg:h-screen p-4 lg:p-8 w-full bg-ios-bg dark:bg-black">
+            <main className="flex-1 overflow-y-auto h-[calc(100dvh-70px)] lg:h-screen p-4 lg:p-8 w-full bg-ios-bg dark:bg-black pb-safe">
                 {activeTab === 'dashboard' && hasPermission('dashboard') && <DashboardModule orders={orders} products={products} customers={customers} />}
                 {activeTab === 'pos' && hasPermission('pos') && <POSModule />}
 

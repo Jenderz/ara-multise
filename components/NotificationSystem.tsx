@@ -62,11 +62,20 @@ export const NotificationSystem = () => {
                          </div>
 
                          <div className="text-center mb-6 pt-2">
-                             <div className="w-20 h-20 bg-gray-100 dark:bg-white/10 rounded-[1.2rem] mx-auto mb-4 flex items-center justify-center shadow-lg overflow-hidden">
-                                {settings.logoUrl ? <img src={settings.logoUrl} className="w-full h-full object-cover" /> : <Smartphone size={40} className="text-ios-blue"/>}
+                             <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-[1.35rem] mx-auto mb-3 flex items-center justify-center shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden p-1">
+                                 <img 
+                                     src={settings.appIconUrl || settings.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png"} 
+                                     alt={settings.storeName || 'Icono de la App'} 
+                                     className="w-full h-full object-cover rounded-[1.15rem]" 
+                                     onError={(e) => {
+                                         if (settings.logoUrl && e.currentTarget.src !== settings.logoUrl) {
+                                             e.currentTarget.src = settings.logoUrl;
+                                         }
+                                     }}
+                                 />
                              </div>
-                             <h3 className="text-2xl font-black text-ios-text dark:text-white mb-2">Instalar App</h3>
-                             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Experiencia completa, sin descargas lentas.</p>
+                             <h3 className="text-2xl font-black text-ios-text dark:text-white mb-1">Instalar {settings.storeName || 'App'}</h3>
+                             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Añade el acceso directo a la pantalla de inicio de tu teléfono.</p>
                          </div>
 
                          {isIOS ? (

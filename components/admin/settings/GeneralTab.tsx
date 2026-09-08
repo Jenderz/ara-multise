@@ -63,6 +63,19 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, onUpdate }) =>
                             <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.hideOutOfStock ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                     </div>
+
+                    <div className="pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                        <div className="pr-4">
+                            <h4 className="text-sm font-bold text-gray-800 dark:text-white">Permitir Ventas con Stock Negativo (POS)</h4>
+                            <p className="text-xs text-gray-500 mt-1">Permite procesar ventas en el Punto de Venta aun si el inventario registrado en el sistema es menor a la cantidad despachada físicamente.</p>
+                        </div>
+                        <button
+                            onClick={() => onUpdate({ allowNegativeStock: !settings.allowNegativeStock })}
+                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.allowNegativeStock ? 'bg-ios-blue shadow-lg shadow-ios-blue/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                        >
+                            <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.allowNegativeStock ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
                 </div>
             </Card>
 

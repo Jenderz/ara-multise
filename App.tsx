@@ -84,7 +84,7 @@ const UpdatePrompt = () => {
     if (!showUpdate) return null;
 
     return (
-        <div className="fixed bottom-20 left-4 right-4 z-[200] animate-slide-up">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] left-4 right-4 z-[200] animate-slide-up">
             <div className="bg-ios-text/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-black p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 border border-white/10">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-ios-blue rounded-full flex items-center justify-center animate-pulse">

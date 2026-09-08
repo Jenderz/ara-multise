@@ -1,21 +1,10 @@
-// [BUILD] Service Worker Updated: 2026-07-21T21:09:32.326Z
-<<<<<<< HEAD
-// [BUILD] Service Worker Updated: 2026-03-17T18:21:46.104Z
+// [BUILD] Service Worker Updated: 2026-09-08T19:15:00.000Z
 
-// IMPORTANTE: Versión incrementada para forzar actualización de lógica de borrado
-const CACHE_STATIC = 'tienda-static-v145';
-const CACHE_DYNAMIC = 'tienda-dynamic-v129';
-const CACHE_IMAGES = 'tienda-images-v128';
-const CACHE_API = 'tienda-api-v129';
-=======
-// [BUILD] Service Worker Updated: 2026-02-18T23:18:46.104Z
-
-// IMPORTANTE: Versión incrementada para forzar actualización de lógica de borrado
-const CACHE_STATIC = 'tienda-static-v137';
-const CACHE_DYNAMIC = 'tienda-dynamic-v121';
-const CACHE_IMAGES = 'tienda-images-v120';
-const CACHE_API = 'tienda-api-v121';
->>>>>>> def495ebcf504c367e3f95241eb4e72b8dc55460
+// IMPORTANTE: Versión incrementada para forzar actualización de caché y resolución PWA (v0.3.0)
+const CACHE_STATIC = 'tienda-static-v151';
+const CACHE_DYNAMIC = 'tienda-dynamic-v136';
+const CACHE_IMAGES = 'tienda-images-v131';
+const CACHE_API = 'tienda-api-v131';
 
 // Recursos críticos (Rutas relativas para soportar subcarpetas)
 const ASSETS_TO_CACHE = [
@@ -125,7 +114,8 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .catch(async () => {
           const cache = await caches.open(CACHE_STATIC);
-          return cache.match('./index.html') || cache.match('/index.html');
+          const cached = await cache.match('./index.html') || await cache.match('/index.html');
+          return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
         })
     );
     return;
@@ -148,8 +138,8 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch((e) => {
-        // Si falla red y no hay caché, retornar error o nada (ya manejado por el || abajo)
-        // console.warn('Fetch failed:', e);
+        // Fallback defensivo para que nunca retorne undefined a respondWith
+        return cachedResponse || new Response('', { status: 503, statusText: 'Offline' });
       });
 
       return cachedResponse || fetchPromise;

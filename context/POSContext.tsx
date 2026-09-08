@@ -50,7 +50,7 @@ interface POSContextType {
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
 export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { createOrder, activeExchangeRate, refreshStoreData, currentBranch } = useStore(); // Modified useStore destructuring
+    const { createOrder, activeExchangeRate, refreshStoreData, currentBranch, settings } = useStore(); // Modified useStore destructuring
     const { currentUser, userRole } = useAuth(); // Added useAuth hook
     const { adjustStockLocally, products } = useProduct(); // Added useProduct hook
     const { addNotification } = useNotification();
@@ -100,15 +100,34 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         const cartId = `${product.id}-${JSON.stringify(options)}`;
 
-        // Buscar la variante específica para obtener su ID
+        // Buscar la variante específica para obtener su ID y stock
         const matchingVariant = product.variants && product.variants.length > 0
             ? product.variants.find(v => Object.entries(options).every(([k, val]) => v.selections[k] === val))
             : null;
 
+        const maxStock = matchingVariant 
+            ? (Number(matchingVariant.stock) ?? 0) 
+            : (Number(product.stock) ?? 0);
+        const tracks = product.trackStock !== false;
+        const allowNegative = settings?.allowNegativeStock === true;
+
+        const existing = cart.find(i => i.cartId === cartId);
+        const currentQty = existing ? existing.quantity : 0;
+
+        // Validar stock disponible
+        if (!allowNegative && tracks && (currentQty + 1 > maxStock)) {
+            addNotification({
+                title: 'Límite de Stock',
+                body: `Solo hay ${maxStock} unidades disponibles de "${product.title}" en esta sede.`,
+                type: 'warning'
+            });
+            return;
+        }
+
         setCart(prev => {
-            const existing = prev.find(i => i.cartId === cartId);
-            if (existing) {
-                return prev.map(i => i.cartId === cartId ? { ...i, quantity: i.quantity + 1 } : i);
+            const exists = prev.find(i => i.cartId === cartId);
+            if (exists) {
+                return prev.map(i => i.cartId === cartId ? { ...i, quantity: i.quantity + 1, maxStock, trackStock: tracks } : i);
             }
             return [...prev, {
                 cartId,
@@ -119,7 +138,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 image,
                 selectedOptions: options,
                 variantSku: sku,
-                variantId: matchingVariant?.id // FIX: Enviar ID de variante para descuento de stock
+                variantId: matchingVariant?.id, // FIX: Enviar ID de variante para descuento de stock
+                maxStock,
+                trackStock: tracks
             }];
         });
     };
@@ -134,29 +155,39 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             quantity,
             image: DEFAULT_IMAGE,
             selectedOptions: {},
-            variantSku: 'GENERICO'
+            variantSku: 'GENERICO',
+            trackStock: false
         }]);
     };
 
     const updateQuantity = (cartId: string, delta: number) => {
+        const allowNegative = settings?.allowNegativeStock === true;
+
         setCart(prev => prev.map(item => {
             if (item.cartId === cartId) {
-                if (delta > 0) {
-                    const prod = products.find(p => p.id === item.productId);
-                    if (prod && (prod.trackStock !== false)) {
-                        let maxStock = prod.stock;
-                        if (item.variantId && prod.variants) {
-                            const v = prod.variants.find(vr => vr.id === item.variantId);
-                            if (v) maxStock = v.stock;
+                if (delta > 0 && !allowNegative) {
+                    const tracks = item.trackStock !== false;
+                    let maxStock = item.maxStock;
+
+                    // Fallback si no estaba en item
+                    if (maxStock === undefined) {
+                        const prod = products.find(p => p.id === item.productId);
+                        if (prod) {
+                            maxStock = prod.stock;
+                            if (item.variantId && prod.variants) {
+                                const v = prod.variants.find(vr => vr.id === item.variantId);
+                                if (v) maxStock = v.stock;
+                            }
                         }
-                        if (item.quantity + delta > maxStock) {
-                            addNotification({
-                                title: 'Límite de Stock',
-                                body: `Solo hay ${maxStock} unidades disponibles en esta sede.`,
-                                type: 'warning'
-                            });
-                            return item;
-                        }
+                    }
+
+                    if (tracks && maxStock !== undefined && (item.quantity + delta > maxStock)) {
+                        addNotification({
+                            title: 'Límite de Stock',
+                            body: `Solo hay ${maxStock} unidades disponibles en esta sede.`,
+                            type: 'warning'
+                        });
+                        return item;
                     }
                 }
                 return { ...item, quantity: Math.max(1, item.quantity + delta) };
@@ -242,6 +273,21 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const subtotalCalc = cart.reduce((sum, item) => sum + ((item.originalPrice !== undefined && item.originalPrice > item.price ? item.originalPrice : item.price) * (item.quantity || 1)), 0);
         const discountAmount = Math.max(0, subtotalCalc - finalTotal);
 
+        // Pre-validar stock en frontend si no se permite stock negativo
+        const allowNegative = settings?.allowNegativeStock === true;
+        if (!allowNegative) {
+            for (const item of cart) {
+                if (item.trackStock !== false && item.maxStock !== undefined && item.quantity > item.maxStock) {
+                    addNotification({
+                        title: 'Stock Insuficiente',
+                        body: `No hay suficiente stock de "${item.productTitle}". Disponible: ${item.maxStock}, Solicitado: ${item.quantity}.`,
+                        type: 'warning'
+                    });
+                    return;
+                }
+            }
+        }
+
         try {
             const orderId = await createOrder(
                 checkoutDetails.name,
@@ -264,7 +310,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             });
 
             // 2. Guardar orden para emitir ticket térmico
-            const completedOrder = {
+            const completedOrder: Order = {
                 id: orderId,
                 customerName: checkoutDetails.name || 'Cliente Mostrador',
                 customerPhone: checkoutDetails.phone || '',
@@ -274,6 +320,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 subtotal: subtotalCalc,
                 discount: discountAmount,
                 paymentMethod: checkoutDetails.finalPaymentMethod,
+                deliveryMethod: 'pos',
+                sellerId: currentUser?.id,
+                sellerName: currentUser?.name,
                 branchId: currentBranch?.id || 1,
                 date: Date.now(),
                 status: 'completed'

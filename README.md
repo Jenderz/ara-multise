@@ -237,3 +237,245 @@ El sistema soporta conexión con el almacén central (WMS) mediante el módulo `
   <p><b>Ara E-commerce Multisede</b> — Arquitectura Diseñada para Alta Disponibilidad e Integridad Transaccional</p>
   <p>© 2026 Todos los derechos reservados.</p>
 </div>
+
+
+
+Opción 1: Script de Actualización y Migración (Recomendado si ya tienes datos)
+Copia y pega este bloque en phpMyAdmin. Añade las nuevas columnas, ajusta los tipos para prevenir desbordamientos (Out of Range), crea los índices de alto rendimiento e inicializa la bandera stock_deducted en pedidos ya completados:
+
+sql
+-- 1. ASEGURAR TABLAS BÁSICAS FALTANTES
+CREATE TABLE IF NOT EXISTS `branches` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `address` TEXT,
+  `is_active` TINYINT(1) DEFAULT 1
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `inventory` (
+  `product_id` VARCHAR(255) NOT NULL,
+  `branch_id` INT NOT NULL,
+  `stock` INT DEFAULT 0,
+  `updated_at` BIGINT,
+  PRIMARY KEY (`product_id`, `branch_id`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `product_movements` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `product_id` VARCHAR(255),
+  `branch_id` INT DEFAULT 1,
+  `user_id` VARCHAR(255),
+  `user_name` VARCHAR(255),
+  `type` VARCHAR(50),
+  `amount` INT,
+  `stock_after` INT,
+  `reference` TEXT,
+  `date` BIGINT
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `user_id` VARCHAR(255),
+  `user_name` VARCHAR(255),
+  `user_role` VARCHAR(50),
+  `action` VARCHAR(255),
+  `details` TEXT,
+  `ip_address` VARCHAR(50),
+  `timestamp` BIGINT,
+  INDEX (`timestamp`),
+  INDEX (`user_id`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- 2. CORREGIR TIPOS DE CAMPOS (Previene error "Out of Range" en IDs y Timestamps)
+ALTER TABLE `orders` MODIFY `id` VARCHAR(255);
+ALTER TABLE `orders` MODIFY `date` BIGINT;
+ALTER TABLE `products` MODIFY `id` VARCHAR(255);
+ALTER TABLE `product_movements` MODIFY `id` VARCHAR(255);
+ALTER TABLE `product_movements` MODIFY `date` BIGINT;
+ALTER TABLE `customers` MODIFY `last_order_date` BIGINT;
+-- 3. AÑADIR NUEVAS COLUMNAS (Ignora si ya existen)
+-- Columna de Idempotencia en Pedidos
+SET @col_orders_stock = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'stock_deducted');
+SET @sql_orders_stock = IF(@col_orders_stock = 0, 'ALTER TABLE `orders` ADD COLUMN `stock_deducted` TINYINT(1) DEFAULT 0', 'SELECT "columna stock_deducted ya existe"');
+PREPARE stmt1 FROM @sql_orders_stock; EXECUTE stmt1; DEALLOCATE PREPARE stmt1;
+-- Columna de Sede en Pedidos
+SET @col_orders_branch = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'branch_id');
+SET @sql_orders_branch = IF(@col_orders_branch = 0, 'ALTER TABLE `orders` ADD COLUMN `branch_id` INT DEFAULT 1', 'SELECT "columna branch_id ya existe"');
+PREPARE stmt2 FROM @sql_orders_branch; EXECUTE stmt2; DEALLOCATE PREPARE stmt2;
+-- Columnas de Entrega y Totales en Pedidos
+SET @col_orders_deliv = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'delivery_method');
+SET @sql_orders_deliv = IF(@col_orders_deliv = 0, 'ALTER TABLE `orders` ADD COLUMN `delivery_method` VARCHAR(50) DEFAULT "pos"', 'SELECT "delivery_method ya existe"');
+PREPARE stmt3 FROM @sql_orders_deliv; EXECUTE stmt3; DEALLOCATE PREPARE stmt3;
+SET @col_orders_subtotal = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'subtotal');
+SET @sql_orders_subtotal = IF(@col_orders_subtotal = 0, 'ALTER TABLE `orders` ADD COLUMN `subtotal` FLOAT DEFAULT 0', 'SELECT "subtotal ya existe"');
+PREPARE stmt4 FROM @sql_orders_subtotal; EXECUTE stmt4; DEALLOCATE PREPARE stmt4;
+SET @col_orders_discount = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'discount');
+SET @sql_orders_discount = IF(@col_orders_discount = 0, 'ALTER TABLE `orders` ADD COLUMN `discount` FLOAT DEFAULT 0', 'SELECT "discount ya existe"');
+PREPARE stmt5 FROM @sql_orders_discount; EXECUTE stmt5; DEALLOCATE PREPARE stmt5;
+-- Columnas Nuevas en Productos
+SET @col_prod_extra = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'extra_categories');
+SET @sql_prod_extra = IF(@col_prod_extra = 0, 'ALTER TABLE `products` ADD COLUMN `extra_categories` TEXT DEFAULT NULL', 'SELECT "extra_categories ya existe"');
+PREPARE stmt6 FROM @sql_prod_extra; EXECUTE stmt6; DEALLOCATE PREPARE stmt6;
+SET @col_prod_barcode = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'barcode_ean');
+SET @sql_prod_barcode = IF(@col_prod_barcode = 0, 'ALTER TABLE `products` ADD COLUMN `barcode_ean` VARCHAR(255) DEFAULT ""', 'SELECT "barcode_ean ya existe"');
+PREPARE stmt7 FROM @sql_prod_barcode; EXECUTE stmt7; DEALLOCATE PREPARE stmt7;
+SET @col_prod_track = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'track_stock');
+SET @sql_prod_track = IF(@col_prod_track = 0, 'ALTER TABLE `products` ADD COLUMN `track_stock` TINYINT(1) DEFAULT 1', 'SELECT "track_stock ya existe"');
+PREPARE stmt8 FROM @sql_prod_track; EXECUTE stmt8; DEALLOCATE PREPARE stmt8;
+SET @col_prod_min = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'min_stock');
+SET @sql_prod_min = IF(@col_prod_min = 0, 'ALTER TABLE `products` ADD COLUMN `min_stock` INT DEFAULT 5', 'SELECT "min_stock ya existe"');
+PREPARE stmt9 FROM @sql_prod_min; EXECUTE stmt9; DEALLOCATE PREPARE stmt9;
+-- Cédula en Clientes
+SET @col_cust_ced = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'customers' AND COLUMN_NAME = 'cedula');
+SET @sql_cust_ced = IF(@col_cust_ced = 0, 'ALTER TABLE `customers` ADD COLUMN `cedula` VARCHAR(30) DEFAULT ""', 'SELECT "cedula ya existe"');
+PREPARE stmt10 FROM @sql_cust_ced; EXECUTE stmt10; DEALLOCATE PREPARE stmt10;
+-- 4. ÍNDICES DE RENDIMIENTO (Acelera búsquedas y kardex)
+ALTER TABLE `orders` ADD INDEX `idx_orders_branch_date` (`branch_id`, `date`);
+ALTER TABLE `orders` ADD INDEX `idx_orders_status` (`status`);
+ALTER TABLE `product_movements` ADD INDEX `idx_product_movements_prod_branch` (`product_id`, `branch_id`);
+ALTER TABLE `product_movements` ADD INDEX `idx_product_movements_date` (`date`);
+ALTER TABLE `products` ADD INDEX `idx_products_category` (`category`);
+ALTER TABLE `products` ADD INDEX `idx_products_barcode` (`barcode_ean`);
+-- 5. MIGRACIÓN DE INTEGRIDAD EN PEDIDOS EXISTENTES
+-- Marca las órdenes históricas ya completadas como 'stock_deducted = 1' para evitar que se descuenten por error al editarlas
+UPDATE `orders` SET `stock_deducted` = 1 WHERE `status` = 'completed';
+-- 6. INICIALIZAR SEDE MATRIZ SI NO EXISTE
+INSERT IGNORE INTO `branches` (`id`, `name`, `address`, `is_active`) 
+SELECT 1, 'Sede Principal', 'Matriz', 1 
+WHERE NOT EXISTS (SELECT 1 FROM `branches` WHERE `id` = 1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Opción 2: Esquema Completo DDL (Para instalaciones desde cero)
+Usa este script si vas a montar una base de datos nueva y vacía:
+
+sql
+SET FOREIGN_KEY_CHECKS = 0;
+CREATE TABLE IF NOT EXISTS `branches` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `address` TEXT,
+  `is_active` TINYINT(1) DEFAULT 1
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `code` VARCHAR(255),
+  `title` VARCHAR(255),
+  `description` TEXT,
+  `cost` FLOAT DEFAULT 0,
+  `price` FLOAT DEFAULT 0,
+  `sale_price` FLOAT DEFAULT 0,
+  `images` LONGTEXT,
+  `category` VARCHAR(255),
+  `extra_categories` TEXT DEFAULT NULL,
+  `is_visible` TINYINT(1) DEFAULT 1,
+  `is_featured` TINYINT(1) DEFAULT 0,
+  `variant_options` LONGTEXT,
+  `variants` LONGTEXT,
+  `created_at` BIGINT,
+  `track_stock` TINYINT(1) DEFAULT 1,
+  `min_stock` INT DEFAULT 5,
+  `barcode_ean` VARCHAR(255),
+  INDEX `idx_products_category` (`category`),
+  INDEX `idx_products_barcode` (`barcode_ean`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `inventory` (
+  `product_id` VARCHAR(255) NOT NULL,
+  `branch_id` INT NOT NULL,
+  `stock` INT DEFAULT 0,
+  `updated_at` BIGINT,
+  PRIMARY KEY (`product_id`, `branch_id`),
+  INDEX `idx_inv_branch` (`branch_id`),
+  INDEX `idx_inv_product` (`product_id`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `branch_id` INT DEFAULT 1,
+  `customer_name` VARCHAR(255),
+  `customer_phone` VARCHAR(255),
+  `customer_address` TEXT,
+  `items` LONGTEXT,
+  `subtotal` FLOAT DEFAULT 0,
+  `discount` FLOAT DEFAULT 0,
+  `total` FLOAT DEFAULT 0,
+  `status` VARCHAR(50) DEFAULT 'pending',
+  `date` BIGINT,
+  `payment_method` TEXT,
+  `seller_id` VARCHAR(255),
+  `seller_name` VARCHAR(255),
+  `delivery_method` VARCHAR(50) DEFAULT 'pos',
+  `pickup_branch_id` INT DEFAULT 0,
+  `stock_deducted` TINYINT(1) DEFAULT 0,
+  INDEX `idx_orders_branch_date` (`branch_id`, `date`),
+  INDEX `idx_orders_status` (`status`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `product_movements` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `product_id` VARCHAR(255),
+  `branch_id` INT DEFAULT 1,
+  `user_id` VARCHAR(255),
+  `user_name` VARCHAR(255),
+  `type` VARCHAR(50),
+  `amount` INT,
+  `stock_after` INT,
+  `reference` TEXT,
+  `date` BIGINT,
+  INDEX `idx_product_movements_prod_branch` (`product_id`, `branch_id`),
+  INDEX `idx_product_movements_date` (`date`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `customers` (
+  `phone` VARCHAR(50) PRIMARY KEY,
+  `name` VARCHAR(255),
+  `cedula` VARCHAR(30) DEFAULT '',
+  `address` TEXT,
+  `total_spent` FLOAT DEFAULT 0,
+  `order_count` INT DEFAULT 0,
+  `last_order_date` BIGINT,
+  `order_ids` LONGTEXT
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `name` VARCHAR(255),
+  `image` TEXT
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `coupons` (
+  `code` VARCHAR(50) PRIMARY KEY,
+  `discount_type` VARCHAR(50),
+  `value` FLOAT,
+  `active` TINYINT(1) DEFAULT 1
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `settings` (
+  `setting_key` VARCHAR(255) PRIMARY KEY,
+  `setting_value` LONGTEXT
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `push_subscriptions` (
+  `endpoint` VARCHAR(500) PRIMARY KEY,
+  `p256dh` VARCHAR(255),
+  `auth` VARCHAR(255),
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` VARCHAR(255) PRIMARY KEY,
+  `user_id` VARCHAR(255),
+  `user_name` VARCHAR(255),
+  `user_role` VARCHAR(50),
+  `action` VARCHAR(255),
+  `details` TEXT,
+  `ip_address` VARCHAR(50),
+  `timestamp` BIGINT,
+  INDEX (`timestamp`),
+  INDEX (`user_id`)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- Insertar Sede Principal inicial
+INSERT IGNORE INTO `branches` (`id`, `name`, `address`, `is_active`) 
+VALUES (1, 'Sede Principal', 'Matriz', 1);
+SET FOREIGN_KEY_CHECKS = 1;

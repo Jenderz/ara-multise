@@ -195,11 +195,17 @@ function handleGetMovements($pdo)
     $productId = $_GET['product_id'] ?? '';
     $movementType = $_GET['type'] ?? '';
     $searchText = $_GET['search'] ?? '';
+    $branchId = $_GET['branch_id'] ?? '';
     
     // Construir query con filtros
     $whereConditions = [];
     $params = [];
     
+    if (!empty($branchId) && $branchId !== 'all') {
+        $whereConditions[] = "m.branch_id = ?";
+        $params[] = intval($branchId);
+    }
+
     if (!empty($productId)) {
         $whereConditions[] = "m.product_id = ?";
         $params[] = $productId;
@@ -211,8 +217,9 @@ function handleGetMovements($pdo)
     }
     
     if (!empty($searchText)) {
-        $whereConditions[] = "(m.reference LIKE ? OR p.title LIKE ? OR p.code LIKE ?)";
+        $whereConditions[] = "(m.reference LIKE ? OR m.user_name LIKE ? OR p.title LIKE ? OR p.code LIKE ?)";
         $searchParam = '%' . $searchText . '%';
+        $params[] = $searchParam;
         $params[] = $searchParam;
         $params[] = $searchParam;
         $params[] = $searchParam;
@@ -226,8 +233,8 @@ function handleGetMovements($pdo)
     $countStmt->execute($params);
     $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    // Query principal con paginación
-    $sql = "SELECT m.*, p.title as `product_title`, p.code as `product_code` 
+    // Query principal con paginación y alias camelCase para frontend
+    $sql = "SELECT m.*, m.user_name as `userName`, m.branch_id as `branchId`, p.title as `product_title`, p.code as `product_code` 
             FROM `product_movements` m 
             LEFT JOIN `products` p ON m.product_id = p.id 
             $whereClause 

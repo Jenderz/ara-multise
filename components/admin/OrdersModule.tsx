@@ -116,9 +116,17 @@ export const OrdersModule = ({ updateOrder, settings }: any) => {
         }
 
         const shouldProcessStock = newStatus === 'completed' && oldStatus !== 'completed';
-        await updateOrder(updatedOrderData, shouldProcessStock);
-        if (branchIdOverride) setCompletingOrder(null);
-        loadOrders();
+        try {
+            await updateOrder(updatedOrderData, shouldProcessStock);
+            if (branchIdOverride) setCompletingOrder(null);
+            loadOrders();
+        } catch (err: any) {
+            addNotification({
+                title: 'No se pudo actualizar el pedido',
+                body: err.message || 'Error al cambiar estado del pedido.',
+                type: 'warning'
+            });
+        }
     };
 
     return (

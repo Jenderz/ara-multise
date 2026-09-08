@@ -193,8 +193,8 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
 
             await onSave(finalOrderToSave);
             onClose();
-        } catch (e) {
-            alert("Error al guardar");
+        } catch (e: any) {
+            alert(e?.message || "Error al guardar el pedido");
         } finally {
             setIsSaving(false);
         }

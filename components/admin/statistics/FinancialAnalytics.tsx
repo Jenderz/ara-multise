@@ -22,7 +22,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
     const filteredOrders = useMemo(() => {
         let result = orders;
         if (currentBranch && currentBranch.id > 0) {
-            result = result.filter(o => o.branchId === currentBranch.id);
+            result = result.filter(o => Number(o.branchId || 1) === Number(currentBranch.id));
         }
         if (userRole === 'seller' && currentUser) {
             result = result.filter(o => o.sellerId === currentUser.id);
@@ -38,33 +38,42 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
     const financialStats = useMemo(() => {
         const now = Date.now();
         let days = 30;
-        if(timeRange === 'today') days = 1;
-        if(timeRange === '7d') days = 7;
-        if(timeRange === '90d') days = 90;
-        if(timeRange === 'year') days = 365;
+        if (timeRange === 'today') days = 1;
+        if (timeRange === '7d') days = 7;
+        if (timeRange === '90d') days = 90;
+        if (timeRange === 'year') days = 365;
 
         const msPerDay = 24 * 60 * 60 * 1000;
         let currentPeriodStart = now - (days * msPerDay);
         
         if (timeRange === 'today') {
             const today = new Date();
-            today.setHours(0,0,0,0);
+            today.setHours(0, 0, 0, 0);
             currentPeriodStart = today.getTime();
         }
 
         const previousPeriodStart = currentPeriodStart - (days * msPerDay);
         
-        const currentOrders = filteredOrders.filter(o => o.date >= currentPeriodStart && o.status === 'completed');
-        const prevOrders = filteredOrders.filter(o => o.date >= previousPeriodStart && o.date < currentPeriodStart && o.status === 'completed');
+        const currentOrders = filteredOrders.filter(o => Number(o.date) >= currentPeriodStart && o.status === 'completed');
+        const prevOrders = filteredOrders.filter(o => Number(o.date) >= previousPeriodStart && Number(o.date) < currentPeriodStart && o.status === 'completed');
+
+        // Helper para resolver producto (incluso si el ítem refiere a una variante o sku)
+        const findProduct = (item: { productId: string, variantId?: string, variantSku?: string }) => {
+            let prod = products.find(p => p.id === item.productId);
+            if (!prod && item.variantId) {
+                prod = products.find(p => p.variants?.some(v => v.id === item.variantId || v.sku === item.variantSku));
+            }
+            return prod;
+        };
 
         const calculateFinancials = (ords: Order[]) => {
             let revenue = 0;
             let cost = 0;
             ords.forEach(o => {
-                revenue += o.total;
-                o.items.forEach(item => {
-                    const product = products.find(p => p.id === item.productId);
-                    const itemCost = product ? (product.cost * item.quantity) : 0;
+                revenue += (Number(o.total) || 0);
+                (o.items || []).forEach(item => {
+                    const product = findProduct(item);
+                    const itemCost = product ? ((Number(product.cost) || 0) * (Number(item.quantity) || 1)) : 0;
                     cost += itemCost;
                 });
             });
@@ -74,36 +83,108 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
         const currentFin = calculateFinancials(currentOrders);
         const prevFin = calculateFinancials(prevOrders);
 
-        const revenueGrowth = prevFin.revenue === 0 ? 100 : ((currentFin.revenue - prevFin.revenue) / prevFin.revenue) * 100;
-        const profitGrowth = prevFin.profit === 0 ? 100 : ((currentFin.profit - prevFin.profit) / prevFin.profit) * 100;
+        const revenueGrowth = prevFin.revenue === 0
+            ? (currentFin.revenue > 0 ? 100 : 0)
+            : ((currentFin.revenue - prevFin.revenue) / prevFin.revenue) * 100;
+
+        const profitGrowth = prevFin.profit === 0
+            ? (currentFin.profit > 0 ? 100 : 0)
+            : ((currentFin.profit - prevFin.profit) / Math.abs(prevFin.profit || 1)) * 100;
+
         const profitMargin = currentFin.revenue > 0 ? (currentFin.profit / currentFin.revenue) * 100 : 0;
 
-        const chartMap = new Map<string, {date: string, sales: number, profit: number, cost: number, orders: number}>();
-        for(let i=0; i<days; i++) {
-             const d = new Date(now - (i * msPerDay));
-             const key = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }); 
-             chartMap.set(key, { date: key, sales: 0, profit: 0, cost: 0, orders: 0 });
+        // Construcción del Gráfico de Ventas según el rango de tiempo seleccionado
+        let salesChartData: { date: string, sales: number, profit: number, cost: number, orders: number }[] = [];
+
+        if (timeRange === 'today') {
+            // Desglose intradiario cada 2 horas para un gráfico fluido y útil
+            const hourIntervals = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
+            const hourMap = new Map<number, { date: string, sales: number, profit: number, cost: number, orders: number }>();
+            
+            hourIntervals.forEach(h => {
+                const label = `${h.toString().padStart(2, '0')}:00`;
+                hourMap.set(h, { date: label, sales: 0, profit: 0, cost: 0, orders: 0 });
+            });
+
+            currentOrders.forEach(o => {
+                const orderDate = new Date(Number(o.date));
+                const orderHour = orderDate.getHours();
+                const bucketHour = Math.floor(orderHour / 2) * 2;
+                const entry = hourMap.get(bucketHour);
+                if (entry) {
+                    entry.sales += Number(o.total) || 0;
+                    entry.orders += 1;
+                    let orderCost = 0;
+                    (o.items || []).forEach(item => {
+                        const product = findProduct(item);
+                        orderCost += product ? ((Number(product.cost) || 0) * (Number(item.quantity) || 1)) : 0;
+                    });
+                    entry.cost += orderCost;
+                    entry.profit += ((Number(o.total) || 0) - orderCost);
+                }
+            });
+
+            salesChartData = Array.from(hourMap.values());
+        } else if (timeRange === 'year') {
+            // Desglose de los últimos 12 meses
+            const monthMap = new Map<string, { date: string, sales: number, profit: number, cost: number, orders: number }>();
+            const monthDate = new Date(now);
+
+            for (let i = 11; i >= 0; i--) {
+                const d = new Date(monthDate.getFullYear(), monthDate.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                const label = d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+                monthMap.set(key, { date: label, sales: 0, profit: 0, cost: 0, orders: 0 });
+            }
+
+            currentOrders.forEach(o => {
+                const d = new Date(Number(o.date));
+                const key = `${d.getFullYear()}-${d.getMonth()}`;
+                if (monthMap.has(key)) {
+                    const entry = monthMap.get(key)!;
+                    entry.sales += Number(o.total) || 0;
+                    entry.orders += 1;
+                    let orderCost = 0;
+                    (o.items || []).forEach(item => {
+                        const product = findProduct(item);
+                        orderCost += product ? ((Number(product.cost) || 0) * (Number(item.quantity) || 1)) : 0;
+                    });
+                    entry.cost += orderCost;
+                    entry.profit += ((Number(o.total) || 0) - orderCost);
+                }
+            });
+
+            salesChartData = Array.from(monthMap.values());
+        } else {
+            // Desglose diario para 7d, 30d, 90d
+            const chartMap = new Map<string, { date: string, sales: number, profit: number, cost: number, orders: number }>();
+            for (let i = 0; i < days; i++) {
+                const d = new Date(now - (i * msPerDay));
+                const key = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                chartMap.set(key, { date: key, sales: 0, profit: 0, cost: 0, orders: 0 });
+            }
+
+            currentOrders.forEach(o => {
+                const d = new Date(Number(o.date));
+                const key = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                if (chartMap.has(key)) {
+                    const entry = chartMap.get(key)!;
+                    entry.sales += Number(o.total) || 0;
+                    entry.orders += 1;
+                    let orderCost = 0;
+                    (o.items || []).forEach(item => {
+                        const product = findProduct(item);
+                        orderCost += product ? ((Number(product.cost) || 0) * (Number(item.quantity) || 1)) : 0;
+                    });
+                    entry.cost += orderCost;
+                    entry.profit += ((Number(o.total) || 0) - orderCost);
+                }
+            });
+
+            salesChartData = Array.from(chartMap.values()).reverse();
         }
 
-        currentOrders.forEach(o => {
-            const d = new Date(o.date);
-            const key = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-            if (chartMap.has(key)) {
-                const entry = chartMap.get(key)!;
-                entry.sales += o.total;
-                entry.orders += 1;
-                let orderCost = 0;
-                o.items.forEach(item => {
-                    const product = products.find(p => p.id === item.productId);
-                    orderCost += product ? (product.cost * item.quantity) : 0;
-                });
-                entry.cost += orderCost;
-                entry.profit += (o.total - orderCost);
-            }
-        });
-
-        const salesChartData = Array.from(chartMap.values()).reverse();
-
+        // Métodos de pago
         const paymentStats: Record<string, number> = {};
         currentOrders.forEach(o => {
             const methodStr = o.paymentMethod || 'Otros';
@@ -122,8 +203,8 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
                     }
                 });
             } else {
-                const cleanName = methodStr.split('(')[0].trim();
-                paymentStats[cleanName] = (paymentStats[cleanName] || 0) + o.total; 
+                const cleanName = methodStr.split('(')[0].trim() || 'Otros';
+                paymentStats[cleanName] = (paymentStats[cleanName] || 0) + (Number(o.total) || 0); 
             }
         });
         
@@ -131,43 +212,56 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
             .map(([name, total]) => ({ name, total }))
             .sort((a, b) => b.total - a.total);
 
-        const productPerformance: Record<string, {name: string, revenue: number, profit: number, qty: number}> = {};
+        // Rendimiento por Producto (evitando colisiones en ítems 'custom' o manuales)
+        const productPerformance: Record<string, { name: string, revenue: number, profit: number, qty: number }> = {};
         currentOrders.forEach(o => {
-            o.items.forEach(i => {
-                const prod = products.find(p => p.id === i.productId);
-                const cost = prod ? prod.cost : 0;
-                const revenue = i.price * i.quantity;
-                const profit = revenue - (cost * i.quantity);
-                if (!productPerformance[i.productId]) { productPerformance[i.productId] = { name: i.productTitle, revenue: 0, profit: 0, qty: 0 }; }
-                productPerformance[i.productId].revenue += revenue;
-                productPerformance[i.productId].profit += profit;
-                productPerformance[i.productId].qty += i.quantity;
+            (o.items || []).forEach(i => {
+                const prod = findProduct(i);
+                const cost = prod ? (Number(prod.cost) || 0) : 0;
+                const qty = Number(i.quantity) || 1;
+                const price = Number(i.price) || 0;
+                const revenue = price * qty;
+                const profit = revenue - (cost * qty);
+                const perfKey = (i.productId === 'custom' || !i.productId) ? `custom-${i.productTitle}` : i.productId;
+
+                if (!productPerformance[perfKey]) {
+                    productPerformance[perfKey] = { name: i.productTitle, revenue: 0, profit: 0, qty: 0 };
+                }
+                productPerformance[perfKey].revenue += revenue;
+                productPerformance[perfKey].profit += profit;
+                productPerformance[perfKey].qty += qty;
             });
         });
         const topProducts = Object.values(productPerformance).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 
+        // Ventas por Categoría
         const catSales: Record<string, number> = {};
         let totalCatSales = 0;
         currentOrders.forEach(o => {
-            o.items.forEach(i => {
-                const prod = products.find(p => p.id === i.productId);
+            (o.items || []).forEach(i => {
+                const prod = findProduct(i);
                 const cat = prod?.category || 'General'; 
-                const value = i.price * i.quantity;
+                const value = (Number(i.price) || 0) * (Number(i.quantity) || 1);
                 catSales[cat] = (catSales[cat] || 0) + value;
                 totalCatSales += value;
             });
         });
-        const categoryData = Object.entries(catSales).map(([name, value]) => ({ name, value, percent: (value/totalCatSales)*100 })).sort((a,b) => b.value - a.value);
+        const categoryData = Object.entries(catSales).map(([name, value]) => ({
+            name,
+            value,
+            percent: totalCatSales > 0 ? (value / totalCatSales) * 100 : 0
+        })).sort((a, b) => b.value - a.value);
 
+        // Ventas por Sede
         const branchSales: Record<number, number> = {};
         currentOrders.forEach(o => {
-            const bid = o.branchId || 1;
-            branchSales[bid] = (branchSales[bid] || 0) + o.total;
+            const bid = Number(o.branchId) || 1;
+            branchSales[bid] = (branchSales[bid] || 0) + (Number(o.total) || 0);
         });
         const branchData = Object.entries(branchSales).map(([bid, total]) => ({
             name: branches.find(b => b.id === Number(bid))?.name || `Sede ${bid}`,
             value: total
-        })).sort((a,b) => b.value - a.value);
+        })).sort((a, b) => b.value - a.value);
 
         return { 
             revenue: currentFin.revenue, 
@@ -175,6 +269,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
             profit: currentFin.profit, 
             profitGrowth, 
             margin: profitMargin, 
+            orderCount: currentOrders.length,
             salesChartData, 
             paymentChartData, 
             topProducts, 
@@ -209,7 +304,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
                 <StatCard title="Venta Bruta" value={`$${financialStats.revenue.toLocaleString('en-US', {minimumFractionDigits: 2})}`} icon={<DollarSign size={24}/>} color="bg-gradient-to-br from-blue-500 to-blue-700" trend={financialStats.revenueGrowth >= 0 ? 'up' : 'down'} trendValue={Math.abs(financialStats.revenueGrowth).toFixed(1)} subtitle="Facturado (Completados)" />
                 <StatCard title="Ganancia Neta" value={`$${financialStats.profit.toLocaleString('en-US', {minimumFractionDigits: 2})}`} icon={<Wallet size={24}/>} color="bg-gradient-to-br from-green-500 to-green-700" trend={financialStats.profitGrowth >= 0 ? 'up' : 'down'} trendValue={Math.abs(financialStats.profitGrowth).toFixed(1)} subtitle="Ingresos - Costos" />
                 <StatCard title="Margen Utilidad" value={`${financialStats.margin.toFixed(1)}%`} icon={<PieChart size={24}/>} color="bg-gradient-to-br from-purple-500 to-purple-700" subtitle="Rentabilidad" />
-                <StatCard title="Transacciones" value={financialStats.salesChartData.reduce((acc:any, curr:any) => acc + curr.orders, 0)} icon={<ShoppingBag size={24}/>} color="bg-gradient-to-br from-orange-400 to-orange-600" subtitle="Pedidos completados" />
+                <StatCard title="Transacciones" value={financialStats.orderCount} icon={<ShoppingBag size={24}/>} color="bg-gradient-to-br from-orange-400 to-orange-600" subtitle="Pedidos completados" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
