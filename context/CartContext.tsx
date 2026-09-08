@@ -21,7 +21,7 @@ interface CartContextType {
     updateCartQuantity: (cartId: string, delta: number) => void;
     clearCart: () => void;
 
-    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number) => Promise<string>;
+    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number) => Promise<string>;
     updateOrder: (order: Order, processStock?: boolean) => Promise<void>;
     deleteOrder: (id: string) => void;
 
@@ -120,7 +120,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         status: 'pending' | 'completed' | 'cancelled' = 'pending',
         discount?: number,
         deliveryMethod?: 'delivery' | 'pickup' | 'pos',
-        pickupBranchId?: number
+        pickupBranchId?: number,
+        sellerId?: string,
+        sellerName?: string,
+        sellerCommission?: number,
+        commissionRate?: number
     ): Promise<string> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
@@ -144,8 +148,22 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             orderDiscount = 0;
         }
 
-        const activeSellerId = currentUser ? currentUser.id : 'web-client';
-        const activeSellerName = currentUser ? currentUser.name : 'Tienda Online';
+        const activeSellerId = sellerId || (currentUser ? currentUser.id : 'web-client');
+        const activeSellerName = sellerName || (currentUser ? currentUser.name : 'Tienda Online');
+        
+        // Calcular comisiones si no fueron enviadas explícitamente
+        let finalRate = commissionRate;
+        if (finalRate === undefined) {
+            const foundUser = (settings?.users || []).find((u: any) => u.id === activeSellerId);
+            const foundAdvisor = (settings?.salesAdvisors || []).find((a: any) => a.id === activeSellerId);
+            finalRate = foundUser?.commissionRate ?? foundAdvisor?.commissionRate ?? 0;
+        }
+
+        let finalCommission = sellerCommission;
+        if (finalCommission === undefined) {
+            finalCommission = finalRate > 0 ? (orderTotal * (finalRate / 100)) : 0;
+        }
+
         const finalPaymentMethod = paymentMethod || 'Por Definir';
 
         // Lógica de Sede:
@@ -173,6 +191,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             paymentMethod: finalPaymentMethod,
             sellerId: activeSellerId,
             sellerName: activeSellerName,
+            sellerCommission: finalCommission,
+            commissionRate: finalRate,
             deliveryMethod,
             pickupBranchId
         };

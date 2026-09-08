@@ -39,6 +39,8 @@ function checkAndMigrateDB($pdo) {
                 `payment_method` TEXT,
                 `seller_id` VARCHAR(255),
                 `seller_name` VARCHAR(255),
+                `seller_commission` FLOAT DEFAULT 0,
+                `commission_rate` FLOAT DEFAULT 0,
                 `delivery_method` VARCHAR(50) DEFAULT 'pos',
                 `pickup_branch_id` INT DEFAULT 0,
                 `stock_deducted` TINYINT(1) DEFAULT 0
@@ -155,6 +157,8 @@ function checkAndMigrateDB($pdo) {
                 'branch_id' => "INT DEFAULT 1", 
                 'seller_id' => "VARCHAR(255)", 
                 'seller_name' => "VARCHAR(255)",
+                'seller_commission' => "FLOAT DEFAULT 0",
+                'commission_rate' => "FLOAT DEFAULT 0",
                 'subtotal' => "FLOAT DEFAULT 0",
                 'discount' => "FLOAT DEFAULT 0",
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",

@@ -4,15 +4,16 @@ import { Card } from '../../UIComponents';
 import { useStore } from '../../../context/StoreContext';
 import { Order, Product, UserAccount } from '../../../types';
 import { StatCard, CustomTooltip, PIE_COLORS } from './SharedStatsComponents';
-import { DollarSign, Wallet, PieChart, ShoppingBag, Star, CreditCard, User } from 'lucide-react';
+import { DollarSign, Wallet, PieChart, ShoppingBag, Star, CreditCard, User, Trophy, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, PieChart as RePieChart, Pie, Cell, BarChart as ReBarChart, Bar } from 'recharts';
 
 interface FinancialAnalyticsProps {
     orders: Order[];
     products: Product[];
+    onNavigateToSellers?: () => void;
 }
 
-export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, products }) => {
+export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, products, onNavigateToSellers }) => {
     const { userRole, currentUser, settings, branches, currentBranch } = useStore();
     const [timeRange, setTimeRange] = useState<'today' | '7d' | '30d' | '90d' | 'year'>('30d');
     const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -278,6 +279,38 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
         };
     }, [filteredOrders, products, timeRange, branches]);
 
+    // Mejor vendedor del periodo para banner rápido
+    const periodBestSeller = useMemo(() => {
+        const sellerMap: Record<string, { name: string, total: number, count: number }> = {};
+        const msPerDay = 24 * 60 * 60 * 1000;
+        let days = 30;
+        if (timeRange === 'today') days = 1;
+        if (timeRange === '7d') days = 7;
+        if (timeRange === '90d') days = 90;
+        if (timeRange === 'year') days = 365;
+
+        const start = timeRange === 'today'
+            ? new Date(new Date().setHours(0, 0, 0, 0)).getTime()
+            : (Date.now() - (days * msPerDay));
+
+        filteredOrders.forEach(o => {
+            if (o.status === 'completed' && Number(o.date) >= start) {
+                const sid = o.sellerId || '';
+                if (sid && sid !== 'web-client' && sid !== 'online') {
+                    const sname = o.sellerName || 'Vendedor';
+                    if (!sellerMap[sid]) {
+                        sellerMap[sid] = { name: sname, total: 0, count: 0 };
+                    }
+                    sellerMap[sid].total += (Number(o.total) || 0);
+                    sellerMap[sid].count += 1;
+                }
+            }
+        });
+
+        const sorted = Object.values(sellerMap).sort((a, b) => b.total - a.total);
+        return sorted.length > 0 && sorted[0].total > 0 ? sorted[0] : null;
+    }, [filteredOrders, timeRange]);
+
     return (
         <div className="space-y-8 animate-fade-in">
             <div className="flex justify-end gap-3 flex-wrap">
@@ -299,6 +332,33 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
                     ))}
                 </div>
             </div>
+
+            {/* Banner Destacado: Mejor Vendedor */}
+            {periodBestSeller && (
+                <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent p-4 rounded-2xl border border-amber-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                            <Trophy size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                🏆 Mejor Vendedor del Periodo: <span className="text-gray-900 dark:text-white font-bold">{periodBestSeller.name}</span>
+                            </p>
+                            <p className="text-xs text-gray-500 font-medium">
+                                Facturó ${periodBestSeller.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} en {periodBestSeller.count} pedidos completados.
+                            </p>
+                        </div>
+                    </div>
+                    {onNavigateToSellers && (
+                        <button
+                            onClick={onNavigateToSellers}
+                            className="text-xs font-bold text-ios-blue hover:underline flex items-center gap-1 shrink-0"
+                        >
+                            Ver Ranking de Vendedores <ChevronRight size={14} />
+                        </button>
+                    )}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Venta Bruta" value={`$${financialStats.revenue.toLocaleString('en-US', {minimumFractionDigits: 2})}`} icon={<DollarSign size={24}/>} color="bg-gradient-to-br from-blue-500 to-blue-700" trend={financialStats.revenueGrowth >= 0 ? 'up' : 'down'} trendValue={Math.abs(financialStats.revenueGrowth).toFixed(1)} subtitle="Facturado (Completados)" />

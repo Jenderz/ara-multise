@@ -372,12 +372,12 @@ function handleSaveOrder($pdo, $input, $branchId)
         }
 
         // 5. Guardar Orden con estado de stock_deducted actualizado
-        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, delivery_method, pickup_branch_id, stock_deducted) 
-        VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :delivery_method, :pickup_branch_id, :stock_deducted) 
+        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate, delivery_method, pickup_branch_id, stock_deducted) 
+        VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate, :delivery_method, :pickup_branch_id, :stock_deducted) 
         ON DUPLICATE KEY UPDATE 
         `status`=VALUES(`status`), 
         `branch_id`=VALUES(`branch_id`), 
-        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted)";
+        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted)";
 
         $stmt = $pdo->prepare($smtInsert);
         $stmt->execute([
@@ -395,6 +395,8 @@ function handleSaveOrder($pdo, $input, $branchId)
             ':payment_method' => $o['paymentMethod'] ?? '',
             ':seller_id' => $o['sellerId'] ?? '',
             ':seller_name' => $o['sellerName'] ?? '',
+            ':seller_commission' => floatval($o['sellerCommission'] ?? ($o['seller_commission'] ?? 0)),
+            ':commission_rate' => floatval($o['commissionRate'] ?? ($o['commission_rate'] ?? 0)),
             ':delivery_method' => $o['deliveryMethod'] ?? (
                 (empty($o['sellerId']) || $o['sellerId'] === 'web-client' || $o['sellerId'] === 'online') ? 'delivery' : 'pos'
             ),

@@ -19,6 +19,7 @@ export interface SystemConfig {
   masterPassword?: string;
   paymentMethods?: PaymentMethod[];
   users?: UserAccount[];
+  salesAdvisors?: SalesAdvisor[];
   logs?: ActivityLog[];
   planTier?: 'single' | 'multi';
   arawIntegration?: ARAWIntegrationConfig; // Integración B2B con almacén central
@@ -168,6 +169,8 @@ export interface Order {
   paymentMethod: string;
   sellerId?: string;
   sellerName?: string;
+  sellerCommission?: number;
+  commissionRate?: number;
   deliveryMethod?: 'delivery' | 'pickup' | 'pos';
   pickupBranchId?: number;
   stockDeducted?: boolean;
@@ -200,6 +203,17 @@ export interface UserAccount {
   branchId?: number;
   assignedBranchId?: number;
   permissions?: string[];
+  active: boolean;
+  createdAt: number;
+  commissionRate?: number;
+}
+
+export interface SalesAdvisor {
+  id: string;
+  name: string;
+  phone?: string;
+  branchId?: number;
+  commissionRate?: number;
   active: boolean;
   createdAt: number;
 }
@@ -352,7 +366,7 @@ export interface StoreContextType {
   removeFromCart: (cartId: string) => void;
   updateCartQuantity: (cartId: string, delta: number) => void;
   clearCart: () => void;
-  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number) => Promise<string>;
+  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number) => Promise<string>;
   updateOrder: (order: Order) => Promise<void>;
   deleteOrder: (id: string) => void;
   updateCustomer: (customer: Customer) => Promise<void>;

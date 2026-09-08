@@ -106,12 +106,13 @@ function handleBatchWrite($pdo, $input, $branchId) {
         }
         elseif ($type === 'orders') {
             $stmt = $pdo->prepare("INSERT INTO `orders` 
-            (id, branch_id, customer_name, customer_phone, customer_address, items, total, subtotal, discount, `status`, `date`, payment_method, seller_id, seller_name) 
-            VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :total, :subtotal, :discount, :status, :date, :payment_method, :seller_id, :seller_name) 
+            (id, branch_id, customer_name, customer_phone, customer_address, items, total, subtotal, discount, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate) 
+            VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :total, :subtotal, :discount, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate) 
             ON DUPLICATE KEY UPDATE 
             `status`=VALUES(`status`), customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), 
             customer_address=VALUES(customer_address), items=VALUES(items), total=VALUES(total), subtotal=VALUES(subtotal), discount=VALUES(discount),
-            payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name)");
+            payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name),
+            seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate)");
             
             foreach ($items as $o) {
                 $itemsJson = is_string($o['items']) ? $o['items'] : safeJsonEncode($o['items'] ?? []);
@@ -129,7 +130,9 @@ function handleBatchWrite($pdo, $input, $branchId) {
                     ':date' => $o['date'] ?? time()*1000, 
                     ':payment_method' => $o['paymentMethod'] ?? ($o['payment_method'] ?? 'Efectivo'),
                     ':seller_id' => $o['sellerId'] ?? ($o['seller_id'] ?? 'web-client'), 
-                    ':seller_name' => $o['sellerName'] ?? ($o['seller_name'] ?? 'Tienda')
+                    ':seller_name' => $o['sellerName'] ?? ($o['seller_name'] ?? 'Tienda'),
+                    ':seller_commission' => floatval($o['sellerCommission'] ?? ($o['seller_commission'] ?? 0)),
+                    ':commission_rate' => floatval($o['commissionRate'] ?? ($o['commission_rate'] ?? 0))
                 ]);
             }
         }

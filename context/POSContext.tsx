@@ -299,7 +299,11 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 'completed',
                 discountAmount,
                 'pos',
-                currentBranch?.id || 1
+                currentBranch?.id || 1,
+                checkoutDetails.sellerId,
+                checkoutDetails.sellerName,
+                checkoutDetails.sellerCommission,
+                checkoutDetails.commissionRate
             );
 
             // 1. Descontar optimistamente el stock en la memoria local
@@ -321,8 +325,10 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 discount: discountAmount,
                 paymentMethod: checkoutDetails.finalPaymentMethod,
                 deliveryMethod: 'pos',
-                sellerId: currentUser?.id,
-                sellerName: currentUser?.name,
+                sellerId: checkoutDetails.sellerId || currentUser?.id,
+                sellerName: checkoutDetails.sellerName || currentUser?.name,
+                sellerCommission: checkoutDetails.sellerCommission || 0,
+                commissionRate: checkoutDetails.commissionRate || 0,
                 branchId: currentBranch?.id || 1,
                 date: Date.now(),
                 status: 'completed'

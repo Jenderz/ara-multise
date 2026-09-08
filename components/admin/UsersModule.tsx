@@ -1,14 +1,15 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, Input, Button } from '../UIComponents';
-import { UserAccount, ActivityLog, Branch } from '../../types';
+import { UserAccount, ActivityLog, Branch, SalesAdvisor } from '../../types';
 import { useStore } from '../../context/StoreContext';
 import { useNotification } from '../../context/NotificationContext';
 import { generateId } from './Shared';
 import { 
     Users, Plus, Trash2, Edit2, ShieldCheck, Check, History, Clock, 
     Search, Filter, ChevronLeft, ChevronRight, X, LogIn, ShoppingBag, 
-    Package, Settings, AlertOctagon, FileText, Lock, RefreshCw, Store, Globe
+    Package, Settings, AlertOctagon, FileText, Lock, RefreshCw, Store, Globe,
+    UserCheck, Phone, Percent, Sparkles, Power, Award, Info
 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 10;
@@ -27,9 +28,13 @@ const AVAILABLE_MODULES = [
 ];
 
 export const UsersModule = () => {
-    const { settings, addUser, updateUser, deleteUser, currentUser, logs, clearLogs, userRole, refreshStoreData, branches } = useStore();
+    const { settings, updateSettings, addUser, updateUser, deleteUser, currentUser, logs, clearLogs, userRole, refreshStoreData, branches } = useStore();
     const { addNotification } = useNotification();
     
+    // --- MODO DE VISTA: ASESORES (PISO) | USUARIOS/CAJERAS (SISTEMA) | LOGS ---
+    const [viewMode, setViewMode] = useState<'advisors' | 'users' | 'logs'>('advisors');
+
+    // --- ESTADO PARA USUARIOS DEL SISTEMA (CON LOGIN Y CONTRASEÑA) ---
     const [isEditing, setIsEditing] = useState<UserAccount | null>(null);
     const [formData, setFormData] = useState<Partial<UserAccount>>({ 
         name: '', 
@@ -37,9 +42,21 @@ export const UsersModule = () => {
         password: '', 
         role: 'seller',
         assignedBranchId: 0, // 0 = Sin restricción (o no aplica)
+        commissionRate: 0,
         permissions: ['dashboard', 'pos', 'checkout_authorized', 'orders', 'products_view'] 
     });
-    const [viewMode, setViewMode] = useState<'users' | 'logs'>('users');
+
+    // --- ESTADO PARA ASESORES DE VENTA DE PISO (SIN ACCESO AL SISTEMA / SIN CLAVE) ---
+    const [advisorEditing, setAdvisorEditing] = useState<SalesAdvisor | null>(null);
+    const [advisorFormData, setAdvisorFormData] = useState<Partial<SalesAdvisor>>({
+        name: '',
+        phone: '',
+        branchId: 0,
+        commissionRate: 0,
+        active: true
+    });
+    const [advisorSearch, setAdvisorSearch] = useState('');
+
     const [isProcessing, setIsProcessing] = useState(false);
     const [isRefreshingLogs, setIsRefreshingLogs] = useState(false);
     
@@ -49,6 +66,101 @@ export const UsersModule = () => {
     const [logActionFilter, setLogActionFilter] = useState<string>('all');
     const [logUserFilter, setLogUserFilter] = useState<string>('all'); 
     const [currentPage, setCurrentPage] = useState(1);
+
+    // --- MANEJO DE ASESORES DE PISO (SIN CLAVE) ---
+    const filteredAdvisors = useMemo(() => {
+        const list = Array.isArray(settings.salesAdvisors) ? settings.salesAdvisors : [];
+        if (!advisorSearch) return list;
+        const term = advisorSearch.toLowerCase();
+        return list.filter(a => 
+            a.name.toLowerCase().includes(term) || 
+            (a.phone && a.phone.toLowerCase().includes(term))
+        );
+    }, [settings.salesAdvisors, advisorSearch]);
+
+    const handleSaveAdvisor = async () => {
+        if (!advisorFormData.name?.trim()) {
+            addNotification({ title: 'Nombre Obligatorio', body: 'Ingresa el nombre del asesor de venta.', type: 'warning' });
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            const currentAdvisors: SalesAdvisor[] = Array.isArray(settings.salesAdvisors) ? [...settings.salesAdvisors] : [];
+            
+            if (advisorEditing) {
+                const updated = currentAdvisors.map(a => a.id === advisorEditing.id ? {
+                    ...a,
+                    name: advisorFormData.name!.trim(),
+                    phone: advisorFormData.phone?.trim() || '',
+                    branchId: Number(advisorFormData.branchId) || 0,
+                    commissionRate: Number(advisorFormData.commissionRate) || 0,
+                    active: advisorFormData.active !== undefined ? advisorFormData.active : true
+                } : a);
+                await updateSettings({ salesAdvisors: updated });
+                addNotification({ title: 'Asesor Actualizado', body: `Datos de ${advisorFormData.name} guardados.`, type: 'success' });
+            } else {
+                const newAdvisor: SalesAdvisor = {
+                    id: generateId(),
+                    name: advisorFormData.name.trim(),
+                    phone: advisorFormData.phone?.trim() || '',
+                    branchId: Number(advisorFormData.branchId) || 0,
+                    commissionRate: Number(advisorFormData.commissionRate) || 0,
+                    active: true,
+                    createdAt: Date.now()
+                };
+                await updateSettings({ salesAdvisors: [...currentAdvisors, newAdvisor] });
+                addNotification({ title: 'Asesor Registrado', body: `${newAdvisor.name} ya está disponible en el POS para las cajeras.`, type: 'success' });
+            }
+
+            setAdvisorFormData({ name: '', phone: '', branchId: 0, commissionRate: 0, active: true });
+            setAdvisorEditing(null);
+        } catch (error: any) {
+            addNotification({ title: 'Error', body: error.message || 'No se pudo guardar el asesor.', type: 'warning' });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleDeleteAdvisor = async (id: string, name: string) => {
+        if (window.confirm(`¿Estás seguro de eliminar al asesor ${name}? Sus ventas históricas se mantendrán registradas en reportes.`)) {
+            try {
+                const currentAdvisors: SalesAdvisor[] = Array.isArray(settings.salesAdvisors) ? settings.salesAdvisors : [];
+                const filtered = currentAdvisors.filter(a => a.id !== id);
+                await updateSettings({ salesAdvisors: filtered });
+                addNotification({ title: 'Asesor Eliminado', body: `${name} fue retirado de la lista de asesores.`, type: 'info' });
+            } catch (e: any) {
+                addNotification({ title: 'Error', body: 'No se pudo eliminar el asesor.', type: 'warning' });
+            }
+        }
+    };
+
+    const handleToggleAdvisorActive = async (advisor: SalesAdvisor) => {
+        try {
+            const currentAdvisors: SalesAdvisor[] = Array.isArray(settings.salesAdvisors) ? settings.salesAdvisors : [];
+            const updated = currentAdvisors.map(a => a.id === advisor.id ? { ...a, active: !a.active } : a);
+            await updateSettings({ salesAdvisors: updated });
+            addNotification({
+                title: advisor.active ? 'Asesor Inactivo' : 'Asesor Activo',
+                body: `${advisor.name} ${advisor.active ? 'ya no aparecerá en el selector de caja' : 'ahora aparecerá en el selector de caja'}.`,
+                type: 'info'
+            });
+        } catch (e: any) {
+            addNotification({ title: 'Error', body: 'No se pudo cambiar el estado.', type: 'warning' });
+        }
+    };
+
+    const startEditAdvisor = (advisor: SalesAdvisor) => {
+        setAdvisorEditing(advisor);
+        setAdvisorFormData({
+            name: advisor.name,
+            phone: advisor.phone || '',
+            branchId: advisor.branchId || 0,
+            commissionRate: advisor.commissionRate || 0,
+            active: advisor.active
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const handleSave = async () => {
         if (!formData.name || !formData.username) {
@@ -82,6 +194,7 @@ export const UsersModule = () => {
                 role: (formData.role as 'admin' | 'seller') || 'seller',
                 permissions: formData.role === 'admin' ? [] : (formData.permissions || []),
                 assignedBranchId: (formData.role === 'seller' ? Number(formData.assignedBranchId) : undefined),
+                commissionRate: formData.commissionRate !== undefined ? Number(formData.commissionRate) : 0,
                 active: true,
                 createdAt: isEditing ? isEditing.createdAt : Date.now()
             };
@@ -98,7 +211,7 @@ export const UsersModule = () => {
                 addNotification({ title: 'Usuario Creado', body: `${userData.name} ha sido registrado exitosamente.`, type: 'success' });
             }
             
-            setFormData({ name: '', username: '', password: '', role: 'seller', permissions: ['dashboard', 'pos', 'checkout_authorized', 'orders', 'products_view'], assignedBranchId: 0 });
+            setFormData({ name: '', username: '', password: '', role: 'seller', commissionRate: 0, permissions: ['dashboard', 'pos', 'checkout_authorized', 'orders', 'products_view'], assignedBranchId: 0 });
             setIsEditing(null);
             
         } catch (error: any) {
@@ -129,6 +242,7 @@ export const UsersModule = () => {
         setFormData({ 
             ...user, 
             password: '', 
+            commissionRate: user.commissionRate || 0,
             permissions: user.permissions || ['dashboard', 'pos', 'checkout_authorized', 'orders', 'products_view'],
             assignedBranchId: user.assignedBranchId || 0
         });
@@ -230,23 +344,282 @@ export const UsersModule = () => {
                 <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
                     <Users className="text-ios-blue"/> Equipo de Trabajo
                 </h2>
-                <div className="flex bg-gray-100 dark:bg-white/10 p-1 rounded-xl w-full sm:w-auto">
+                <div className="flex bg-gray-100 dark:bg-white/10 p-1 rounded-xl w-full sm:w-auto gap-1">
+                    <button 
+                        onClick={() => setViewMode('advisors')}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'advisors' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                    >
+                        <UserCheck size={14}/> Asesores (Sin Clave)
+                        {Array.isArray(settings.salesAdvisors) && settings.salesAdvisors.length > 0 && (
+                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
+                                {settings.salesAdvisors.length}
+                            </span>
+                        )}
+                    </button>
                     <button 
                         onClick={() => setViewMode('users')}
-                        className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold transition-all ${viewMode === 'users' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'users' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
-                        Usuarios
+                        <ShieldCheck size={14}/> Cajeras / Acceso Sistema
+                        {Array.isArray(settings.users) && settings.users.length > 0 && (
+                            <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-600 px-1.5 py-0.2 rounded-full font-black">
+                                {settings.users.length}
+                            </span>
+                        )}
                     </button>
                     <button 
                         onClick={() => { setViewMode('logs'); setLogUserFilter('all'); }}
-                        className={`flex-1 sm:flex-none px-6 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${viewMode === 'logs' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'logs' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
                         <History size={14}/> Actividad
                     </button>
                 </div>
             </div>
 
-            {viewMode === 'users' ? (
+            {/* TAB 1: ASESORES DE VENTA (SIN CLAVE / SIN LOGIN) */}
+            {viewMode === 'advisors' && (
+                <div className="space-y-6">
+                    {/* Banner Informativo Explicando la Dinámica de Asesores vs Cajeras */}
+                    <div className="bg-gradient-to-r from-blue-500/10 via-emerald-500/10 to-transparent border border-blue-200/50 dark:border-blue-900/30 p-4 sm:p-5 rounded-2xl flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue flex items-center justify-center shrink-0 mt-0.5">
+                            <UserCheck size={20} />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="font-bold text-sm text-ios-text dark:text-white flex items-center gap-2">
+                                Asesores de Venta
+                                <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full">
+                                    Sin necesidad de contraseña
+                                </span>
+                            </h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                                Los asesores atienden y asesoran a los clientes en tienda. <strong>No necesitan credenciales ni acceso al sistema</strong>. 
+                                Las cajeras los seleccionan directamente en el Punto de Venta (POS) al momento de cobrar, asociándoles la venta, sus comisiones (opcionales) y sumando puntos para el ranking del <strong>Mejor Vendedor</strong> en Estadísticas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Formulario de Creación/Edición de Asesor */}
+                        <div className="lg:col-span-1 order-2 lg:order-1">
+                            <Card className="p-6 space-y-4 sticky top-6">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="font-bold text-sm text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <UserCheck size={16} className="text-ios-blue"/>
+                                        {advisorEditing ? 'Editar Asesor' : 'Nuevo Asesor'}
+                                    </h3>
+                                    {advisorEditing && (
+                                        <span className="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                                            Editando
+                                        </span>
+                                    )}
+                                </div>
+
+                                <Input 
+                                    label="Nombre Completo" 
+                                    value={advisorFormData.name || ''} 
+                                    onChange={e => setAdvisorFormData({ ...advisorFormData, name: e.target.value })} 
+                                    placeholder="Ej: Carlos Gómez" 
+                                />
+
+                                <Input 
+                                    label="Teléfono / WhatsApp (Opcional)" 
+                                    value={advisorFormData.phone || ''} 
+                                    onChange={e => setAdvisorFormData({ ...advisorFormData, phone: e.target.value })} 
+                                    placeholder="Ej: +58 412 1234567" 
+                                />
+
+                                {/* Sede Asignada */}
+                                <div>
+                                    <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 block mb-1.5 flex items-center gap-1">
+                                        <Store size={14}/> Sede de Trabajo
+                                    </label>
+                                    <select 
+                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm dark:text-white outline-none focus:border-ios-blue font-medium"
+                                        value={advisorFormData.branchId || 0}
+                                        onChange={e => setAdvisorFormData({ ...advisorFormData, branchId: Number(e.target.value) })}
+                                    >
+                                        <option value={0}>Todas las Sedes / General</option>
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Porcentaje de Comisión Opcional */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 block">
+                                            % Comisión por Venta (Opcional)
+                                        </label>
+                                        {(advisorFormData.commissionRate !== undefined && Number(advisorFormData.commissionRate) > 0) ? (
+                                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
+                                                {advisorFormData.commissionRate}% Activa
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-medium text-gray-400">
+                                                0% (Sin comisión)
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.5"
+                                            value={advisorFormData.commissionRate ?? ''}
+                                            onChange={e => setAdvisorFormData({ ...advisorFormData, commissionRate: parseFloat(e.target.value) || 0 })}
+                                            placeholder="0% (Opcional - dejar en 0 si no percibe comisión)"
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm dark:text-white outline-none focus:border-ios-blue transition-all font-bold"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 mt-1.5">
+                                        Opcional. Si se deja en 0%, el asesor competirá en el ranking de ventas y se le atribuirán sus tickets sin generar comisiones monetarias.
+                                    </p>
+                                </div>
+
+                                <div className="pt-2 flex gap-2">
+                                    {advisorEditing && (
+                                        <Button 
+                                            variant="secondary" 
+                                            onClick={() => { 
+                                                setAdvisorEditing(null); 
+                                                setAdvisorFormData({ name: '', phone: '', branchId: 0, commissionRate: 0, active: true }); 
+                                            }} 
+                                            className="flex-1"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                    )}
+                                    <Button onClick={handleSaveAdvisor} loading={isProcessing} className="flex-1 gap-2">
+                                        {advisorEditing ? <Check size={18}/> : <Plus size={18}/>} 
+                                        {advisorEditing ? 'Actualizar' : 'Registrar Asesor'}
+                                    </Button>
+                                </div>
+                            </Card>
+                        </div>
+
+                        {/* Lista de Asesores */}
+                        <div className="lg:col-span-2 space-y-4 order-1 lg:order-2">
+                            {/* Buscador de Asesores */}
+                            <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-100 dark:border-white/5 flex gap-3 items-center mb-4">
+                                <Search size={18} className="text-gray-400 ml-2"/>
+                                <input 
+                                    placeholder="Buscar asesor por nombre o teléfono..." 
+                                    value={advisorSearch}
+                                    onChange={e => setAdvisorSearch(e.target.value)}
+                                    className="flex-1 bg-transparent outline-none text-sm dark:text-white font-medium"
+                                />
+                                {advisorSearch && <button onClick={() => setAdvisorSearch('')}><X size={16} className="text-gray-400"/></button>}
+                            </div>
+
+                            {filteredAdvisors.length === 0 ? (
+                                <div className="text-center py-16 bg-white dark:bg-zinc-900 rounded-[2rem] border border-gray-100 dark:border-white/5 p-8">
+                                    <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/20 text-ios-blue flex items-center justify-center mx-auto mb-3">
+                                        <UserCheck size={32}/>
+                                    </div>
+                                    <h4 className="font-bold text-gray-700 dark:text-gray-200">No hay asesores registrados</h4>
+                                    <p className="text-xs text-gray-400 max-w-md mx-auto mt-1">
+                                        Registra aquí a los asesores para que las cajeras puedan seleccionarlos al cobrar en el POS.
+                                    </p>
+                                </div>
+                            ) : (
+                                filteredAdvisors.map(advisor => {
+                                    const assignedBranchName = advisor.branchId 
+                                        ? branches.find(b => b.id === advisor.branchId)?.name 
+                                        : 'Todas las Sedes';
+
+                                    return (
+                                        <div 
+                                            key={advisor.id} 
+                                            className={`bg-white dark:bg-zinc-900 p-5 rounded-[1.5rem] border transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                                                advisor.active === false 
+                                                    ? 'opacity-60 border-gray-200 dark:border-white/5 bg-gray-50/50' 
+                                                    : 'border-gray-100 dark:border-white/5 hover:shadow-lg'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-teal-500/20 transition-transform group-hover:scale-105">
+                                                    {advisor.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-bold text-lg text-ios-text dark:text-white">
+                                                            {advisor.name}
+                                                        </h4>
+                                                        {advisor.active === false && (
+                                                            <span className="text-[10px] bg-gray-200 dark:bg-white/10 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                                                                Inactivo
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2.5 text-xs text-gray-500 mt-1 flex-wrap">
+                                                        <span className="flex items-center gap-1 text-[11px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 dark:border-emerald-800/30">
+                                                            <UserCheck size={12}/> Asesor
+                                                        </span>
+
+                                                        {advisor.phone && (
+                                                            <span className="flex items-center gap-1 text-[11px] text-gray-500 font-mono">
+                                                                <Phone size={11}/> {advisor.phone}
+                                                            </span>
+                                                        )}
+
+                                                        <span className="flex items-center gap-1 text-[11px] bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400 px-2 py-0.5 rounded-md font-medium">
+                                                            <Store size={11}/> {assignedBranchName}
+                                                        </span>
+
+                                                        {(advisor.commissionRate !== undefined && Number(advisor.commissionRate) > 0) ? (
+                                                            <span className="flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 px-2 py-0.5 rounded-md font-bold">
+                                                                <Percent size={11}/> {advisor.commissionRate}% Com.
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[11px] text-gray-400">
+                                                                Sin comisión
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 border-t sm:border-t-0 border-gray-100 dark:border-white/5 pt-3 sm:pt-0">
+                                                <button 
+                                                    onClick={() => handleToggleAdvisorActive(advisor)} 
+                                                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                                                        advisor.active !== false 
+                                                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100' 
+                                                            : 'bg-gray-100 dark:bg-white/10 text-gray-500 hover:bg-gray-200'
+                                                    }`}
+                                                    title={advisor.active !== false ? "Desactivar asesor" : "Activar asesor"}
+                                                >
+                                                    <Power size={13} /> {advisor.active !== false ? 'Activo' : 'Inactivo'}
+                                                </button>
+                                                <button 
+                                                    onClick={() => startEditAdvisor(advisor)} 
+                                                    className="p-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-xl text-gray-400 hover:text-ios-blue transition-colors"
+                                                    title="Editar datos del asesor"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteAdvisor(advisor.id, advisor.name)} 
+                                                    className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl text-gray-400 hover:text-red-500 transition-colors"
+                                                    title="Eliminar asesor"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* TAB 2: CAJERAS Y USUARIOS DEL SISTEMA (CON LOGIN Y CONTRASEÑA) */}
+            {viewMode === 'users' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Formulario de Creación/Edición */}
                     <div className="lg:col-span-1 order-2 lg:order-1">
@@ -261,6 +634,31 @@ export const UsersModule = () => {
                             <Input label="Nombre Completo" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ej: Juan Pérez" />
                             <Input label="Usuario (Login)" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value.replace(/\s/g, '')})} placeholder="Ej: juan.perez" />
                             <Input label="Contraseña" type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder={isEditing ? "(Dejar en blanco para mantener)" : "Clave de acceso"} />
+                            
+                            <div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 block">% Comisión por Venta (Opcional)</label>
+                                    {(formData.commissionRate !== undefined && formData.commissionRate > 0) ? (
+                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Activa</span>
+                                    ) : (
+                                        <span className="text-[10px] font-medium text-gray-400">Sin comisión</span>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.5"
+                                        value={formData.commissionRate ?? ''}
+                                        onChange={e => setFormData({ ...formData, commissionRate: parseFloat(e.target.value) || 0 })}
+                                        placeholder="0% (Opcional - dejar en 0 si no percibe comisión)"
+                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm dark:text-white outline-none focus:border-ios-blue transition-all font-bold"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">Opcional. Si se deja en 0, el asesor registrará ventas en POS y competirá en el ranking sin generar comisiones monetarias.</p>
+                            </div>
                             
                             <div>
                                 <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 block mb-2">Rol / Permisos</label>
@@ -371,6 +769,11 @@ export const UsersModule = () => {
                                                 <div className="flex items-center gap-3 text-xs text-gray-500 mt-1 flex-wrap">
                                                     <span className="font-mono bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded">@{user.username}</span>
                                                     <span className="flex items-center gap-1"><ShieldCheck size={10}/> {user.role === 'admin' ? 'Administrador' : 'Vendedor'}</span>
+                                                    {(user.commissionRate !== undefined && user.commissionRate > 0) && (
+                                                        <span className="flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full font-black border border-emerald-200 dark:border-emerald-800/40">
+                                                            %{user.commissionRate} Comisión
+                                                        </span>
+                                                    )}
                                                     {user.role === 'seller' && (
                                                         <>
                                                             <span className="flex items-center gap-1 text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
@@ -410,8 +813,10 @@ export const UsersModule = () => {
                         )}
                     </div>
                 </div>
-            ) : (
-                // ... (Bloque de logs se mantiene igual)
+            )}
+
+            {/* TAB 3: HISTORIAL DE ACTIVIDAD */}
+            {viewMode === 'logs' && (
                 <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 shadow-sm border border-gray-100 dark:border-white/5 h-full flex flex-col">
                     {/* Header de Logs */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-white/5">

@@ -84,6 +84,7 @@ const DEFAULT_SYSTEM: SystemConfig = {
     masterPassword: '',
     paymentMethods: DEFAULT_PAYMENT_METHODS,
     users: [],
+    salesAdvisors: [],
     logs: [],
     planTier: 'multi' // DEFAULT: Multi-Sede activo. Cambiar a 'single' para limitar.
 };

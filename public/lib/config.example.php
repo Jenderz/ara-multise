@@ -146,6 +146,8 @@ function mapOrder($o)
     $o['paymentMethod'] = $o['payment_method'] ?? 'Por Definir';
     $o['sellerId'] = $o['seller_id'] ?: 'web-client';
     $o['sellerName'] = $o['seller_name'] ?: 'Tienda Online';
+    $o['sellerCommission'] = (float)($o['seller_commission'] ?? 0);
+    $o['commissionRate'] = (float)($o['commission_rate'] ?? 0);
     // Inferencia inteligente para pedidos antiguos o mal formados
     $o['deliveryMethod'] = $o['delivery_method'] ?? (
         (empty($o['seller_id']) || $o['seller_id'] === 'web-client' || $o['seller_id'] === 'online') 

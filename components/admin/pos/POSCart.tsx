@@ -3,11 +3,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../../context/StoreContext';
 import { usePOS } from '../../../context/POSContext';
 import { Button } from '../../UIComponents';
-import { CartItem, Customer, PaymentMethod } from '../../../types';
-import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2 } from 'lucide-react';
+import { CartItem, Customer, PaymentMethod, SalesAdvisor } from '../../../types';
+import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus } from 'lucide-react';
 
 export const POSCart = () => {
-    const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings } = useStore();
+    const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings, updateSettings, currentBranch } = useStore();
     const {
         cart,
         updateQuantity,
@@ -32,6 +32,96 @@ export const POSCart = () => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [orderNote, setOrderNote] = useState('');
     const [showParkedList, setShowParkedList] = useState(false);
+
+    // --- ESTADO PARA ASIGNACIÓN DE VENDEDOR Y COMISIÓN OPCIONAL ---
+    const [selectedSellerId, setSelectedSellerId] = useState<string>(() => currentUser?.id || '');
+    const [applyCommission, setApplyCommission] = useState<boolean>(false);
+    const [customCommissionRate, setCustomCommissionRate] = useState<string>('0');
+
+    // --- ESTADO PARA REGISTRO RÁPIDO DE ASESOR DE PISO EN COBRO ---
+    const [showQuickAdvisorModal, setShowQuickAdvisorModal] = useState(false);
+    const [quickAdvisorName, setQuickAdvisorName] = useState('');
+    const [quickAdvisorRate, setQuickAdvisorRate] = useState('0');
+    const [isSavingQuickAdvisor, setIsSavingQuickAdvisor] = useState(false);
+
+    const handleSaveQuickAdvisor = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!quickAdvisorName.trim()) return;
+
+        setIsSavingQuickAdvisor(true);
+        try {
+            const currentAdvisors = Array.isArray(settings.salesAdvisors) ? [...settings.salesAdvisors] : [];
+            const newAdvisor: SalesAdvisor = {
+                id: 'adv_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+                name: quickAdvisorName.trim(),
+                branchId: currentBranch?.id || 0,
+                commissionRate: parseFloat(quickAdvisorRate) || 0,
+                active: true,
+                createdAt: Date.now()
+            };
+            await updateSettings({ salesAdvisors: [...currentAdvisors, newAdvisor] });
+            setSelectedSellerId(newAdvisor.id);
+            if (newAdvisor.commissionRate && newAdvisor.commissionRate > 0) {
+                setApplyCommission(true);
+                setCustomCommissionRate(String(newAdvisor.commissionRate));
+            } else {
+                setApplyCommission(false);
+                setCustomCommissionRate('0');
+            }
+            setQuickAdvisorName('');
+            setQuickAdvisorRate('0');
+            setShowQuickAdvisorModal(false);
+        } catch (err) {
+            console.error("Error saving quick advisor:", err);
+        } finally {
+            setIsSavingQuickAdvisor(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!selectedSellerId && currentUser?.id) {
+            setSelectedSellerId(currentUser.id);
+        }
+    }, [currentUser]);
+
+    const availableSellers = useMemo(() => {
+        const advisors = (settings.salesAdvisors || [])
+            .filter((a: SalesAdvisor) => a.active !== false)
+            .map((a: SalesAdvisor) => ({
+                id: a.id,
+                name: a.name,
+                type: 'advisor' as const,
+                roleLabel: 'Asesor',
+                commissionRate: a.commissionRate || 0
+            }));
+
+        const users = (settings.users || [])
+            .filter((u: any) => u.active !== false)
+            .map((u: any) => ({
+                id: u.id,
+                name: u.name,
+                type: 'user' as const,
+                roleLabel: u.role === 'admin' ? 'Admin' : 'Cajera',
+                commissionRate: u.commissionRate || 0
+            }));
+
+        return [...advisors, ...users];
+    }, [settings.salesAdvisors, settings.users]);
+
+    const selectedSeller = useMemo(() => {
+        return availableSellers.find((u: any) => u.id === selectedSellerId) || null;
+    }, [availableSellers, selectedSellerId]);
+
+    // Cuando cambia el vendedor, sincronizar la comisión sugerida si la tiene
+    useEffect(() => {
+        if (selectedSeller && selectedSeller.commissionRate && selectedSeller.commissionRate > 0) {
+            setApplyCommission(true);
+            setCustomCommissionRate(String(selectedSeller.commissionRate));
+        } else {
+            setApplyCommission(false);
+            setCustomCommissionRate('0');
+        }
+    }, [selectedSellerId]);
     
     // --- ESTADO PARA DESCUENTO INDIVIDUAL ---
     const [activeItemDiscount, setActiveItemDiscount] = useState<string | null>(null);
@@ -51,6 +141,12 @@ export const POSCart = () => {
 
     const finalTotal = Math.max(0, cartTotal - discountAmount);
     const totalBs = finalTotal * activeExchangeRate;
+
+    // Comisión opcional para el vendedor seleccionado
+    const activeCommissionRate = applyCommission 
+        ? (customCommissionRate !== '' ? (parseFloat(customCommissionRate) || 0) : (selectedSeller?.commissionRate || 0))
+        : 0;
+    const estimatedCommission = activeCommissionRate > 0 ? (finalTotal * (activeCommissionRate / 100)) : 0;
 
     // --- CONTADOR DE ITEMS ---
     const totalItems = useMemo(() => {
@@ -131,7 +227,22 @@ export const POSCart = () => {
                 .join(' + ');
         }
 
-        prepareCheckout({ name, phone, finalAddress, finalPaymentMethod, totalOverride: finalTotal });
+        const sellerId = selectedSeller ? selectedSeller.id : (currentUser?.id || 'web-client');
+        const sellerName = selectedSeller ? selectedSeller.name : (currentUser?.name || 'Venta Mostrador');
+        const commissionRate = applyCommission ? activeCommissionRate : 0;
+        const sellerCommission = applyCommission ? estimatedCommission : 0;
+
+        prepareCheckout({ 
+            name, 
+            phone, 
+            finalAddress, 
+            finalPaymentMethod, 
+            totalOverride: finalTotal,
+            sellerId,
+            sellerName,
+            sellerCommission,
+            commissionRate
+        });
 
         // Reset local state
         setOrderNote('');
@@ -398,6 +509,97 @@ export const POSCart = () => {
                                     <FileText size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
                             </div>
+
+                            {/* Selector de Vendedor Asignado y Comisión Opcional */}
+                            <div className="bg-gray-50/70 dark:bg-black/20 p-2.5 rounded-xl border border-gray-100 dark:border-white/5 space-y-1.5">
+                                <div className="flex justify-between items-center px-1">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                                        <UserCheck size={11} className="text-ios-blue"/> Vendedor Asignado
+                                    </label>
+                                    
+                                    {/* Control de Comisión Opcional */}
+                                    {selectedSeller && (
+                                        <div className="flex items-center gap-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setApplyCommission(!applyCommission)}
+                                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors flex items-center gap-1 ${
+                                                    applyCommission 
+                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/40' 
+                                                        : 'bg-gray-100 dark:bg-white/10 text-gray-400 hover:text-gray-600'
+                                                }`}
+                                            >
+                                                <span>{applyCommission ? '✓ Comisión' : '+ Comisión'}</span>
+                                            </button>
+                                            {applyCommission && activeCommissionRate > 0 && finalTotal > 0 && (
+                                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400">
+                                                    ${estimatedCommission.toFixed(2)} ({activeCommissionRate}%)
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-1.5">
+                                    <div className="relative flex-1">
+                                        <select
+                                            value={selectedSellerId}
+                                            onChange={e => setSelectedSellerId(e.target.value)}
+                                            className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-lg pl-7 pr-3 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20 font-bold"
+                                        >
+                                            <option value="">-- Sin Asignar / Venta Directa --</option>
+                                            {/* Asesores */}
+                                            {availableSellers.filter((s: any) => s.type === 'advisor').length > 0 && (
+                                                <optgroup label="👔 Asesores de Venta">
+                                                    {availableSellers.filter((s: any) => s.type === 'advisor').map((a: any) => (
+                                                        <option key={a.id} value={a.id}>
+                                                            {a.name} {a.commissionRate > 0 ? `(${a.commissionRate}% com.)` : '(Sin com.)'}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            )}
+                                            {/* Cajeras y Usuarios del Sistema */}
+                                            {availableSellers.filter((s: any) => s.type === 'user').length > 0 && (
+                                                <optgroup label="🖥️ Cajeras / Acceso Sistema">
+                                                    {availableSellers.filter((s: any) => s.type === 'user').map((u: any) => (
+                                                        <option key={u.id} value={u.id}>
+                                                            {u.name} ({u.roleLabel}) {u.commissionRate > 0 ? `(${u.commissionRate}% com.)` : '(Sin com.)'}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            )}
+                                        </select>
+                                        <UserCheck size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
+
+                                    {/* Botón rápido para registrar asesor nuevo al instante */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowQuickAdvisorModal(true)}
+                                        title="Registrar nuevo asesor al instante"
+                                        className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-ios-blue hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold shrink-0 border border-blue-100 dark:border-blue-800/30"
+                                    >
+                                        <UserPlus size={13} />
+                                        <span className="hidden sm:inline">Nuevo</span>
+                                    </button>
+
+                                    {selectedSeller && applyCommission && (
+                                        <div className="w-16 relative" title="% Comisión para esta venta">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.5"
+                                                value={customCommissionRate}
+                                                onChange={e => setCustomCommissionRate(e.target.value)}
+                                                placeholder="%"
+                                                className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-center font-bold dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20"
+                                            />
+                                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-gray-400 pointer-events-none">%</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* ... (Payment Logic same as before) ... */}
@@ -540,6 +742,79 @@ export const POSCart = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Modal de Registro Rápido de Asesor de Piso */}
+            {showQuickAdvisorModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-ios-blue flex items-center justify-center">
+                                    <UserPlus size={18} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm text-ios-text dark:text-white">Nuevo Asesor</h3>
+                                    <p className="text-[10px] text-gray-400">Sin clave / Para asignar ventas y ranking</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowQuickAdvisorModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveQuickAdvisor} className="space-y-3">
+                            <div>
+                                <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1">Nombre del Asesor</label>
+                                <input
+                                    type="text"
+                                    required
+                                    autoFocus
+                                    placeholder="Ej: Pedro González"
+                                    value={quickAdvisorName}
+                                    onChange={e => setQuickAdvisorName(e.target.value)}
+                                    className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1">% Comisión (Opcional)</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.5"
+                                        placeholder="0"
+                                        value={quickAdvisorRate}
+                                        onChange={e => setQuickAdvisorRate(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">Si es 0%, acumulará ventas y ranking sin comisión.</p>
+                            </div>
+
+                            <div className="pt-2 flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => setShowQuickAdvisorModal(false)}
+                                    className="flex-1 text-xs py-2"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    loading={isSavingQuickAdvisor}
+                                    className="flex-1 text-xs py-2 bg-ios-blue text-white"
+                                >
+                                    Guardar y Asignar
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </div>
     );
