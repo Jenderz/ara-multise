@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Badge, Button } from '../UIComponents';
 import { ShoppingCart, CheckCircle2, XCircle, Printer, Eye, Edit, Search, Loader2, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Order } from '../../types';
@@ -39,12 +39,22 @@ export const OrdersModule = ({ updateOrder, settings }: any) => {
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     const canManageOrders = userRole === 'admin' || currentUser?.permissions?.includes('orders');
 
-    // Fetch Orders
-    useEffect(() => { loadOrders(); }, [currentPage, filterStatus, branches]); // Recargar al cambiar branches también
-
-    // Search Debounce
+    // Carga inicial y cambios de página/filtro/sede (sin re-disparos por arrays mutables)
     useEffect(() => {
-        const timer = setTimeout(() => { setCurrentPage(1); loadOrders(); }, 500);
+        loadOrders();
+    }, [currentPage, filterStatus, currentBranch?.id]);
+
+    // Búsqueda con debounce: NO ejecutar en mount inicial (evita la doble carga al entrar)
+    const isFirstSearch = useRef(true);
+    useEffect(() => {
+        if (isFirstSearch.current) {
+            isFirstSearch.current = false;
+            return;
+        }
+        const timer = setTimeout(() => {
+            setCurrentPage(1);
+            loadOrders();
+        }, 400);
         return () => clearTimeout(timer);
     }, [searchQuery]);
 

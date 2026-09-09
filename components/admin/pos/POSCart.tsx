@@ -318,6 +318,15 @@ export const POSCart = () => {
 
                 <div className="flex items-center gap-2">
                     <button
+                        type="button"
+                        onClick={() => setShowQuickAdvisorModal(true)}
+                        className="p-1.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                        title="Registrar nuevo asesor o vendedor"
+                    >
+                        <UserPlus size={16} />
+                    </button>
+
+                    <button
                         onClick={handlePark}
                         className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95"
                         title={cart.length > 0 ? "Pausar Orden" : "Ver Pausadas"}
@@ -571,17 +580,6 @@ export const POSCart = () => {
                                         </select>
                                         <UserCheck size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                     </div>
-
-                                    {/* Botón rápido para registrar asesor nuevo al instante */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowQuickAdvisorModal(true)}
-                                        title="Registrar nuevo asesor al instante"
-                                        className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-ios-blue hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold shrink-0 border border-blue-100 dark:border-blue-800/30"
-                                    >
-                                        <UserPlus size={13} />
-                                        <span className="hidden sm:inline">Nuevo</span>
-                                    </button>
 
                                     {selectedSeller && applyCommission && (
                                         <div className="w-16 relative" title="% Comisión para esta venta">
