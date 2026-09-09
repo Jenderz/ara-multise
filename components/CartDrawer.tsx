@@ -14,6 +14,7 @@ export const CartDrawer = () => {
     const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '+58', address: '' });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [countdown, setCountdown] = useState(7);
+    const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
     // --- Coupon State ---
     const [couponCode, setCouponCode] = useState('');
@@ -156,20 +157,33 @@ export const CartDrawer = () => {
     };
 
     const handleConfirmOrder = async () => {
-        // Enviar método de entrega, total y descuento aplicados correctamente
-        await createOrder(
-            customerInfo.name, 
-            customerInfo.phone, 
-            deliveryMethod === 'delivery' ? customerInfo.address : 'Retiro en Tienda', 
-            cart, 
-            total, 
-            'WhatsApp', 
-            'pending', 
-            discountAmount, 
-            deliveryMethod, 
-            pickupBranchId
-        );
-        setStep('processing');
+        if (isSubmittingOrder) return;
+        setIsSubmittingOrder(true);
+        try {
+            // Enviar método de entrega, total, descuento y código de cupón aplicados correctamente
+            await createOrder(
+                customerInfo.name, 
+                customerInfo.phone, 
+                deliveryMethod === 'delivery' ? customerInfo.address : 'Retiro en Tienda', 
+                cart, 
+                total, 
+                'WhatsApp', 
+                'pending', 
+                discountAmount, 
+                deliveryMethod, 
+                pickupBranchId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                appliedCoupon?.code
+            );
+            setStep('processing');
+        } catch (error: any) {
+            alert(error?.message || "No se pudo procesar la orden. Por favor verifica las existencias o intenta nuevamente.");
+        } finally {
+            setIsSubmittingOrder(false);
+        }
     };
 
     // --- Price Logic ---
@@ -446,8 +460,12 @@ export const CartDrawer = () => {
                         ) : (
                             <div className="flex gap-3">
                                 <Button variant="secondary" className="flex-1" onClick={() => setStep('details')}>Corregir</Button>
-                                <Button className="flex-[2] bg-green-500 hover:bg-green-600 text-white gap-2" onClick={handleConfirmOrder}>
-                                    <MessageCircle size={18} /> Confirmar Pedido
+                                <Button 
+                                    className="flex-[2] bg-green-500 hover:bg-green-600 text-white gap-2" 
+                                    onClick={handleConfirmOrder}
+                                    disabled={isSubmittingOrder}
+                                >
+                                    <MessageCircle size={18} /> {isSubmittingOrder ? 'Procesando...' : 'Confirmar Pedido'}
                                 </Button>
                             </div>
                         )}

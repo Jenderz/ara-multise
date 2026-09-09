@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNotification } from '../../context/NotificationContext';
 import { Button } from '../UIComponents';
 import {
-    Save, LayoutTemplate, Palette, Home, Banknote, ShieldCheck, RefreshCw, Gift, Database, Store, Warehouse
+    Save, LayoutTemplate, Palette, Home, Banknote, ShieldCheck, RefreshCw, Gift, Database, Store
 } from 'lucide-react';
 import { StoreSettings } from '../../types';
 import { api } from '../../services/api';
@@ -17,14 +17,13 @@ import { SecurityTab } from './settings/SecurityTab';
 import { GiftBannerTab } from './settings/GiftBannerTab';
 import { BranchesTab } from './settings/BranchesTab';
 import { DataManagementTab } from './settings/DataManagementTab';
-import { WarehouseSettings } from '../../integrations/araw/WarehouseSettings';
 
 export const SettingsModule = ({ settings, updateSettings, logout }: { settings: StoreSettings, updateSettings: (s: Partial<StoreSettings>) => Promise<void>, logout: () => void }) => {
     const { addNotification } = useNotification();
 
     const [localSettings, setLocalSettings] = useState<StoreSettings>(JSON.parse(JSON.stringify(settings)));
     const [isSaving, setIsSaving] = useState(false);
-    const [activeSection, setActiveSection] = useState<'general' | 'appearance' | 'hero' | 'gift' | 'finance' | 'security' | 'branches' | 'data' | 'integrations'>('general');
+    const [activeSection, setActiveSection] = useState<'general' | 'appearance' | 'hero' | 'gift' | 'finance' | 'security' | 'branches' | 'data'>('general');
 
     const dirtyKeysRef = useRef<Set<string>>(new Set());
     const lastSaveTime = useRef<number>(0);
@@ -140,7 +139,6 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
                     <TabButton id="finance" label="Finanzas & Inflación" icon={<Banknote size={18} />} />
                     <TabButton id="data" label="Respaldo y Datos" icon={<Database size={18} />} />
                     <TabButton id="security" label="Seguridad & Acceso" icon={<ShieldCheck size={18} />} />
-                    <TabButton id="integrations" label="Integraciones" icon={<Warehouse size={18} />} />
                 </div>
             </div>
 
@@ -156,7 +154,6 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
                         {activeSection === 'finance' && 'Precios y Finanzas'}
                         {activeSection === 'data' && 'Gestión de Datos'}
                         {activeSection === 'security' && 'Seguridad de Acceso'}
-                        {activeSection === 'integrations' && 'Integraciones'}
                     </h2>
 
                     <div className="flex gap-2 w-full sm:w-auto">
@@ -164,7 +161,7 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
                             {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Database size={18} />}
                         </Button>
                         {/* El botón de guardar se oculta en pestañas que tienen su propia lógica de guardado */}
-                        {activeSection !== 'branches' && activeSection !== 'data' && activeSection !== 'integrations' && (
+                        {activeSection !== 'branches' && activeSection !== 'data' && (
                             <Button onClick={handleSave} loading={isSaving} className="gap-2 px-6 font-bold shadow-ios-blue/30 h-10 text-sm flex-1 sm:flex-none">
                                 <Save size={16} /> Guardar Cambios
                             </Button>
@@ -181,7 +178,6 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
                     {activeSection === 'finance' && <FinanceTab settings={localSettings} onUpdate={handleLocalUpdate} />}
                     {activeSection === 'data' && <DataManagementTab />}
                     {activeSection === 'security' && <SecurityTab settings={localSettings} onUpdate={handleLocalUpdate} />}
-                    {activeSection === 'integrations' && <WarehouseSettings />}
                 </div>
             </div>
         </div>

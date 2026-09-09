@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { CartItem, Order, Customer, Coupon, Product } from '../types';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
+import { useSettings } from './SettingsContext';
 import { DEFAULT_IMAGE } from '../config';
 
 interface CartContextType {
@@ -21,7 +22,7 @@ interface CartContextType {
     updateCartQuantity: (cartId: string, delta: number) => void;
     clearCart: () => void;
 
-    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number) => Promise<string>;
+    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string) => Promise<string>;
     updateOrder: (order: Order, processStock?: boolean) => Promise<void>;
     deleteOrder: (id: string) => void;
 
@@ -45,6 +46,7 @@ const OFFLINE_DATA_KEY = 'lyberate_api_offline_cache';
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { currentUser, logActivity } = useAuth();
+    const { settings } = useSettings();
 
     const [cart, setCart] = useState<CartItem[]>(() => {
         try {
@@ -124,7 +126,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sellerId?: string,
         sellerName?: string,
         sellerCommission?: number,
-        commissionRate?: number
+        commissionRate?: number,
+        couponCode?: string
     ): Promise<string> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
@@ -194,7 +197,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sellerCommission: finalCommission,
             commissionRate: finalRate,
             deliveryMethod,
-            pickupBranchId
+            pickupBranchId,
+            couponCode: couponCode || undefined
         };
 
         setOrders(prev => {
@@ -208,7 +212,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (e) { }
 
         // Await order persistence to ensure data reaches server before any potential reload
-        await api.saveOrder(newOrder, true);
+        try {
+            await api.saveOrder(newOrder, true);
+        } catch (saveError) {
+            // Si el servidor rechaza la orden (concurrencia, falta de stock, etc.), revertir del estado local
+            setOrders(prev => {
+                const reverted = prev.filter(o => o.id !== newOrder.id);
+                updateLocalCache('orders', reverted);
+                return reverted;
+            });
+            throw saveError;
+        }
 
         const safePhone = customerPhone.replace(/\s/g, '').trim();
         setCustomers(prev => {

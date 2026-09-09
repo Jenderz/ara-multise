@@ -121,7 +121,9 @@ export const OrderDetailsModal = ({ order, onClose }: { order: Order, onClose: (
                             return hasDiscount ? (
                                 <div className="flex gap-3 text-xs text-gray-500 mb-1">
                                     <span>Subtotal: <span className="font-bold text-gray-700 dark:text-gray-300">${subtotal.toFixed(2)}</span></span>
-                                    <span className="text-green-500 font-bold">Descuento: -${discount.toFixed(2)}</span>
+                                    <span className="text-green-500 font-bold">
+                                        Descuento{order.couponCode ? ` (${order.couponCode})` : ''}: -${discount.toFixed(2)}
+                                    </span>
                                 </div>
                             ) : null;
                         })()}

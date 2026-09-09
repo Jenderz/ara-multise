@@ -9,7 +9,9 @@
 // Límite: 120 peticiones por minuto por IP (= 2 req/seg).
 // Si se excede → HTTP 429. El frontend lo ignora con gracia.
 // ════════════════════════════════════════════════════════════════════
-$_rl_ip     = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$_rl_ip     = $_SERVER['HTTP_CF_CONNECTING_IP'] 
+    ?? (isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]) : null)
+    ?? ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 $_rl_file   = sys_get_temp_dir() . '/rl_' . md5($_rl_ip) . '.json';
 $_rl_now    = time();
 $_rl_window = 60;  // ventana de 60 segundos
@@ -40,6 +42,7 @@ if (file_exists(__DIR__ . '/lib/config.php')) {
     require_once __DIR__ . '/lib/config.example.php';
 }
 require_once __DIR__ . '/lib/schema.php';
+require_once __DIR__ . '/lib/auth.php';
 
 // --- SEGURIDAD DE APLICACIÓN (PARA EVITAR BLOQUEOS ANTIVIRUS) ---
 if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
@@ -50,9 +53,15 @@ if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
 }
 // ------------------------------------------------------------- 
 
-// 2. Iniciar DB y Migraciones
+// 2. Iniciar DB y Migraciones Condicionales (Previene bloqueo DDL en cada request)
 $pdo = getDBConnection();
-checkAndMigrateDB($pdo);
+
+$schemaLock = __DIR__ . '/.schema_version';
+$currentSchemaVersion = 7;
+if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
+    checkAndMigrateDB($pdo);
+    @file_put_contents($schemaLock, strval($currentSchemaVersion));
+}
 
 // 3. Contexto
 $branchId = isset($_SERVER['HTTP_X_BRANCH_ID']) ? intval($_SERVER['HTTP_X_BRANCH_ID']) : 1;
@@ -65,10 +74,28 @@ $input = safeJsonDecode($rawInput);
 // 4. Enrutador Modular
 try {
     switch ($action) {
+        // --- AUTENTICACIÓN & MIGRACIONES ---
+        case 'login':
+            handleLogin($pdo, $input);
+            break;
+        case 'migrate':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            }
+            checkAndMigrateDB($pdo);
+            @file_put_contents(__DIR__ . '/.schema_version', strval($currentSchemaVersion));
+            jsonResponse(['status' => 'success', 'message' => 'Base de datos migrada e indexada correctamente.']);
+            break;
+
         // --- LECTURA ---
         case 'get_all':
             require_once 'lib/read.php';
             handleGetAll($pdo, $branchId);
+            break;
+        case 'get_settings':
+            require_once 'lib/read.php';
+            handleGetSettings($pdo);
             break;
         case 'get_products':
             require_once 'lib/read.php';
@@ -146,6 +173,10 @@ try {
             handleDelete($pdo, 'customers', 'phone', $input['phone']);
             break;
         case 'save_category':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para gestionar categorías.'], 403);
+            }
             $stmt = $pdo->prepare("INSERT INTO `categories` (id, name, image) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), image=VALUES(image)");
             $stmt->execute([$input['id'], $input['name'], $input['image']]);
             jsonResponse(['status' => 'success']);
@@ -163,10 +194,18 @@ try {
             handleDelete($pdo, 'branches', 'id', $input['id']);
             break;
         case 'reset_database':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere sesión de administrador para reiniciar la base de datos.'], 403);
+            }
             require_once 'lib/write.php';
             handleReset($pdo, $input);
             break;
         case 'save_coupon':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para gestionar cupones.'], 403);
+            }
             $c = $input;
             $code = strtoupper(trim(preg_replace('/\s+/', '', (string)($c['code'] ?? ''))));
             if (empty($code)) {
@@ -194,11 +233,11 @@ try {
             handleLogActivity($pdo, $input);
             break;
 
-            // --- UPLOAD HANDLER LOCAL (SIN CDN EXTERNO) ---
-
-            break;
-
         case 'upload_pwa_screenshot':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            }
             $b64Data = $input['base64'] ?? '';
             $fileName = $input['fileName'] ?? ''; // desktop.jpg or mobile.jpg
 
@@ -209,10 +248,10 @@ try {
                 jsonResponse(['error' => 'Invalid filename. Only desktop.jpg and mobile.jpg are allowed.'], 400);
             }
 
-            // Decodificar Base64
-            list($type, $data) = explode(';', $b64Data);
-            list(, $data)      = explode(',', $data);
-            $imgData = base64_decode($data);
+            // Decodificar Base64 de forma robusta
+            $cleanB64 = (strpos($b64Data, ',') !== false) ? substr($b64Data, strpos($b64Data, ',') + 1) : $b64Data;
+            $imgData = base64_decode($cleanB64);
+            if ($imgData === false) jsonResponse(['error' => 'Invalid base64 image data'], 400);
 
             // Directorio screenshots en raíz
             $screenshotsDir = __DIR__ . '/screenshots';
@@ -234,14 +273,17 @@ try {
             break;
 
         case 'update_pwa_icon':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            }
             $b64Data = $input['base64'] ?? '';
-
             if (empty($b64Data)) jsonResponse(['error' => 'Missing data'], 400);
 
-            // Decodificar Base64
-            list($type, $data) = explode(';', $b64Data);
-            list(, $data)      = explode(',', $data);
-            $imgData = base64_decode($data);
+            // Decodificar Base64 de forma robusta
+            $cleanB64 = (strpos($b64Data, ',') !== false) ? substr($b64Data, strpos($b64Data, ',') + 1) : $b64Data;
+            $imgData = base64_decode($cleanB64);
+            if ($imgData === false) jsonResponse(['error' => 'Invalid base64 image data'], 400);
 
             // Ruta al icono principal
             $iconPath = __DIR__ . '/icon.png';
@@ -257,13 +299,17 @@ try {
             break;
 
         case 'upload_image_stealth':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Se requiere sesión activa para subir imágenes.'], 401);
+            }
             $b64Data = $input['base64'] ?? '';
             if (empty($b64Data)) jsonResponse(['error' => 'No data'], 400);
 
-            // Decodificar Base64
-            list($type, $data) = explode(';', $b64Data);
-            list(, $data)      = explode(',', $data);
-            $imgData = base64_decode($data);
+            // Decodificar Base64 de forma robusta
+            $cleanB64 = (strpos($b64Data, ',') !== false) ? substr($b64Data, strpos($b64Data, ',') + 1) : $b64Data;
+            $imgData = base64_decode($cleanB64);
+            if ($imgData === false) jsonResponse(['error' => 'Invalid base64 image data'], 400);
 
             // Identificar Dominio/Tienda
             $host = $_SERVER['HTTP_HOST'];

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserAccount, UserRole, ActivityLog } from '../types';
 import { api } from '../services/api';
 import { useSettings } from './SettingsContext';
@@ -49,14 +49,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
         try {
+            const token = localStorage.getItem('lyberate_auth_token');
+            if (!token) {
+                localStorage.removeItem('lyberate_user');
+                localStorage.removeItem('lyberate_role');
+                return null;
+            }
             const saved = localStorage.getItem('lyberate_user');
             return saved ? JSON.parse(saved) : null;
         } catch { return null; }
     });
 
     const [userRole, setUserRole] = useState<UserRole>(() => {
+        const token = localStorage.getItem('lyberate_auth_token');
+        if (!token) return null;
         return (localStorage.getItem('lyberate_role') as UserRole) || (currentUser ? currentUser.role : null);
     });
+
+    useEffect(() => {
+        const handleUnauthorized = () => {
+            setUserRole(null);
+            setCurrentUser(null);
+            localStorage.removeItem('lyberate_role');
+            localStorage.removeItem('lyberate_user');
+            localStorage.removeItem('lyberate_auth_token');
+        };
+        window.addEventListener('lyberate:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('lyberate:unauthorized', handleUnauthorized);
+    }, []);
 
     // Helper Universal para asegurar Arrays (Usuarios y Logs)
     const ensureArray = <T,>(input: any): T[] => {
@@ -92,34 +112,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
     };
 
-    // Auth Logic
+    // Auth Logic - Autenticación Segura en Backend
     const login = async (username: string, password: string): Promise<boolean> => {
-        // LECTURA PREVIA: Usar cache de settings (evita petición doble con el fetch inicial)
-        let users: UserAccount[] = [];
         try {
-            const freshSettings = await getCachedSettings();
-            let rawUsers = freshSettings?.users || settings.users;
-            users = ensureArray<UserAccount>(rawUsers);
-        } catch (e) {
-            users = ensureArray<UserAccount>(settings.users);
-        }
-
-        const inputHash = await hashPassword(password);
-
-        // 1. Check Users Array (MODO SEGURO)
-        const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.active);
-
-        if (user) {
-            if (user.password === inputHash) return performLogin(user);
-            // Legacy migration (si la pass no estaba hasheada)
-            if (user.password === password) {
-                const updatedUser = { ...user, password: inputHash };
-                await updateUser(updatedUser);
-                return performLogin(updatedUser);
+            const res = await api.login(username, password);
+            if (res && res.status === 'success' && res.user) {
+                if (res.token) {
+                    localStorage.setItem('lyberate_auth_token', res.token);
+                }
+                return performLogin(res.user);
             }
+            return false;
+        } catch (e: any) {
+            console.error("Login error:", e);
+            return false;
         }
-
-        return false;
     };
 
     const performLogin = (user: UserAccount) => {
@@ -140,6 +147,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentUser(null);
         localStorage.removeItem('lyberate_role');
         localStorage.removeItem('lyberate_user');
+        localStorage.removeItem('lyberate_auth_token');
     };
 
     // --- USER MANAGEMENT SEGURO Y OPTIMIZADO ---

@@ -2,47 +2,113 @@
 <?php
 function handleAdjustStock($pdo, $input, $branchId)
 {
-    $p = $input;
-    $targetBid = $p['targetBranchId'] ?? $branchId;
-    $pdo->prepare("INSERT IGNORE INTO `inventory` (product_id, branch_id, stock) VALUES (?, ?, 0)")->execute([$p['productId'], $targetBid]);
-
-    if ($p['type'] === 'adjustment') {
-        // Ajuste por conteo físico directo: fija el stock exactamente a la cantidad contada
-        $newStock = max(0, intval($p['amount']));
-        $stmtCur = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
-        $stmtCur->execute([$p['productId'], $targetBid]);
-        $before = intval($stmtCur->fetchColumn() ?: 0);
-        $diff = $newStock - $before;
-
-        $pdo->prepare("UPDATE `inventory` SET `stock` = ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
-            ->execute([$newStock, time(), $p['productId'], $targetBid]);
-
-        $after = $newStock;
-        $loggedAmount = abs($diff);
-        $refStr = $p['reference'] . " (Conteo Físico: $before -> $newStock)";
-        $movType = $diff >= 0 ? 'entry' : 'exit';
-    } else {
-        $mod = ($p['type'] === 'entry' || $p['type'] === 'transfer_in' || $p['type'] === 'return') ? intval($p['amount']) : -intval($p['amount']);
-
-        $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
-            ->execute([$mod, time(), $p['productId'], $targetBid]);
-
-        $stmtAfter = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
-        $stmtAfter->execute([$p['productId'], $targetBid]);
-        $after = $stmtAfter->fetchColumn();
-        $loggedAmount = intval($p['amount']);
-        $refStr = $p['reference'];
-        $movType = $p['type'];
+    $authUser = getAuthUser($pdo);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Se requiere sesión activa para ajustar inventario.'], 401);
     }
 
-    $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
-        ->execute([generateUniqueId(), $p['productId'], $targetBid, $p['userId'], $p['userName'], $movType, $loggedAmount, $after, $refStr, time() * 1000]);
+    $p = $input;
+    $targetBid = intval($p['targetBranchId'] ?? $branchId);
+    if ($targetBid <= 0) $targetBid = 1;
 
-    jsonResponse(['status' => 'success', 'stock' => $after]);
+    $targetProdId = strval($p['productId'] ?? '');
+    if (empty($targetProdId)) {
+        jsonResponse(['error' => 'ID de producto requerido'], 400);
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare("INSERT IGNORE INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, 0, ?)")
+            ->execute([$targetProdId, $targetBid, time()]);
+
+        if ($p['type'] === 'adjustment') {
+            // Ajuste por conteo físico directo: fija el stock exactamente a la cantidad contada
+            $newStock = max(0, intval($p['amount']));
+            $stmtCur = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ? FOR UPDATE");
+            $stmtCur->execute([$targetProdId, $targetBid]);
+            $before = intval($stmtCur->fetchColumn() ?: 0);
+            $diff = $newStock - $before;
+
+            $pdo->prepare("UPDATE `inventory` SET `stock` = ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
+                ->execute([$newStock, time(), $targetProdId, $targetBid]);
+
+            $after = $newStock;
+            $loggedAmount = abs($diff);
+            $refStr = $p['reference'] . " (Conteo Físico: $before -> $newStock)";
+            $movType = $diff >= 0 ? 'entry' : 'exit';
+        } else {
+            $mod = ($p['type'] === 'entry' || $p['type'] === 'transfer_in' || $p['type'] === 'return') ? intval($p['amount']) : -intval($p['amount']);
+
+            $pdo->prepare("UPDATE `inventory` SET `stock` = `stock` + ?, `updated_at` = ? WHERE `product_id` = ? AND `branch_id` = ?")
+                ->execute([$mod, time(), $targetProdId, $targetBid]);
+
+            $stmtAfter = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+            $stmtAfter->execute([$targetProdId, $targetBid]);
+            $after = intval($stmtAfter->fetchColumn() ?: 0);
+            $loggedAmount = intval($p['amount']);
+            $refStr = $p['reference'];
+            $movType = $p['type'];
+        }
+
+        // --- SINCRONIZACIÓN ATÓMICA PADRE-VARIANTE ---
+        $parentId = null;
+        $parentVariants = null;
+
+        // 1. Buscar si targetProdId es una variante dentro de algún producto padre
+        $stmtVarSearch = $pdo->prepare("SELECT id, variants FROM `products` WHERE variants LIKE ? LIMIT 10");
+        $stmtVarSearch->execute(['%' . $targetProdId . '%']);
+        while ($pRow = $stmtVarSearch->fetch(PDO::FETCH_ASSOC)) {
+            if (!empty($pRow['variants'])) {
+                $vars = safeJsonDecode($pRow['variants']);
+                if (is_array($vars)) {
+                    foreach ($vars as $v) {
+                        if (isset($v['id']) && strval($v['id']) === $targetProdId) {
+                            $parentId = strval($pRow['id']);
+                            $parentVariants = $vars;
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Si es una variante, recalcular la suma consolidada de todas las variantes del padre en esta sede
+        if ($parentId && $parentId !== $targetProdId && !empty($parentVariants)) {
+            $varIds = array_filter(array_column($parentVariants, 'id'));
+            if (!empty($varIds)) {
+                $placeholders = implode(',', array_fill(0, count($varIds), '?'));
+                $sumStmt = $pdo->prepare("SELECT COALESCE(SUM(stock), 0) FROM `inventory` WHERE branch_id = ? AND product_id IN ($placeholders)");
+                $sumParams = array_merge([$targetBid], array_values($varIds));
+                $sumStmt->execute($sumParams);
+                $consolidatedStock = intval($sumStmt->fetchColumn() ?: 0);
+
+                // Actualizar la fila del producto padre consolidado en inventory
+                $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `stock` = VALUES(`stock`), `updated_at` = VALUES(`updated_at`)")
+                    ->execute([$parentId, $targetBid, $consolidatedStock, time()]);
+            }
+        }
+
+        // Registrar movimiento
+        $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            ->execute([generateUniqueId(), $targetProdId, $targetBid, $p['userId'] ?? 'system', $p['userName'] ?? 'Sistema', $movType, $loggedAmount, $after, $refStr, time() * 1000]);
+
+        $pdo->commit();
+        jsonResponse(['status' => 'success', 'stock' => $after]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        jsonResponse(['error' => 'Error al ajustar stock: ' . $e->getMessage()], 500);
+    }
 }
 
 function handleTransferStock($pdo, $input)
 {
+    $authUser = getAuthUser($pdo);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Se requiere sesión activa para transferir inventario.'], 401);
+    }
+
     $p = $input;
 
     // Validaciones Básicas
@@ -279,7 +345,7 @@ function handleGetMovements($pdo)
             'page' => $page,
             'limit' => $limit,
             'total' => $totalRecords,
-            'totalPages' => ceil($totalRecords / $limit)
+            'totalPages' => max(1, (int)ceil($totalRecords / $limit))
         ]
     ]);
 }

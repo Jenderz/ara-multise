@@ -8,9 +8,9 @@ function checkAndMigrateDB($pdo) {
                 `code` VARCHAR(255),
                 `title` VARCHAR(255),
                 `description` TEXT,
-                `cost` FLOAT DEFAULT 0,
-                `price` FLOAT DEFAULT 0,
-                `sale_price` FLOAT DEFAULT 0,
+                `cost` DECIMAL(12,2) DEFAULT 0,
+                `price` DECIMAL(12,2) DEFAULT 0,
+                `sale_price` DECIMAL(12,2) DEFAULT 0,
                 `images` LONGTEXT,
                 `category` VARCHAR(255),
                 `extra_categories` TEXT DEFAULT NULL,
@@ -31,19 +31,20 @@ function checkAndMigrateDB($pdo) {
                 `customer_phone` VARCHAR(255),
                 `customer_address` TEXT,
                 `items` LONGTEXT,
-                `subtotal` FLOAT DEFAULT 0,
-                `discount` FLOAT DEFAULT 0,
-                `total` FLOAT DEFAULT 0,
+                `subtotal` DECIMAL(12,2) DEFAULT 0,
+                `discount` DECIMAL(12,2) DEFAULT 0,
+                `total` DECIMAL(12,2) DEFAULT 0,
                 `status` VARCHAR(50) DEFAULT 'pending',
                 `date` BIGINT,
                 `payment_method` TEXT,
                 `seller_id` VARCHAR(255),
                 `seller_name` VARCHAR(255),
-                `seller_commission` FLOAT DEFAULT 0,
-                `commission_rate` FLOAT DEFAULT 0,
+                `seller_commission` DECIMAL(12,2) DEFAULT 0,
+                `commission_rate` DECIMAL(8,2) DEFAULT 0,
                 `delivery_method` VARCHAR(50) DEFAULT 'pos',
                 `pickup_branch_id` INT DEFAULT 0,
-                `stock_deducted` TINYINT(1) DEFAULT 0
+                `stock_deducted` TINYINT(1) DEFAULT 0,
+                `coupon_code` VARCHAR(50) DEFAULT NULL
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "customers" => "CREATE TABLE IF NOT EXISTS `customers` (
@@ -51,7 +52,7 @@ function checkAndMigrateDB($pdo) {
                 `name` VARCHAR(255),
                 `cedula` VARCHAR(30) DEFAULT '',
                 `address` TEXT,
-                `total_spent` FLOAT DEFAULT 0,
+                `total_spent` DECIMAL(12,2) DEFAULT 0,
                 `order_count` INT DEFAULT 0,
                 `last_order_date` BIGINT,
                 `order_ids` LONGTEXT
@@ -99,7 +100,7 @@ function checkAndMigrateDB($pdo) {
             "coupons" => "CREATE TABLE IF NOT EXISTS `coupons` (
                 `code` VARCHAR(50) PRIMARY KEY,
                 `discount_type` VARCHAR(50),
-                `value` FLOAT,
+                `value` DECIMAL(12,2) DEFAULT 0,
                 `active` TINYINT(1) DEFAULT 1
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
@@ -126,15 +127,25 @@ function checkAndMigrateDB($pdo) {
 
         foreach ($tables as $sql) $pdo->exec($sql);
 
-        // --- MIGRACIONES CRÍTICAS PARA ARREGLAR ERROR "OUT OF RANGE" ---
-        // Forzamos el cambio de tipos de columna si fueron creados incorrectamente como INT
+        // --- MIGRACIONES CRÍTICAS PARA ARREGLAR ERROR "OUT OF RANGE" Y PRECISIÓN DECIMAL ---
+        // Forzamos el cambio de tipos de columna si fueron creados incorrectamente como INT o FLOAT
         $fixes = [
             "ALTER TABLE `orders` MODIFY `id` VARCHAR(255)",
             "ALTER TABLE `orders` MODIFY `date` BIGINT",
+            "ALTER TABLE `orders` MODIFY `subtotal` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `orders` MODIFY `discount` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `orders` MODIFY `total` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `orders` MODIFY `seller_commission` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `orders` MODIFY `commission_rate` DECIMAL(8,2) DEFAULT 0",
             "ALTER TABLE `products` MODIFY `id` VARCHAR(255)",
+            "ALTER TABLE `products` MODIFY `cost` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `products` MODIFY `price` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `products` MODIFY `sale_price` DECIMAL(12,2) DEFAULT 0",
             "ALTER TABLE `product_movements` MODIFY `id` VARCHAR(255)",
             "ALTER TABLE `product_movements` MODIFY `date` BIGINT",
-            "ALTER TABLE `customers` MODIFY `last_order_date` BIGINT"
+            "ALTER TABLE `customers` MODIFY `last_order_date` BIGINT",
+            "ALTER TABLE `customers` MODIFY `total_spent` DECIMAL(12,2) DEFAULT 0",
+            "ALTER TABLE `coupons` MODIFY `value` DECIMAL(12,2) DEFAULT 0"
         ];
 
         foreach ($fixes as $sql) {
@@ -157,13 +168,14 @@ function checkAndMigrateDB($pdo) {
                 'branch_id' => "INT DEFAULT 1", 
                 'seller_id' => "VARCHAR(255)", 
                 'seller_name' => "VARCHAR(255)",
-                'seller_commission' => "FLOAT DEFAULT 0",
-                'commission_rate' => "FLOAT DEFAULT 0",
-                'subtotal' => "FLOAT DEFAULT 0",
-                'discount' => "FLOAT DEFAULT 0",
+                'seller_commission' => "DECIMAL(12,2) DEFAULT 0",
+                'commission_rate' => "DECIMAL(8,2) DEFAULT 0",
+                'subtotal' => "DECIMAL(12,2) DEFAULT 0",
+                'discount' => "DECIMAL(12,2) DEFAULT 0",
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",
                 'pickup_branch_id' => "INT DEFAULT 0",
-                'stock_deducted' => "TINYINT(1) DEFAULT 0"
+                'stock_deducted' => "TINYINT(1) DEFAULT 0",
+                'coupon_code' => "VARCHAR(50) DEFAULT NULL"
             ],
             'customers' => [
                 'cedula' => "VARCHAR(30) DEFAULT ''"
@@ -182,10 +194,13 @@ function checkAndMigrateDB($pdo) {
         $indexes = [
             "CREATE INDEX idx_orders_branch_date ON `orders` (`branch_id`, `date`)",
             "CREATE INDEX idx_orders_status ON `orders` (`status`)",
+            "CREATE INDEX idx_orders_date ON `orders` (`date`)",
+            "CREATE INDEX idx_orders_customer_phone ON `orders` (`customer_phone`)",
             "CREATE INDEX idx_product_movements_prod_branch ON `product_movements` (`product_id`, `branch_id`)",
             "CREATE INDEX idx_product_movements_date ON `product_movements` (`date`)",
             "CREATE INDEX idx_products_category ON `products` (`category`)",
-            "CREATE INDEX idx_products_barcode ON `products` (`barcode_ean`)"
+            "CREATE INDEX idx_products_barcode ON `products` (`barcode_ean`)",
+            "CREATE INDEX idx_products_created_at ON `products` (`created_at`)"
         ];
         foreach ($indexes as $idxSql) {
             try {

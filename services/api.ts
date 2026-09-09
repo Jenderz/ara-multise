@@ -15,11 +15,17 @@ const getActiveBranchId = () => {
     return localStorage.getItem('lyberate_branch_id') || '1';
 };
 
+// Helper para obtener el token de sesión de autenticación
+const getAuthToken = () => {
+    return localStorage.getItem('lyberate_auth_token') || '';
+};
+
 const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: any) => {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
+        const authToken = getAuthToken();
         const headers: Record<string, string> = {
             'X-Branch-ID': getActiveBranchId(),
             'X-App-Token': 'AraEcom_v5_Secure', // Token para evitar bloqueos del WAF/Antivirus
@@ -27,7 +33,11 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
             // FIX BUG: Cache-Control reemplaza al &t=Date.now() como anti-caché.
             // Es el método correcto y estándar — no genera URLs únicas que disparan rate-limiting.
             'Cache-Control': 'no-store, no-cache',
-            'Pragma': 'no-cache'
+            'Pragma': 'no-cache',
+            ...(authToken ? {
+                'Authorization': `Bearer ${authToken}`,
+                'X-Admin-Token': authToken
+            } : {})
         };
 
         if (!(data instanceof FormData)) {
@@ -82,6 +92,9 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
         }
 
         if (!response.ok) {
+            if (response.status === 401 && action !== 'login') {
+                window.dispatchEvent(new Event('lyberate:unauthorized'));
+            }
             const errorMsg = json?.error || json?.details || json?.message || `Server Error ${response.status}`;
             throw new Error(errorMsg);
         }
@@ -101,6 +114,8 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
 };
 
 export const api = {
+    login: (username: string, password: string) => fetchApi('login', 'POST', { username, password }),
+    runMigration: () => fetchApi('migrate', 'POST'),
     getAllData: () => fetchApi('get_all'),
     getSettings: () => fetchApi('get_settings'),
 

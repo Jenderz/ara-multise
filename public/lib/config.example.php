@@ -27,7 +27,7 @@ register_shutdown_function(function () {
         if (ob_get_length()) ob_clean();
         http_response_code(500);
         header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Branch-ID");
+        header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Branch-ID, X-App-Token, X-Admin-Token");
         header("Content-Type: application/json; charset=UTF-8");
         echo json_encode(['error' => 'Fatal Server Error', 'details' => $error['message']]);
         exit();
@@ -37,7 +37,7 @@ register_shutdown_function(function () {
 // --- HEADERS Y CORS ---
 if (ob_get_length()) ob_clean();
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Branch-ID");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-Branch-ID, X-App-Token, X-Admin-Token");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -156,6 +156,7 @@ function mapOrder($o)
     );
     $o['pickupBranchId'] = (int)($o['pickup_branch_id'] ?? 0);
     $o['stockDeducted'] = (bool)($o['stock_deducted'] ?? 0);
+    $o['couponCode'] = !empty($o['coupon_code']) ? $o['coupon_code'] : ($o['couponCode'] ?? null);
     return $o;
 }
 

@@ -3,6 +3,11 @@
 
 function handleGetLogs($pdo)
 {
+    $authUser = getAuthUser($pdo);
+    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+        jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para consultar registros de auditoría.'], 403);
+    }
+
     // Parámetros de Paginación y Búsqueda
     $page = max(1, intval($_GET['page'] ?? 1));
     $limit = max(1, intval($_GET['limit'] ?? 50));
@@ -49,7 +54,7 @@ function handleGetLogs($pdo)
             'total' => (int)$total,
             'page' => $page,
             'limit' => $limit,
-            'pages' => ceil($total / $limit)
+            'pages' => max(1, (int)ceil($total / $limit))
         ]
     ]);
 }

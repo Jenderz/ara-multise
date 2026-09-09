@@ -3,7 +3,6 @@ import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { NotificationProvider } from './context/NotificationContext';
-import { ARAWProvider } from './integrations/araw/ARAWContext';
 import { Home } from './pages/Home';
 import { CartDrawer } from './components/CartDrawer';
 import { SearchOverlay } from './components/SearchOverlay';
@@ -195,9 +194,7 @@ const App: React.FC = () => {
     return (
         <StoreProvider>
             <NotificationProvider>
-                <ARAWProvider>
-                    <AppContent />
-                </ARAWProvider>
+                <AppContent />
             </NotificationProvider>
         </StoreProvider>
     );

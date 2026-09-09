@@ -20,8 +20,7 @@
 5. [Arquitectura y Reglas del Sistema Multisede](#5-arquitectura-y-reglas-del-sistema-multisede)
 6. [Punto de Venta (POS) Profesional](#6-punto-de-venta-pos-profesional)
 7. [Kardex y Trazabilidad (`product_movements`)](#7-kardex-y-trazabilidad-product_movements)
-8. [Integración B2B con Almacén Central (ARAW)](#8-integración-b2b-con-almacén-central-araw)
-9. [Guía de Configuración, Despliegue y Troubleshooting](#9-guía-de-configuración-despliegue-y-troubleshooting)
+8. [Guía de Configuración, Despliegue y Troubleshooting](#8-guía-de-configuración-despliegue-y-troubleshooting)
 
 ---
 
@@ -54,8 +53,6 @@ c:\Users\pc\Documents\ARA\
 │   ├── POSContext.tsx           # Carrito POS, pagos, atajos y órdenes en espera
 │   ├── CartContext.tsx          # Carrito web y persistencia de pedidos
 │   └── AuthContext.tsx          # Autenticación, roles (Admin/Vendedor/Master) y auditoría
-├── integrations/                # Integraciones Externas
-│   └── araw/                    # Conector B2B con Almacén Central (ARAW)
 ├── services/
 │   └── api.ts                   # Cliente API fetch con anti-caché y header X-Branch-ID
 ├── public/                      # Backend PHP y API Gateway
@@ -200,15 +197,7 @@ Cada alteración de existencias queda registrada en el kardex:
 
 ---
 
-## 8. Integración B2B con Almacén Central (ARAW)
-
-El sistema soporta conexión con el almacén central (WMS) mediante el módulo `integrations/araw/`:
-- **Modo Solicitante (*Requester Mode*):** Permite a las tiendas subordinadas consultar el catálogo del centro de distribución y solicitar reposición de stock.
-- **Botón `ReplenishButton`:** Integrado en el catálogo para generar pedidos de reabastecimiento directo hacia el depósito central.
-
----
-
-## 9. Guía de Configuración, Despliegue y Troubleshooting
+## 8. Guía de Configuración, Despliegue y Troubleshooting
 
 ### Instalación en Servidor (Producción)
 1. **Frontend:**

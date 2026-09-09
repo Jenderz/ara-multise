@@ -1,12 +1,4 @@
 
-/** Configuración de la integración B2B con el almacén central ARAW */
-export interface ARAWIntegrationConfig {
-  enabled: boolean;
-  arawBaseUrl: string;
-  apiKey: string;
-  lastValidatedAt?: string;
-}
-
 export interface SystemConfig {
   seoTitle: string;
   seoDescription: string;
@@ -22,7 +14,6 @@ export interface SystemConfig {
   salesAdvisors?: SalesAdvisor[];
   logs?: ActivityLog[];
   planTier?: 'single' | 'multi';
-  arawIntegration?: ARAWIntegrationConfig; // Integración B2B con almacén central
 }
 
 export interface AnnouncementBarConfig {
@@ -174,6 +165,7 @@ export interface Order {
   deliveryMethod?: 'delivery' | 'pickup' | 'pos';
   pickupBranchId?: number;
   stockDeducted?: boolean;
+  couponCode?: string;
 }
 
 export interface Customer {
@@ -366,7 +358,7 @@ export interface StoreContextType {
   removeFromCart: (cartId: string) => void;
   updateCartQuantity: (cartId: string, delta: number) => void;
   clearCart: () => void;
-  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number) => Promise<string>;
+  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string) => Promise<string>;
   updateOrder: (order: Order) => Promise<void>;
   deleteOrder: (id: string) => void;
   updateCustomer: (customer: Customer) => Promise<void>;

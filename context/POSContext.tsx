@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product, CartItem, Customer, PaymentMethod } from '../types';
+import { Product, CartItem, Customer, PaymentMethod, Order } from '../types';
 import { useStore } from './StoreContext';
 import { useAuth } from './AuthContext';
 import { useProduct } from './ProductContext';
@@ -342,11 +342,26 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setCart([]);
             setCheckoutModalOpen(false);
         } catch (error: any) {
-            addNotification({ 
-                title: 'Error en la venta', 
-                body: error.message || 'No se pudo procesar la venta.', 
-                type: 'warning' 
-            });
+            const msg = error.message || 'No se pudo procesar la venta.';
+            const isConcurrencyIssue = msg.toLowerCase().includes('stock insuficiente') || 
+                                       msg.toLowerCase().includes('concurrencia') || 
+                                       msg.toLowerCase().includes('cambió durante la venta');
+
+            if (isConcurrencyIssue) {
+                // Auto-recuperación: sincronizar stock real del servidor sin perder la orden en curso ni recargar pantalla
+                refreshStoreData().catch(console.error);
+                addNotification({ 
+                    title: 'Conflicto de Stock Concurrente', 
+                    body: `${msg} Se han actualizado las existencias en pantalla automáticamente. Revisa las cantidades en el carrito.`, 
+                    type: 'warning' 
+                });
+            } else {
+                addNotification({ 
+                    title: 'Error en la venta', 
+                    body: msg, 
+                    type: 'warning' 
+                });
+            }
         }
     };
 

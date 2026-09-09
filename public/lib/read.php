@@ -45,6 +45,9 @@ function injectVariantStock($product, $localMap, $globalMap, $branchId = 0)
 
 function handleGetAll($pdo, $branchId)
 {
+    $authUser = getAuthUser($pdo);
+    $isStaff = ($authUser && in_array($authUser['role'] ?? '', ['admin', 'master', 'seller', 'cashier']));
+
     $settings = [];
     $sStmt = $pdo->query("SELECT * FROM `settings`");
     while ($r = $sStmt->fetch()) {
@@ -56,6 +59,25 @@ function handleGetAll($pdo, $branchId)
             if (json_last_error() === JSON_ERROR_NONE) $v = $j;
         }
         $settings[$r['setting_key']] = $v;
+    }
+
+    // BLINDAJE DE SEGURIDAD: Ocultar claves críticas y contraseñas
+    unset($settings['app_secret']);
+    unset($settings['adminPassword']);
+    unset($settings['sellerPassword']);
+    unset($settings['masterPassword']);
+
+    if (!$isStaff) {
+        // Visitantes públicos: no exponer lista de usuarios ni comisiones
+        unset($settings['users']);
+        unset($settings['salesAdvisors']);
+    } else {
+        // Personal autenticado: entregar usuarios pero NUNCA contraseñas
+        if (!empty($settings['users']) && is_array($settings['users'])) {
+            foreach ($settings['users'] as &$u) {
+                unset($u['password']);
+            }
+        }
     }
 
     $cats = $pdo->query("SELECT * FROM `categories`")->fetchAll();
@@ -360,3 +382,41 @@ function handleGetCustomers($pdo)
     $cStmt->execute($params);
     jsonResponse(['data' => $data, 'pagination' => ['total' => (int)$cStmt->fetchColumn(), 'page' => $page, 'limit' => $limit]]);
 }
+
+function handleGetSettings($pdo)
+{
+    $authUser = getAuthUser($pdo);
+    $isStaff = ($authUser && in_array($authUser['role'] ?? '', ['admin', 'master', 'seller', 'cashier']));
+
+    $settings = [];
+    $sStmt = $pdo->query("SELECT * FROM `settings`");
+    while ($r = $sStmt->fetch()) {
+        $v = $r['setting_value'];
+        if ($v === 'true') $v = true;
+        elseif ($v === 'false') $v = false;
+        else {
+            $j = json_decode($v, true);
+            if (json_last_error() === JSON_ERROR_NONE) $v = $j;
+        }
+        $settings[$r['setting_key']] = $v;
+    }
+
+    unset($settings['app_secret']);
+    unset($settings['adminPassword']);
+    unset($settings['sellerPassword']);
+    unset($settings['masterPassword']);
+
+    if (!$isStaff) {
+        unset($settings['users']);
+        unset($settings['salesAdvisors']);
+    } else {
+        if (!empty($settings['users']) && is_array($settings['users'])) {
+            foreach ($settings['users'] as &$u) {
+                unset($u['password']);
+            }
+        }
+    }
+
+    jsonResponse(['settings' => $settings]);
+}
+

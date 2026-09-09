@@ -1,15 +1,15 @@
 <IfModule mod_headers.c>
     # ═══════════════════════════════════════════════════════════════════
-    # CORS — PRODUCCIÓN: vebutterfly.com
+    # CORS — PRODUCCIÓN UNIVERSAL
     # ═══════════════════════════════════════════════════════════════════
-    # Acepta peticiones de vebutterfly.com, www.vebutterfly.com y
-    # mayor.vebutterfly.com (cualquier subdominio *.vebutterfly.com).
+    # Acepta peticiones del dominio principal, subdominios o pruebas locales.
     # ═══════════════════════════════════════════════════════════════════
 
-    SetEnvIfNoCase Origin "^https://([a-zA-Z0-9-]+\.)?vebutterfly\.com$" CORS_ALLOWED=1
+    # CORS Universal: Acepta cualquier dominio, subdominio o localhost donde se instale la tienda
+    SetEnvIfNoCase Origin "^https?://.*$" CORS_ALLOWED=1
     Header always set Access-Control-Allow-Origin "%{HTTP_ORIGIN}e" env=CORS_ALLOWED
     Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS" env=CORS_ALLOWED
-    Header always set Access-Control-Allow-Headers "Content-Type, X-Branch-ID, X-App-Token" env=CORS_ALLOWED
+    Header always set Access-Control-Allow-Headers "Content-Type, X-Branch-ID, X-App-Token, Authorization, X-Admin-Token" env=CORS_ALLOWED
     Header always set Access-Control-Max-Age "3600" env=CORS_ALLOWED
 
 

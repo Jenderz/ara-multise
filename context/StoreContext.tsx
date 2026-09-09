@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, ReactNode, useRef, useState } from 'react';
-import { StoreContextType, Order, Product, Category, Branch } from '../types';
+import { StoreContextType, Order, Product, Category, Branch, Coupon } from '../types';
 import { api } from '../services/api';
 
 import { SettingsProvider, useSettings } from './SettingsContext';

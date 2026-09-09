@@ -16,7 +16,6 @@ import { ProductImporter } from './products/ProductImporter';
 import { StockBreakdownModal } from './products/StockBreakdownModal';
 import { BarcodePrintModal } from './products/BarcodePrintModal';
 import { StockAdjustmentModal } from './products/StockAdjustmentModal';
-import { ReplenishButton } from '../../integrations/araw/ReplenishButton';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -210,7 +209,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                             ) : (
                                 serverProducts.map((p: Product) => (
                                     <tr key={p.id} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
-                                        <td className="p-5"><div className="w-12 h-12 rounded-xl overflow-hidden border border-black/5"><img src={p.images[0] || DEFAULT_IMAGE} className="w-full h-full object-cover" /></div></td>
+                                        <td className="p-5"><div className="w-12 h-12 rounded-xl overflow-hidden border border-black/5"><img src={p.images?.[0] || DEFAULT_IMAGE} className="w-full h-full object-cover" /></div></td>
                                         <td className="p-5"><p className="font-bold text-sm dark:text-white">{p.title}</p><p className="text-[10px] text-gray-400 font-mono">{p.code}</p></td>
                                         <td className="p-5">
                                             <div className="flex flex-wrap items-center gap-1">
@@ -249,8 +248,6 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                                 {isMultiBranch && (currentBranch?.id || 0) > 0 && (
                                                     <button onClick={() => setTransferProduct(p)} className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg" title="Transferir"><Truck size={18} /></button>
                                                 )}
-                                                {/* Slot B2B: Solo visible si la integración ARAW está activa */}
-                                                <ReplenishButton product={p} compact />
                                                 {canManage && (
                                                     <>
                                                         <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Ajuste Rápido de Stock"><SlidersHorizontal size={18} /></button>
@@ -279,7 +276,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                     serverProducts.map((p: Product) => (
                         <div key={p.id} className="bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-gray-100 dark:border-white/5 flex gap-4">
                             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shrink-0 border border-gray-100 dark:border-white/5">
-                                <img src={p.images[0] || DEFAULT_IMAGE} className="w-full h-full object-cover" />
+                                <img src={p.images?.[0] || DEFAULT_IMAGE} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                                 <div>
@@ -323,8 +320,6 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                     {isMultiBranch && (currentBranch?.id || 0) > 0 && (
                                         <button onClick={() => setTransferProduct(p)} className="p-2 text-orange-500 bg-orange-50 dark:bg-orange-900/10 rounded-xl" title="Transferir"><Truck size={16} /></button>
                                     )}
-                                    {/* Slot B2B mobile */}
-                                    <ReplenishButton product={p} />
                                     {canManage && (
                                         <>
                                             <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl" title="Ajuste Rápido de Stock"><SlidersHorizontal size={16} /></button>

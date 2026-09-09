@@ -16,12 +16,13 @@ const hashPassword = async (text: string): Promise<string> => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-const FactoryResetModal = ({ isOpen, onClose, onReset, userHash }: any) => {
+const FactoryResetModal = ({ isOpen, onClose, onReset, currentUser }: any) => {
     const [step, setStep] = useState<'selection' | 'auth' | 'confirm' | 'processing'>('selection');
     const [selectedOptions, setSelectedOptions] = useState<string[]>(['products', 'orders', 'customers']);
     const [passwordInput, setPasswordInput] = useState('');
     const [statusMsg, setStatusMsg] = useState('');
     const [authError, setAuthError] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const optionsList = [
         { id: 'products', label: 'Productos e Inventario' },
@@ -47,25 +48,26 @@ const FactoryResetModal = ({ isOpen, onClose, onReset, userHash }: any) => {
     };
 
     const verifyPassword = async () => {
-        // 1. Validamos que el input no esté vacío
         if (!passwordInput) {
             setAuthError('La contraseña es requerida.');
             return;
         }
 
-        // 2. Si no hay hash del usuario instanciado, no podemos validar
-        if (!userHash) {
-            setAuthError('Error: No se encontró la sesión del usuario.');
-            return;
-        }
-
-        // 3. Validamos el hash
-        const inputHash = await hashPassword(passwordInput);
-        if (inputHash === userHash) {
-            setStep('confirm');
-            setAuthError('');
-        } else {
+        setIsVerifying(true);
+        setAuthError('');
+        try {
+            const username = currentUser?.username || 'admin';
+            const res = await api.login(username, passwordInput);
+            if (res && res.status === 'success') {
+                setStep('confirm');
+                setAuthError('');
+            } else {
+                setAuthError('Contraseña incorrecta.');
+            }
+        } catch (e: any) {
             setAuthError('Contraseña incorrecta.');
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -130,7 +132,9 @@ const FactoryResetModal = ({ isOpen, onClose, onReset, userHash }: any) => {
                             </div>
                             <div className="flex gap-3">
                                 <Button variant="secondary" onClick={() => setStep('selection')} className="flex-1">Atrás</Button>
-                                <Button onClick={verifyPassword} className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black">Verificar</Button>
+                                <Button onClick={verifyPassword} disabled={isVerifying} className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-black">
+                                    {isVerifying ? 'Verificando...' : 'Verificar'}
+                                </Button>
                             </div>
                         </div>
                     )}
@@ -323,7 +327,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({ settings, onUpdate }) 
                 isOpen={isResetModalOpen}
                 onClose={() => setIsResetModalOpen(false)}
                 onReset={handleFactoryReset}
-                userHash={currentUser?.password}
+                currentUser={currentUser}
             />
         </div>
     );
