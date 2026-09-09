@@ -105,6 +105,12 @@ root.render(
   </React.StrictMode>
 );
 
+// Detectar desajustes de chunks generados por nuevos builds (estándar oficial de Vite)
+window.addEventListener('vite:preloadError', (event) => {
+  console.warn('Vite preload error (chunk no encontrado o desactualizado). Forzando recarga...', event);
+  window.location.reload();
+});
+
 // --- GESTIÓN AVANZADA DE SERVICE WORKER (PWA UPDATE) ---
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

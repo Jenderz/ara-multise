@@ -1,10 +1,10 @@
-// [BUILD] Service Worker Updated: 2026-09-09T17:10:00.000Z
+// [BUILD] Service Worker Updated: 2026-09-09T17:45:00.000Z
 
-// IMPORTANTE: Versión incrementada para forzar actualización de caché y resolución PWA (v0.3.1)
-const CACHE_STATIC = 'tienda-static-v152';
-const CACHE_DYNAMIC = 'tienda-dynamic-v137';
-const CACHE_IMAGES = 'tienda-images-v132';
-const CACHE_API = 'tienda-api-v132';
+// IMPORTANTE: Versión incrementada para forzar actualización de caché tras build (v0.3.2)
+const CACHE_STATIC = 'tienda-static-v153';
+const CACHE_DYNAMIC = 'tienda-dynamic-v138';
+const CACHE_IMAGES = 'tienda-images-v133';
+const CACHE_API = 'tienda-api-v133';
 
 // Recursos críticos (Rutas relativas para soportar subcarpetas)
 const ASSETS_TO_CACHE = [
