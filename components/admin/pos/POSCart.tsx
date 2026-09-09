@@ -3,8 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../../context/StoreContext';
 import { usePOS } from '../../../context/POSContext';
 import { Button } from '../../UIComponents';
-import { CartItem, Customer, PaymentMethod, SalesAdvisor } from '../../../types';
-import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus, ChevronDown } from 'lucide-react';
 
 export const POSCart = () => {
     const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings, updateSettings, currentBranch } = useStore();
@@ -27,6 +26,8 @@ export const POSCart = () => {
     // --- ESTADOS LOCALES DEL CARRITO UI ---
     const [customerInput, setCustomerInput] = useState('');
     const [customerPhone, setCustomerPhone] = useState('+58');
+    const [customerCedula, setCustomerCedula] = useState('');
+    const [showCustomerDetails, setShowCustomerDetails] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
     const [customerSuggestions, setCustomerSuggestions] = useState<Customer[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -38,8 +39,9 @@ export const POSCart = () => {
     const [applyCommission, setApplyCommission] = useState<boolean>(false);
     const [customCommissionRate, setCustomCommissionRate] = useState<string>('0');
 
-    // --- ESTADO PARA REGISTRO RÁPIDO DE ASESOR DE PISO EN COBRO ---
-    const [showQuickAdvisorModal, setShowQuickAdvisorModal] = useState(false);
+    // --- MODAL DE VENDEDOR Y REGISTRO RÁPIDO DE ASESOR ---
+    const [showSellerModal, setShowSellerModal] = useState(false);
+    const [showRegisterNewAdvisor, setShowRegisterNewAdvisor] = useState(false);
     const [quickAdvisorName, setQuickAdvisorName] = useState('');
     const [quickAdvisorRate, setQuickAdvisorRate] = useState('0');
     const [isSavingQuickAdvisor, setIsSavingQuickAdvisor] = useState(false);
@@ -70,7 +72,8 @@ export const POSCart = () => {
             }
             setQuickAdvisorName('');
             setQuickAdvisorRate('0');
-            setShowQuickAdvisorModal(false);
+            setShowRegisterNewAdvisor(false);
+            setShowSellerModal(false);
         } catch (err) {
             console.error("Error saving quick advisor:", err);
         } finally {
@@ -186,6 +189,7 @@ export const POSCart = () => {
         setSelectedCustomer(c);
         setCustomerInput(c.name);
         setCustomerPhone(c.phone || '+58');
+        setCustomerCedula(c.cedula || '');
         setShowSuggestions(false);
     };
 
@@ -210,8 +214,12 @@ export const POSCart = () => {
         const phone = selectedCustomer ? selectedCustomer.phone : customerPhone;
 
         let finalAddress = selectedCustomer ? selectedCustomer.address : '';
-        if (orderNote.trim()) {
-            finalAddress = finalAddress ? `${finalAddress} | Nota: ${orderNote}` : `Nota: ${orderNote}`;
+        const extraInfo: string[] = [];
+        if (customerCedula.trim()) extraInfo.push(`CI: ${customerCedula.trim()}`);
+        if (orderNote.trim()) extraInfo.push(`Nota: ${orderNote.trim()}`);
+        if (extraInfo.length > 0) {
+            const extraStr = extraInfo.join(' | ');
+            finalAddress = finalAddress ? `${finalAddress} | ${extraStr}` : extraStr;
         }
 
         let finalPaymentMethod = paymentMethod;
@@ -250,7 +258,9 @@ export const POSCart = () => {
         setMixedPayments([{ method: initialMethod, amount: '' }]);
         setCustomerInput('');
         setCustomerPhone('+58');
+        setCustomerCedula('');
         setSelectedCustomer(null);
+        setShowCustomerDetails(false);
         setDiscountValue('');
         setShowDiscountInput(false);
     };
@@ -263,9 +273,12 @@ export const POSCart = () => {
         const name = selectedCustomer ? selectedCustomer.name : (customerInput || 'Sin Nombre');
         parkOrder(name, selectedCustomer);
         setCustomerInput('');
+        setCustomerPhone('+58');
+        setCustomerCedula('');
         setSelectedCustomer(null);
         setOrderNote('');
         setDiscountValue('');
+        setShowCustomerDetails(false);
     };
 
     const handleRestoreParked = (index: number) => {
@@ -316,14 +329,27 @@ export const POSCart = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                    {/* Botón de Vendedor / Asesor en Header */}
                     <button
                         type="button"
-                        onClick={() => setShowQuickAdvisorModal(true)}
-                        className="p-1.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                        title="Registrar nuevo asesor o vendedor"
+                        onClick={() => setShowSellerModal(true)}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border transition-all active:scale-95 ${
+                            selectedSeller 
+                                ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/50 text-ios-blue' 
+                                : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-blue-600'
+                        }`}
+                        title={selectedSeller ? `Vendedor asignado: ${selectedSeller.name} (${selectedSeller.roleLabel})` : "Asignar vendedor o asesor"}
                     >
-                        <UserPlus size={16} />
+                        <UserCheck size={15} className={selectedSeller ? "text-ios-blue" : "text-gray-500 dark:text-gray-300"} />
+                        <span className="text-[11px] font-bold max-w-[85px] sm:max-w-[110px] truncate">
+                            {selectedSeller ? selectedSeller.name.split(' ')[0] : 'Vendedor'}
+                        </span>
+                        {selectedSeller && applyCommission && activeCommissionRate > 0 && (
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.2 rounded-full">
+                                {activeCommissionRate}%
+                            </span>
+                        )}
                     </button>
 
                     <button
@@ -473,16 +499,34 @@ export const POSCart = () => {
                     </div>
 
                     <div className="p-4 bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-2 rounded-t-2xl z-10">
-                        {/* ... (Customer inputs logic same as before) ... */}
-                        <div className="space-y-2">
-                            <div className="relative">
+                        {/* --- DATOS DEL CLIENTE (COMPACTO Y COLAPSABLE) --- */}
+                        <div className="space-y-1.5">
+                            <div className="relative flex items-center">
                                 <input
                                     value={customerInput}
                                     onChange={e => { setCustomerInput(e.target.value); setSelectedCustomer(null); }}
                                     placeholder="Nombre del Cliente..."
-                                    className="w-full bg-gray-50 dark:bg-black/20 border-transparent rounded-lg pl-8 pr-3 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20 font-medium placeholder-gray-400"
+                                    className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-8 pr-14 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
                                 />
                                 <User size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                
+                                {/* Flechita para expandir/colapsar detalles adicionales */}
+                                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                    {(customerPhone !== '+58' || customerCedula || orderNote) && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-ios-blue animate-pulse" title="Tiene datos adicionales" />
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCustomerDetails(!showCustomerDetails)}
+                                        className={`p-1 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ${
+                                            showCustomerDetails ? 'rotate-180 text-ios-blue dark:text-ios-blue' : ''
+                                        }`}
+                                        title={showCustomerDetails ? "Ocultar detalles (teléfono, cédula, nota)" : "Ver teléfono, cédula y nota"}
+                                    >
+                                        <ChevronDown size={14} />
+                                    </button>
+                                </div>
+
                                 {showSuggestions && (
                                     <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50">
                                         {customerSuggestions.map(c => (
@@ -498,106 +542,38 @@ export const POSCart = () => {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="relative">
-                                    <input
-                                        value={customerPhone}
-                                        onChange={e => setCustomerPhone(e.target.value)}
-                                        placeholder="Teléfono"
-                                        className="w-full bg-gray-50 dark:bg-black/20 border-transparent rounded-lg pl-8 pr-3 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20 font-medium placeholder-gray-400"
-                                    />
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] uppercase font-bold">#</span>
-                                </div>
-                                <div className="relative">
-                                    <input
-                                        value={orderNote}
-                                        onChange={e => setOrderNote(e.target.value)}
-                                        placeholder="Nota..."
-                                        className="w-full bg-gray-50 dark:bg-black/20 border-transparent rounded-lg pl-8 pr-3 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20 font-medium placeholder-gray-400"
-                                    />
-                                    <FileText size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
-                            </div>
-
-                            {/* Selector de Vendedor Asignado y Comisión Opcional */}
-                            <div className="bg-gray-50/70 dark:bg-black/20 p-2.5 rounded-xl border border-gray-100 dark:border-white/5 space-y-1.5">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                                        <UserCheck size={11} className="text-ios-blue"/> Vendedor Asignado
-                                    </label>
-                                    
-                                    {/* Control de Comisión Opcional */}
-                                    {selectedSeller && (
-                                        <div className="flex items-center gap-1.5">
-                                            <button
-                                                type="button"
-                                                onClick={() => setApplyCommission(!applyCommission)}
-                                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded transition-colors flex items-center gap-1 ${
-                                                    applyCommission 
-                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/40' 
-                                                        : 'bg-gray-100 dark:bg-white/10 text-gray-400 hover:text-gray-600'
-                                                }`}
-                                            >
-                                                <span>{applyCommission ? '✓ Comisión' : '+ Comisión'}</span>
-                                            </button>
-                                            {applyCommission && activeCommissionRate > 0 && finalTotal > 0 && (
-                                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400">
-                                                    ${estimatedCommission.toFixed(2)} ({activeCommissionRate}%)
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-1.5">
-                                    <div className="relative flex-1">
-                                        <select
-                                            value={selectedSellerId}
-                                            onChange={e => setSelectedSellerId(e.target.value)}
-                                            className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-lg pl-7 pr-3 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20 font-bold"
-                                        >
-                                            <option value="">-- Sin Asignar / Venta Directa --</option>
-                                            {/* Asesores */}
-                                            {availableSellers.filter((s: any) => s.type === 'advisor').length > 0 && (
-                                                <optgroup label="👔 Asesores de Venta">
-                                                    {availableSellers.filter((s: any) => s.type === 'advisor').map((a: any) => (
-                                                        <option key={a.id} value={a.id}>
-                                                            {a.name} {a.commissionRate > 0 ? `(${a.commissionRate}% com.)` : '(Sin com.)'}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            )}
-                                            {/* Cajeras y Usuarios del Sistema */}
-                                            {availableSellers.filter((s: any) => s.type === 'user').length > 0 && (
-                                                <optgroup label="🖥️ Cajeras / Acceso Sistema">
-                                                    {availableSellers.filter((s: any) => s.type === 'user').map((u: any) => (
-                                                        <option key={u.id} value={u.id}>
-                                                            {u.name} ({u.roleLabel}) {u.commissionRate > 0 ? `(${u.commissionRate}% com.)` : '(Sin com.)'}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            )}
-                                        </select>
-                                        <UserCheck size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            {/* Campos desplegables adicionales (Teléfono, Cédula y Nota) */}
+                            {showCustomerDetails && (
+                                <div className="grid grid-cols-3 gap-1.5 pt-0.5 animate-fade-in">
+                                    <div className="relative">
+                                        <input
+                                            value={customerPhone}
+                                            onChange={e => setCustomerPhone(e.target.value)}
+                                            placeholder="Teléfono"
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-6 pr-2 py-1.5 text-[11px] dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
+                                        />
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">#</span>
                                     </div>
-
-                                    {selectedSeller && applyCommission && (
-                                        <div className="w-16 relative" title="% Comisión para esta venta">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                step="0.5"
-                                                value={customCommissionRate}
-                                                onChange={e => setCustomCommissionRate(e.target.value)}
-                                                placeholder="%"
-                                                className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-center font-bold dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/20"
-                                            />
-                                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-gray-400 pointer-events-none">%</span>
-                                        </div>
-                                    )}
+                                    <div className="relative">
+                                        <input
+                                            value={customerCedula}
+                                            onChange={e => setCustomerCedula(e.target.value)}
+                                            placeholder="Cédula / RIF"
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-6 pr-2 py-1.5 text-[11px] dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400 font-mono"
+                                        />
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[9px] font-bold">CI</span>
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            value={orderNote}
+                                            onChange={e => setOrderNote(e.target.value)}
+                                            placeholder="Nota..."
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-6 pr-2 py-1.5 text-[11px] dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
+                                        />
+                                        <FileText size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* ... (Payment Logic same as before) ... */}
@@ -742,75 +718,188 @@ export const POSCart = () => {
                 </>
             )}
 
-            {/* Modal de Registro Rápido de Asesor de Piso */}
-            {showQuickAdvisorModal && (
+            {/* Modal de Asignación de Vendedor y Registro Rápido */}
+            {showSellerModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
+                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-white/5">
+                            <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-ios-blue flex items-center justify-center">
-                                    <UserPlus size={18} />
+                                    <UserCheck size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-sm text-ios-text dark:text-white">Nuevo Asesor</h3>
-                                    <p className="text-[10px] text-gray-400">Sin clave / Para asignar ventas y ranking</p>
+                                    <h3 className="font-bold text-sm text-ios-text dark:text-white">Asignar Vendedor / Asesor</h3>
+                                    <p className="text-[10px] text-gray-400">Comisión por venta o venta directa de mostrador</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowQuickAdvisorModal(false)} className="text-gray-400 hover:text-gray-600">
+                            <button 
+                                type="button" 
+                                onClick={() => { setShowSellerModal(false); setShowRegisterNewAdvisor(false); }} 
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-lg"
+                            >
                                 <X size={18} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveQuickAdvisor} className="space-y-3">
+                        {/* Selector de Vendedor */}
+                        <div className="space-y-3">
                             <div>
-                                <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1">Nombre del Asesor</label>
-                                <input
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    placeholder="Ej: Pedro González"
-                                    value={quickAdvisorName}
-                                    onChange={e => setQuickAdvisorName(e.target.value)}
-                                    className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1">% Comisión (Opcional)</label>
+                                <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1.5">
+                                    Vendedor o Asesor Asignado
+                                </label>
                                 <div className="relative">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        step="0.5"
-                                        placeholder="0"
-                                        value={quickAdvisorRate}
-                                        onChange={e => setQuickAdvisorRate(e.target.value)}
-                                        className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
-                                    />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                    <select
+                                        value={selectedSellerId}
+                                        onChange={e => setSelectedSellerId(e.target.value)}
+                                        className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                    >
+                                        <option value="">-- Sin Asignar / Venta Directa --</option>
+                                        {/* Asesores */}
+                                        {availableSellers.filter((s: any) => s.type === 'advisor').length > 0 && (
+                                            <optgroup label="👔 Asesores de Venta">
+                                                {availableSellers.filter((s: any) => s.type === 'advisor').map((a: any) => (
+                                                    <option key={a.id} value={a.id}>
+                                                        {a.name} {a.commissionRate > 0 ? `(${a.commissionRate}% com.)` : '(Sin com.)'}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                        )}
+                                        {/* Cajeras y Usuarios del Sistema */}
+                                        {availableSellers.filter((s: any) => s.type === 'user').length > 0 && (
+                                            <optgroup label="🖥️ Cajeras / Acceso Sistema">
+                                                {availableSellers.filter((s: any) => s.type === 'user').map((u: any) => (
+                                                    <option key={u.id} value={u.id}>
+                                                        {u.name} ({u.roleLabel}) {u.commissionRate > 0 ? `(${u.commissionRate}% com.)` : '(Sin com.)'}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                        )}
+                                    </select>
+                                    <UserCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
-                                <p className="text-[10px] text-gray-400 mt-1">Si es 0%, acumulará ventas y ranking sin comisión.</p>
                             </div>
 
-                            <div className="pt-2 flex gap-2">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => setShowQuickAdvisorModal(false)}
-                                    className="flex-1 text-xs py-2"
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    loading={isSavingQuickAdvisor}
-                                    className="flex-1 text-xs py-2 bg-ios-blue text-white"
-                                >
-                                    Guardar y Asignar
-                                </Button>
+                            {/* Control de Comisión si hay vendedor seleccionado */}
+                            {selectedSeller && (
+                                <div className="bg-gray-50 dark:bg-zinc-800/60 p-3 rounded-2xl border border-gray-100 dark:border-white/5 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-xs font-bold dark:text-white">Comisión para esta Venta</p>
+                                            <p className="text-[10px] text-gray-400">Incentivo aplicado sobre el total facturado</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setApplyCommission(!applyCommission)}
+                                            className={`text-xs font-bold px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                                                applyCommission 
+                                                    ? 'bg-emerald-500 text-white shadow-sm' 
+                                                    : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300'
+                                            }`}
+                                        >
+                                            {applyCommission ? '✓ Activa' : '+ Activar'}
+                                        </button>
+                                    </div>
+
+                                    {applyCommission && (
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    step="0.5"
+                                                    value={customCommissionRate}
+                                                    onChange={e => setCustomCommissionRate(e.target.value)}
+                                                    placeholder="%"
+                                                    className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                                />
+                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                            </div>
+                                            {finalTotal > 0 && activeCommissionRate > 0 && (
+                                                <div className="text-right">
+                                                    <span className="text-[10px] text-gray-400 block leading-none">Monto estim.:</span>
+                                                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                                                        ${estimatedCommission.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Sección para Registrar Nuevo Asesor */}
+                            <div className="pt-2 border-t border-gray-100 dark:border-white/5">
+                                {!showRegisterNewAdvisor ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRegisterNewAdvisor(true)}
+                                        className="w-full py-2.5 px-3 border border-dashed border-ios-blue/40 text-ios-blue hover:bg-blue-50/50 dark:hover:bg-blue-950/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <UserPlus size={15} />
+                                        <span>+ Registrar Nuevo Asesor al Instante</span>
+                                    </button>
+                                ) : (
+                                    <div className="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-3.5 space-y-2.5 animate-fade-in">
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-xs font-bold text-ios-blue flex items-center gap-1.5">
+                                                <UserPlus size={14} /> Registrar Nuevo Asesor
+                                            </h4>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowRegisterNewAdvisor(false)}
+                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Nombre completo del asesor..."
+                                                value={quickAdvisorName}
+                                                onChange={e => setQuickAdvisorName(e.target.value)}
+                                                className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative flex-1">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="100"
+                                                        step="0.5"
+                                                        placeholder="% Comisión (opcional)"
+                                                        value={quickAdvisorRate}
+                                                        onChange={e => setQuickAdvisorRate(e.target.value)}
+                                                        className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">%</span>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => handleSaveQuickAdvisor()}
+                                                    loading={isSavingQuickAdvisor}
+                                                    className="py-1.5 px-3 text-xs bg-ios-blue text-white rounded-xl font-bold shrink-0"
+                                                >
+                                                    Guardar y Asignar
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </form>
+                        </div>
+
+                        <div className="pt-2">
+                            <Button
+                                type="button"
+                                onClick={() => { setShowSellerModal(false); setShowRegisterNewAdvisor(false); }}
+                                className="w-full py-2.5 text-xs font-bold bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-xl shadow-sm"
+                            >
+                                Listo
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
