@@ -13,25 +13,66 @@ export const exportToExcel = (data: any[], fileName: string) => {
     XLSX.writeFile(workbook, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
-export const NavButton = ({ active, onClick, icon, label, badge }: any) => (
-    <button 
-        onClick={onClick}
-        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
-            active 
-            ? 'bg-ios-blue text-white shadow-lg shadow-blue-500/30' 
-            : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5'
-        }`}
-    >
-        <div className="flex items-center gap-3">
-            <span className={active ? 'text-white' : 'group-hover:text-ios-blue transition-colors'}>{icon}</span>
-            <span className="font-medium text-sm">{label}</span>
-        </div>
-        {badge ? (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${active ? 'bg-white/20 text-white' : 'bg-red-500 text-white'}`}>
-                {badge}
-            </span>
-        ) : null}
-    </button>
+interface NavButtonProps {
+    active: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+    label: string;
+    badge?: number | string | null;
+    collapsed?: boolean;
+}
+
+export const NavButton: React.FC<NavButtonProps> = ({ active, onClick, icon, label, badge, collapsed = false }) => (
+    <div className="relative group">
+        <button 
+            type="button"
+            onClick={onClick}
+            aria-label={label}
+            className={`w-full flex items-center transition-all duration-200 ${
+                collapsed 
+                    ? 'justify-center p-2.5 rounded-2xl' 
+                    : 'justify-between px-3.5 py-2.5 rounded-xl'
+            } ${
+                active 
+                    ? 'bg-ios-blue text-white shadow-md shadow-blue-500/25 font-bold' 
+                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5'
+            }`}
+        >
+            <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 min-w-0'}`}>
+                <span className={`relative shrink-0 flex items-center justify-center ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-ios-blue transition-colors'}`}>
+                    {icon}
+                    {collapsed && badge ? (
+                        <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
+                    ) : null}
+                </span>
+                {!collapsed && (
+                    <span className="font-semibold text-sm truncate tracking-tight">
+                        {label}
+                    </span>
+                )}
+            </div>
+
+            {!collapsed && badge ? (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${active ? 'bg-white/20 text-white' : 'bg-red-500 text-white'}`}>
+                    {badge}
+                </span>
+            ) : null}
+        </button>
+
+        {/* Tooltip flotante premium en modo colapsado para pantallas grandes */}
+        {collapsed && (
+            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden lg:flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 -translate-x-1 group-hover:translate-x-0">
+                <div className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-bold py-1.5 px-3 rounded-xl shadow-xl whitespace-nowrap flex items-center gap-1.5 border border-white/10 dark:border-black/10">
+                    <span>{label}</span>
+                    {badge ? (
+                        <span className="bg-red-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">
+                            {badge}
+                        </span>
+                    ) : null}
+                </div>
+            </div>
+        )}
+    </div>
 );
 
 export const StatCard = ({ title, value, icon, color, trend }: any) => (
