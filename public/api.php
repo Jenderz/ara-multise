@@ -315,6 +315,11 @@ try {
             $imgData = base64_decode($cleanB64);
             if ($imgData === false) jsonResponse(['error' => 'Invalid base64 image data'], 400);
 
+            // Blindaje de seguridad: límite máximo de 10 MB para proteger memoria del servidor
+            if (strlen($imgData) > 10 * 1024 * 1024) {
+                jsonResponse(['error' => 'El archivo de imagen supera el límite permitido de 10 MB'], 400);
+            }
+
             // Identificar Dominio/Tienda
             $host = $_SERVER['HTTP_HOST'];
             $storeFolder = preg_replace('/^www\./', '', $host);

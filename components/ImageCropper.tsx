@@ -47,26 +47,37 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCropComp
             throw new Error('No 2d context');
         }
 
-        // Usamos el tamaño del crop como tamaño del canvas final
-        canvas.width = pixelCrop.width;
-        canvas.height = pixelCrop.height;
+        // Blindaje de resolución: limitar a un máximo de 1200px para garantizar ultra alta definición
+        // sin generar archivos pesados que ralenticen la web o superen límites de PHP
+        const MAX_DIMENSION = 1200;
+        let targetWidth = pixelCrop.width;
+        let targetHeight = pixelCrop.height;
 
-        // Rellenar fondo blanco (para cuando la imagen es más pequeña que el cuadro)
+        if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+            if (targetWidth >= targetHeight) {
+                targetHeight = Math.round((targetHeight * MAX_DIMENSION) / targetWidth);
+                targetWidth = MAX_DIMENSION;
+            } else {
+                targetWidth = Math.round((targetWidth * MAX_DIMENSION) / targetHeight);
+                targetHeight = MAX_DIMENSION;
+            }
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        // Rellenar fondo blanco (para áreas fuera de la imagen)
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
 
-        // Calcular posición relativa y dibujo
-        // Cuando restrictPosition=false, x/y pueden ser negativos (imagen movida a la derecha/abajo)
-        // O positivos mayores al tamaño (imagen movida a la izquierda/arriba fuera del canvas, aunque esto no suele pasar si no se sale)
+        // Suavizado e interpolación de alta calidad
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
-        // La librería nos da pixelCrop.x/y relativos a la imagen original, 
-        // pero necesitamos dibujar la imagen EN EL CANVAS.
-        // La lógica correcta para 'acomodar' es compleja con react-easy-crop estándar, 
-        // pero podemos usar una aproximación simple: dibujar la imagen completa transformada.
-
-        // SIN EMBARGO, pixelCrop son las coordenadas DE LA IMAGEN que corresponden al top-left del crop area.
-        // Si pixelCrop.x es negativo, significa que el crop area empieza "antes" de la imagen (hay vacío a la izquierda).
-        // Entonces debemos dibujar la imagen en el canvas desplazada hacia la derecha por -pixelCrop.x
+        // Escalar contexto si el tamaño objetivo es menor al crop original
+        const scaleX = targetWidth / pixelCrop.width;
+        const scaleY = targetHeight / pixelCrop.height;
+        ctx.scale(scaleX, scaleY);
 
         const drawX = -pixelCrop.x;
         const drawY = -pixelCrop.y;
@@ -80,7 +91,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCropComp
                     return;
                 }
                 resolve(blob);
-            }, 'image/jpeg', 0.95);
+            }, 'image/jpeg', 0.88); // 88% de calidad para balance óptimo de nitidez y peso liviano (~150-250KB)
         });
     };
 
