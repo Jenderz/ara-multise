@@ -232,6 +232,10 @@ try {
             require_once 'lib/logs.php';
             handleLogActivity($pdo, $input);
             break;
+        case 'clear_logs':
+            require_once 'lib/logs.php';
+            handleClearLogs($pdo);
+            break;
 
         case 'upload_pwa_screenshot':
             $authUser = getAuthUser($pdo);

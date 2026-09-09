@@ -1,6 +1,6 @@
 
-import React, { createContext, useContext, useEffect, ReactNode, useRef, useState } from 'react';
-import { StoreContextType, Order, Product, Category, Branch, Coupon } from '../types';
+import React, { createContext, useContext, useEffect, ReactNode, useRef, useState, useCallback } from 'react';
+import { StoreContextType, Order, Product, Category, Branch, Coupon, ActivityLog } from '../types';
 import { api } from '../services/api';
 
 import { SettingsProvider, useSettings } from './SettingsContext';
@@ -211,6 +211,29 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
         setCoupons(normalizeCoupons(data.coupons || []));
     };
 
+    // --- GESTIÓN DE LOGS CENTRALIZADA (SQL BACKEND) ---
+    const [logs, setLogs] = useState<ActivityLog[]>([]);
+
+    const fetchLogs = useCallback(async () => {
+        try {
+            const res = await api.getLogs(1, 100);
+            if (res && Array.isArray(res.data)) {
+                setLogs(res.data);
+            }
+        } catch (e) {
+            console.error("Error al obtener logs de auditoría:", e);
+        }
+    }, []);
+
+    const clearLogs = useCallback(async () => {
+        try {
+            await api.clearLogs();
+            setLogs([]);
+        } catch (e) {
+            console.error("Error al vaciar logs:", e);
+        }
+    }, []);
+
     const refreshStoreData = async () => {
         try {
             const freshData = await api.getAllData();
@@ -219,6 +242,10 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
                 await processHeavyData(freshData);
                 localStorage.setItem(OFFLINE_DATA_KEY, JSON.stringify(freshData));
                 setIsOffline(false);
+            }
+            // Si el usuario es staff/admin, sincronizar también registros de auditoría
+            if (currentUser && (userRole === 'admin' || userRole === 'seller')) {
+                fetchLogs();
             }
         } catch (e) {
             console.error("Refresh failed", e);
@@ -244,6 +271,17 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
         };
         initStore();
     }, []);
+
+    // Sincronizar datos completos de staff inmediatamente tras detectar autenticación
+    const hasSyncedStaff = useRef(false);
+    useEffect(() => {
+        if (currentUser && !hasSyncedStaff.current) {
+            hasSyncedStaff.current = true;
+            refreshStoreData();
+        } else if (!currentUser) {
+            hasSyncedStaff.current = false;
+        }
+    }, [currentUser]);
 
     // Re-check user restrictions on mount or user change
     // FIX SEGURIDAD: Solo ejecutar UNA VEZ para evitar re-disparar refreshStoreData() en bucle.
@@ -303,8 +341,8 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
             addUser: useAuth().addUser,
             updateUser: useAuth().updateUser,
             deleteUser: useAuth().deleteUser,
-            logs: useAuth().logs,
-            clearLogs: useAuth().clearLogs,
+            logs,
+            clearLogs,
 
             // Product (Proxy)
             // @ts-ignore

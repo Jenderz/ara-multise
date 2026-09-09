@@ -227,4 +227,5 @@ export const api = {
     logActivity: (userId: string, userName: string, userRole: string, action: string, details: any) =>
         fetchApi('log_activity', 'POST', { userId, userName, userRole, action, details }),
 
+    clearLogs: () => fetchApi('clear_logs', 'POST'),
 };

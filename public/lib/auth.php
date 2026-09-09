@@ -80,9 +80,37 @@ function getAuthUser($pdo)
     static $cachedUser = null;
     if ($cachedUser !== null) return $cachedUser;
 
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] 
-        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
-        ?? ($_SERVER['HTTP_X_ADMIN_TOKEN'] ?? '');
+    $authHeader = '';
+    if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (!empty($_SERVER['HTTP_X_ADMIN_TOKEN'])) {
+        $authHeader = $_SERVER['HTTP_X_ADMIN_TOKEN'];
+    } elseif (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        foreach ($headers as $k => $v) {
+            $lower = strtolower($k);
+            if ($lower === 'authorization' || $lower === 'x-admin-token') {
+                $authHeader = $v;
+                break;
+            }
+        }
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        foreach ($headers as $k => $v) {
+            $lower = strtolower($k);
+            if ($lower === 'authorization' || $lower === 'x-admin-token') {
+                $authHeader = $v;
+                break;
+            }
+        }
+    }
+
+    // Fallback por query param si los headers fueron removidos por proxy/WAF
+    if (empty($authHeader) && !empty($_GET['auth_token'])) {
+        $authHeader = $_GET['auth_token'];
+    }
 
     if (empty($authHeader)) return null;
 

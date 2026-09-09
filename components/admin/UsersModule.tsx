@@ -67,6 +67,11 @@ export const UsersModule = () => {
     const [logUserFilter, setLogUserFilter] = useState<string>('all'); 
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Al entrar al módulo de Equipo, sincronizar inmediatamente datos frescos de staff y logs del servidor
+    useEffect(() => {
+        refreshStoreData();
+    }, []);
+
     // --- MANEJO DE ASESORES DE PISO (SIN CLAVE) ---
     const filteredAdvisors = useMemo(() => {
         const list = Array.isArray(settings.salesAdvisors) ? settings.salesAdvisors : [];

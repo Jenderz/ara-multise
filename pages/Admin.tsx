@@ -91,6 +91,9 @@ export const Admin = () => {
             const success = await login(username, password);
             if (!success) {
                 setError('Credenciales inválidas');
+            } else {
+                // Al iniciar sesión exitosamente con token de staff, recargar datos inmediatamente
+                await refreshStoreData();
             }
         } catch (e) {
             setError('Error de autenticación');

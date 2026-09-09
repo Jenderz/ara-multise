@@ -85,3 +85,14 @@ function handleLogActivity($pdo, $input)
 
     jsonResponse(['status' => 'logged', 'id' => $id]);
 }
+
+function handleClearLogs($pdo)
+{
+    $authUser = getAuthUser($pdo);
+    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+        jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para vaciar registros de auditoría.'], 403);
+    }
+
+    $pdo->exec("TRUNCATE TABLE `activity_logs`");
+    jsonResponse(['status' => 'success']);
+}
