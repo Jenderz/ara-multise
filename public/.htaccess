@@ -56,16 +56,16 @@
 
 # 5. Configuración de Caché para PWA
 <IfModule mod_headers.c>
-  # Service Worker, Manifest e Index: NO CACHEAR
-  <FilesMatch "(sw\.js|manifest\.json|index\.html)$">
-    Header set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
-  </FilesMatch>
-
-  # Archivos estáticos: Cachear por 1 año
+  # Archivos estáticos con hash de Vite: Cachear por 1 año
   <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|svg|woff|woff2)$">
     Header set Cache-Control "max-age=31536000, public, immutable"
+  </FilesMatch>
+
+  # Service Worker, Manifest e Index: NUNCA CACHEAR (Debe ir DESPUÉS para tener máxima precedencia sobre .js y .html)
+  <FilesMatch "(sw\.js|manifest\.json|index\.html)$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
   </FilesMatch>
 </IfModule>
 

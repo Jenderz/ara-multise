@@ -31,8 +31,8 @@ export const UsersModule = () => {
     const { settings, updateSettings, addUser, updateUser, deleteUser, currentUser, logs, clearLogs, userRole, refreshStoreData, branches } = useStore();
     const { addNotification } = useNotification();
     
-    // --- MODO DE VISTA: ASESORES (PISO) | USUARIOS/CAJERAS (SISTEMA) | LOGS ---
-    const [viewMode, setViewMode] = useState<'advisors' | 'users' | 'logs'>('advisors');
+    // --- MODO DE VISTA: USUARIOS/CAJERAS (SISTEMA) [PRINCIPAL] | ASESORES (PISO) | LOGS ---
+    const [viewMode, setViewMode] = useState<'advisors' | 'users' | 'logs'>('users');
 
     // --- ESTADO PARA USUARIOS DEL SISTEMA (CON LOGIN Y CONTRASEÑA) ---
     const [isEditing, setIsEditing] = useState<UserAccount | null>(null);
@@ -346,17 +346,6 @@ export const UsersModule = () => {
                 </h2>
                 <div className="flex bg-gray-100 dark:bg-white/10 p-1 rounded-xl w-full sm:w-auto gap-1">
                     <button 
-                        onClick={() => setViewMode('advisors')}
-                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'advisors' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
-                    >
-                        <UserCheck size={14}/> Asesores (Sin Clave)
-                        {Array.isArray(settings.salesAdvisors) && settings.salesAdvisors.length > 0 && (
-                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
-                                {settings.salesAdvisors.length}
-                            </span>
-                        )}
-                    </button>
-                    <button 
                         onClick={() => setViewMode('users')}
                         className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'users' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
@@ -364,6 +353,17 @@ export const UsersModule = () => {
                         {Array.isArray(settings.users) && settings.users.length > 0 && (
                             <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-600 px-1.5 py-0.2 rounded-full font-black">
                                 {settings.users.length}
+                            </span>
+                        )}
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('advisors')}
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'advisors' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                    >
+                        <UserCheck size={14}/> Asesores (Sin Clave)
+                        {Array.isArray(settings.salesAdvisors) && settings.salesAdvisors.length > 0 && (
+                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
+                                {settings.salesAdvisors.length}
                             </span>
                         )}
                     </button>

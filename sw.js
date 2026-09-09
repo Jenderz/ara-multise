@@ -1,10 +1,10 @@
-// [BUILD] Service Worker Updated: 2026-09-08T19:15:00.000Z
+// [BUILD] Service Worker Updated: 2026-09-09T17:10:00.000Z
 
-// IMPORTANTE: Versión incrementada para forzar actualización de caché y resolución PWA (v0.3.0)
-const CACHE_STATIC = 'tienda-static-v151';
-const CACHE_DYNAMIC = 'tienda-dynamic-v136';
-const CACHE_IMAGES = 'tienda-images-v131';
-const CACHE_API = 'tienda-api-v131';
+// IMPORTANTE: Versión incrementada para forzar actualización de caché y resolución PWA (v0.3.1)
+const CACHE_STATIC = 'tienda-static-v152';
+const CACHE_DYNAMIC = 'tienda-dynamic-v137';
+const CACHE_IMAGES = 'tienda-images-v132';
+const CACHE_API = 'tienda-api-v132';
 
 // Recursos críticos (Rutas relativas para soportar subcarpetas)
 const ASSETS_TO_CACHE = [
@@ -24,7 +24,8 @@ const ALLOWED_DOMAINS = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Eliminado self.skipWaiting() para control manual de la actualización
+  // Activa inmediatamente el nuevo SW para evitar desincronizaciones de chunks y 503
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_STATIC).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
@@ -66,8 +67,13 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!isSelf && !isExternalAllowed) return;
 
-  // API: Network First
-  if (url.pathname.includes('/api/') || url.search.includes('action=')) {
+  // API y endpoints dinámicos del servidor: Network First
+  if (
+    url.pathname.includes('/api/') ||
+    url.pathname.includes('api.php') ||
+    url.pathname.includes('rates.php') ||
+    url.search.includes('action=')
+  ) {
     event.respondWith(
       fetch(event.request)
         .then(async (networkResponse) => {
@@ -138,8 +144,8 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch((e) => {
-        // Fallback defensivo para que nunca retorne undefined a respondWith
-        return cachedResponse || new Response('', { status: 503, statusText: 'Offline' });
+        // Fallback defensivo: retornar caché existente o un error controlado sin 503 intrusivo
+        return cachedResponse || new Response('', { status: 404, statusText: 'Offline Asset Unavailable' });
       });
 
       return cachedResponse || fetchPromise;
