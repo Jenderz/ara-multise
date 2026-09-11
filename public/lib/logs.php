@@ -48,8 +48,27 @@ function handleGetLogs($pdo)
     $stmtCount->execute($params);
     $total = $stmtCount->fetchColumn();
 
+    // Normalización defensiva para soportar camelCase (TypeScript) y snake_case (SQL nativo)
+    $formatted = array_map(function ($row) {
+        return [
+            'id' => $row['id'] ?? '',
+            'userId' => $row['user_id'] ?? '',
+            'userName' => $row['user_name'] ?? 'Sistema',
+            'userRole' => $row['user_role'] ?? 'system',
+            'action' => $row['action'] ?? 'other',
+            'details' => $row['details'] ?? '',
+            'ipAddress' => $row['ip_address'] ?? '',
+            'timestamp' => isset($row['timestamp']) ? (int)$row['timestamp'] : (time() * 1000),
+            // Compatibilidad retroactiva con componentes que consumen snake_case
+            'user_id' => $row['user_id'] ?? '',
+            'user_name' => $row['user_name'] ?? 'Sistema',
+            'user_role' => $row['user_role'] ?? 'system',
+            'ip_address' => $row['ip_address'] ?? '',
+        ];
+    }, $data);
+
     jsonResponse([
-        'data' => $data,
+        'data' => $formatted,
         'pagination' => [
             'total' => (int)$total,
             'page' => $page,

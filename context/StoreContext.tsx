@@ -218,7 +218,16 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
         try {
             const res = await api.getLogs(1, 100);
             if (res && Array.isArray(res.data)) {
-                setLogs(res.data);
+                const normalized: ActivityLog[] = res.data.map((l: any) => ({
+                    id: l.id || '',
+                    userId: l.userId || l.user_id || '',
+                    userName: l.userName || l.user_name || 'Sistema',
+                    userRole: l.userRole || l.user_role || 'system',
+                    action: l.action || 'other',
+                    details: l.details || '',
+                    timestamp: Number(l.timestamp) || Date.now()
+                }));
+                setLogs(normalized);
             }
         } catch (e) {
             console.error("Error al obtener logs de auditoría:", e);

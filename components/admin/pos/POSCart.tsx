@@ -3,9 +3,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../../context/StoreContext';
 import { usePOS } from '../../../context/POSContext';
 import { Button } from '../../UIComponents';
-import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus, ChevronDown, ChevronLeft } from 'lucide-react';
 
-export const POSCart = () => {
+interface POSCartProps {
+    onBackToCatalog?: () => void;
+}
+
+export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
     const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings, updateSettings, currentBranch } = useStore();
     const {
         cart,
@@ -311,54 +315,71 @@ export const POSCart = () => {
     return (
         <div className="w-full md:w-[400px] xl:w-[450px] bg-white dark:bg-zinc-900 border-t md:border-t-0 md:border-l border-gray-100 dark:border-white/5 flex flex-col h-full shadow-2xl z-20">
             {/* Header POS */}
-            <div className="p-3 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/20 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <div className="bg-ios-blue/10 p-1.5 rounded-lg text-ios-blue"><ShoppingCart size={18} /></div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-black text-sm dark:text-white leading-tight uppercase tracking-wide">Orden Actual</h3>
+            <div className="p-3 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/20 flex justify-between items-center gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                    {onBackToCatalog && (
+                        <button
+                            type="button"
+                            onClick={onBackToCatalog}
+                            className="md:hidden p-1.5 -ml-1 text-ios-blue hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors flex items-center shrink-0"
+                            title="Volver al Catálogo"
+                            aria-label="Volver al Catálogo"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                    )}
+                    <div className="bg-ios-blue/10 p-1.5 rounded-lg text-ios-blue shrink-0 hidden xs:flex">
+                        <ShoppingCart size={17} />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="font-black text-xs sm:text-sm dark:text-white leading-tight uppercase tracking-wide truncate">
+                                Orden Actual
+                            </h3>
                             {totalItems > 0 && (
-                                <span className="bg-ios-blue text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in">
-                                    {totalItems} {totalItems === 1 ? 'item' : 'items'}
+                                <span className="bg-ios-blue text-white text-[10px] font-black px-1.5 py-0.2 rounded-full shadow-sm shrink-0 leading-tight">
+                                    {totalItems} <span className="hidden sm:inline">{totalItems === 1 ? 'item' : 'items'}</span>
                                 </span>
                             )}
                         </div>
-                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">
-                            {currentUser?.name || 'Cajero'}
+                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5 truncate">
+                            {currentBranch?.name || 'Venta Mostrador'}
                         </span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                     {/* Botón de Vendedor / Asesor en Header */}
                     <button
                         type="button"
                         onClick={() => setShowSellerModal(true)}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border transition-all active:scale-95 ${
+                        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border transition-all active:scale-95 ${
                             selectedSeller 
                                 ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/50 text-ios-blue' 
                                 : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-blue-600'
                         }`}
                         title={selectedSeller ? `Vendedor asignado: ${selectedSeller.name} (${selectedSeller.roleLabel})` : "Asignar vendedor o asesor"}
                     >
-                        <UserCheck size={15} className={selectedSeller ? "text-ios-blue" : "text-gray-500 dark:text-gray-300"} />
-                        <span className="text-[11px] font-bold max-w-[85px] sm:max-w-[110px] truncate">
+                        <UserCheck size={14} className={`shrink-0 ${selectedSeller ? "text-ios-blue" : "text-gray-500 dark:text-gray-300"}`} />
+                        <span className="text-[11px] font-bold max-w-[65px] xs:max-w-[85px] sm:max-w-[110px] truncate">
                             {selectedSeller ? selectedSeller.name.split(' ')[0] : 'Vendedor'}
                         </span>
                         {selectedSeller && applyCommission && activeCommissionRate > 0 && (
-                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1.5 py-0.2 rounded-full">
+                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1 py-0.2 rounded-full shrink-0">
                                 {activeCommissionRate}%
                             </span>
                         )}
                     </button>
 
+                    {/* Botón Pausar / Historial */}
                     <button
+                        type="button"
                         onClick={handlePark}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95"
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-all active:scale-95 shrink-0"
                         title={cart.length > 0 ? "Pausar Orden" : "Ver Pausadas"}
                     >
                         <div className="relative">
-                            {cart.length > 0 ? <PauseCircle size={16} className="text-gray-500 dark:text-gray-300" /> : <History size={16} className="text-gray-500 dark:text-gray-300" />}
+                            {cart.length > 0 ? <PauseCircle size={15} className="text-gray-500 dark:text-gray-300" /> : <History size={15} className="text-gray-500 dark:text-gray-300" />}
                             {parkedOrders.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>}
                         </div>
                         <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300 hidden sm:inline">
@@ -366,12 +387,14 @@ export const POSCart = () => {
                         </span>
                     </button>
 
+                    {/* Botón Pantalla Completa (oculto en móviles para evitar saturación y falta de soporte en iOS) */}
                     <button
+                        type="button"
                         onClick={toggleFullScreen}
-                        className="p-1.5 bg-gray-100 dark:bg-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+                        className="hidden sm:flex p-1.5 bg-gray-100 dark:bg-white/10 rounded-lg hover:bg-gray-200 dark:hover:bg-white/20 transition-colors shrink-0"
                         title={isFullScreen ? "Salir Pantalla Completa" : "Pantalla Completa"}
                     >
-                        {isFullScreen ? <Minimize2 size={16} className="text-gray-600 dark:text-gray-300" /> : <Maximize2 size={16} className="text-gray-600 dark:text-gray-300" />}
+                        {isFullScreen ? <Minimize2 size={15} className="text-gray-600 dark:text-gray-300" /> : <Maximize2 size={15} className="text-gray-600 dark:text-gray-300" />}
                     </button>
                 </div>
             </div>
@@ -498,7 +521,7 @@ export const POSCart = () => {
                         )}
                     </div>
 
-                    <div className="p-4 bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-2 rounded-t-2xl z-10">
+                    <div className="p-3.5 sm:p-4 pb-safe bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-2 rounded-t-2xl z-10">
                         {/* --- DATOS DEL CLIENTE (COMPACTO Y COLAPSABLE) --- */}
                         <div className="space-y-1.5">
                             <div className="relative flex items-center">

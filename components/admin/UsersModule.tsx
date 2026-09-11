@@ -316,17 +316,21 @@ export const UsersModule = () => {
     const filteredLogs = useMemo(() => {
         let result = logs || [];
         if (logUserFilter !== 'all') {
-            result = result.filter(l => l.userId === logUserFilter);
+            result = result.filter(l => {
+                const uid = l.userId || (l as any).user_id || '';
+                return uid === logUserFilter;
+            });
         }
         if (logActionFilter !== 'all') {
             result = result.filter(l => l.action === logActionFilter);
         }
         if (logSearch) {
             const term = logSearch.toLowerCase();
-            result = result.filter(l => 
-                l.details.toLowerCase().includes(term) || 
-                l.userName.toLowerCase().includes(term)
-            );
+            result = result.filter(l => {
+                const uName = (l.userName || (l as any).user_name || '').toLowerCase();
+                const details = (l.details || '').toLowerCase();
+                return details.includes(term) || uName.includes(term);
+            });
         }
         return result;
     }, [logs, logUserFilter, logActionFilter, logSearch]);
@@ -886,11 +890,23 @@ export const UsersModule = () => {
                                         </div>
                                         <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">{log.details}</p>
                                         <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200/50 dark:border-white/5">
-                                            <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/20 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-white">
-                                                {log.userName.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">{log.userName}</span>
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400 uppercase">{log.userRole}</span>
+                                            {(() => {
+                                                const uName = log.userName || (log as any).user_name || 'Sistema';
+                                                const uRole = log.userRole || (log as any).user_role || 'system';
+                                                const uIp = (log as any).ipAddress || (log as any).ip_address || '';
+                                                return (
+                                                    <>
+                                                        <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/20 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-white shrink-0">
+                                                            {(uName.charAt(0) || '?').toUpperCase()}
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-700 dark:text-gray-300 font-bold">{uName}</span>
+                                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400 uppercase font-semibold">{uRole}</span>
+                                                        {uIp && uIp !== 'unknown' && (
+                                                            <span className="text-[9px] font-mono text-gray-400 ml-auto hidden sm:inline">{uIp}</span>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>

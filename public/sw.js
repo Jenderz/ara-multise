@@ -1,7 +1,7 @@
-// [BUILD] Service Worker Updated: 2026-09-09T18:00:00.000Z
+// [BUILD] Service Worker Updated: 2026-09-11T13:08:00.000Z
 
-// IMPORTANTE: Versión incrementada para forzar actualización de caché tras build (v0.3.3)
-const CACHE_STATIC = 'tienda-static-v154';
+// IMPORTANTE: Versión incrementada para forzar actualización de caché tras build (v0.3.4)
+const CACHE_STATIC = 'tienda-static-v155';
 const CACHE_DYNAMIC = 'tienda-dynamic-v139';
 const CACHE_IMAGES = 'tienda-images-v134';
 const CACHE_API = 'tienda-api-v134';

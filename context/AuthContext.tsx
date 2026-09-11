@@ -221,7 +221,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newUsers = currentUsers.filter((u: UserAccount) => u.id !== id);
 
         if (currentUser) {
-            logActivity('delete_product', `Eliminó usuario: ${userToDelete.username}`);
+            logActivity('create_user', `Eliminó usuario: ${userToDelete.username}`);
         }
 
         // 3. ESCRITURA + invalidar cache

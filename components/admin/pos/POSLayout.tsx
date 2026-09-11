@@ -38,31 +38,33 @@ export const POSLayout = () => {
 
             {/* Panel Derecho: Carrito */}
             <div className={`h-full ${activeTab === 'cart' ? 'flex flex-1 md:flex-none' : 'hidden md:flex'}`}>
-                <POSCart />
+                <POSCart onBackToCatalog={() => setActiveTab('catalog')} />
             </div>
 
-            {/* Selector de Pestañas Móvil (Floating con respeto a barra de gestos iOS) */}
-            <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-1/2 -translate-x-1/2 flex bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-1 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl z-[100] scale-110">
-                <button
-                    onClick={() => setActiveTab('catalog')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'catalog' ? 'bg-ios-blue text-white shadow-lg' : 'text-gray-500'}`}
-                >
-                    <LayoutDashboard size={16} />
-                    Catálogo
-                </button>
-                <button
-                    onClick={() => setActiveTab('cart')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all relative ${activeTab === 'cart' ? 'bg-ios-blue text-white shadow-lg' : 'text-gray-500'}`}
-                >
-                    <ShoppingCart size={16} />
-                    Carrito
-                    {cart.length > 0 && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white dark:border-zinc-900 animate-in zoom-in">
-                            {cart.length}
-                        </span>
-                    )}
-                </button>
-            </div>
+            {/* Selector de Pestañas Móvil (Floating durante exploración de catálogo; en carrito se usa el botón superior para no solapar el cobro) */}
+            {activeTab === 'catalog' && (
+                <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-1/2 -translate-x-1/2 flex bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-1 rounded-2xl border border-gray-200 dark:border-white/10 shadow-2xl z-[100] animate-in fade-in slide-in-from-bottom-2">
+                    <button
+                        onClick={() => setActiveTab('catalog')}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all bg-ios-blue text-white shadow-lg"
+                    >
+                        <LayoutDashboard size={16} />
+                        Catálogo
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('cart')}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all relative text-gray-600 dark:text-gray-300 hover:text-gray-900"
+                    >
+                        <ShoppingCart size={16} />
+                        Carrito
+                        {cart.length > 0 && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white dark:border-zinc-900 animate-in zoom-in font-bold">
+                                {cart.length}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Modales */}
             <VariantSelectorModal

@@ -51,7 +51,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     const [isBranchMenuOpen, setIsBranchMenuOpen] = useState(false);
 
     // En pantallas grandes se expande si está fijado o si el cursor está encima
-    const isExpanded = isPinned || isHovered;
+    const isDesktopExpanded = isPinned || isHovered;
+    // En móviles (o cuando el drawer está abierto), el contenido interno siempre debe mostrar texto completo
+    const isNavExpanded = isMobileOpen || isDesktopExpanded;
     const isMultiBranch = settings.planTier !== 'single';
 
     const togglePin = () => {
@@ -92,16 +94,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     shadow-2xl lg:shadow-xl
                     ${isMobileOpen ? 'translate-x-0 w-72 sm:w-80' : '-translate-x-full lg:translate-x-0'}
                     lg:static lg:my-3 lg:ml-3 lg:rounded-3xl
-                    ${isExpanded ? 'lg:w-64' : 'lg:w-[74px]'}
+                    ${isDesktopExpanded ? 'lg:w-64' : 'lg:w-[74px]'}
                 `}
             >
                 {/* Cabecera del Sidebar */}
-                <div className={`p-4 pb-3 flex items-center justify-between relative border-b border-gray-100 dark:border-white/5 ${!isExpanded ? 'lg:flex-col lg:gap-3 lg:p-3' : ''}`}>
+                <div className={`p-4 pb-3 flex items-center justify-between relative border-b border-gray-100 dark:border-white/5 ${!isDesktopExpanded ? 'lg:flex-col lg:gap-3 lg:p-3' : ''}`}>
                     <Link
                         to="/"
                         onClick={() => setIsMobileOpen(false)}
-                        className={`flex items-center gap-3 group cursor-pointer overflow-hidden ${!isExpanded ? 'lg:justify-center' : ''}`}
-                        title={!isExpanded ? settings.storeName : undefined}
+                        className={`flex items-center gap-3 group cursor-pointer overflow-hidden ${!isDesktopExpanded ? 'lg:justify-center' : ''}`}
+                        title={!isDesktopExpanded ? settings.storeName : undefined}
                     >
                         {settings.logoUrl ? (
                             <img
@@ -115,8 +117,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             </div>
                         )}
 
-                        {/* Nombre de la tienda (solo en expandido o en móvil) */}
-                        <div className={`flex flex-col text-left overflow-hidden transition-all duration-200 ${!isExpanded ? 'lg:hidden' : 'block'}`}>
+                        {/* Nombre de la tienda (visible en móvil o en escritorio expandido) */}
+                        <div className={`flex flex-col text-left overflow-hidden transition-all duration-200 ${!isDesktopExpanded ? 'lg:hidden' : 'block'}`}>
                             <h1 className="text-sm font-black text-ios-text dark:text-white truncate max-w-[130px] group-hover:text-ios-blue transition-colors">
                                 {settings.storeName}
                             </h1>
@@ -129,7 +131,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         </div>
                     </Link>
 
-                    {/* Botón toggle de fijar/colapsar para escritorio (inspirado en la imagen de referencia) */}
+                    {/* Botón toggle de fijar/colapsar para escritorio */}
                     <button
                         type="button"
                         onClick={togglePin}
@@ -139,10 +141,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             hidden lg:flex items-center justify-center
                             w-7 h-7 rounded-full bg-ios-blue text-white shadow-md shadow-blue-500/25
                             hover:scale-110 active:scale-95 transition-all
-                            ${!isExpanded ? 'lg:mt-1' : ''}
+                            ${!isDesktopExpanded ? 'lg:mt-1' : ''}
                         `}
                     >
-                        {isExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+                        {isDesktopExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
                     </button>
 
                     {/* Botón de cierre visible en móvil */}
@@ -157,23 +159,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 </div>
 
                 {/* Selector de Sede (BranchSwitcher) */}
-                <div className={`px-3 py-2 relative ${!isExpanded ? 'lg:px-2' : ''}`}>
+                <div className={`px-3 py-2 relative ${!isDesktopExpanded ? 'lg:px-2' : ''}`}>
                     <button
                         type="button"
                         onClick={() => isMultiBranch && setIsBranchMenuOpen(!isBranchMenuOpen)}
-                        title={!isExpanded ? `Sede Activa: ${currentBranch?.name || 'Sede'}` : undefined}
+                        title={!isDesktopExpanded ? `Sede Activa: ${currentBranch?.name || 'Sede'}` : undefined}
                         className={`
                             w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 
                             ${isMultiBranch ? 'hover:border-ios-blue/50 cursor-pointer' : 'cursor-default'} 
                             p-2 rounded-xl flex items-center transition-all
-                            ${isExpanded ? 'justify-between' : 'lg:justify-center'}
+                            ${isNavExpanded ? 'justify-between' : 'lg:justify-center'}
                         `}
                     >
-                        <div className={`flex items-center gap-2.5 overflow-hidden ${!isExpanded ? 'lg:justify-center' : ''}`}>
+                        <div className={`flex items-center gap-2.5 overflow-hidden ${!isDesktopExpanded ? 'lg:justify-center' : ''}`}>
                             <div className="w-7 h-7 rounded-lg bg-white dark:bg-zinc-800 shadow-sm flex items-center justify-center text-ios-blue shrink-0">
                                 <Store size={15} />
                             </div>
-                            <div className={`text-left min-w-0 ${!isExpanded ? 'lg:hidden' : 'block'}`}>
+                            <div className={`text-left min-w-0 ${!isDesktopExpanded ? 'lg:hidden' : 'block'}`}>
                                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">
                                     {isMultiBranch ? 'Sede' : 'Tienda'}
                                 </p>
@@ -182,7 +184,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 </p>
                             </div>
                         </div>
-                        {isMultiBranch && isExpanded && (
+                        {isMultiBranch && isNavExpanded && (
                             <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${isBranchMenuOpen ? 'rotate-180' : ''}`} />
                         )}
                     </button>
@@ -194,7 +196,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                             <div className={`
                                 absolute top-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl 
                                 border border-gray-100 dark:border-white/10 z-50 overflow-hidden transition-all
-                                ${isExpanded ? 'left-3 right-3' : 'left-full ml-2 w-52'}
+                                ${isDesktopExpanded ? 'left-3 right-3' : 'left-3 right-3 lg:left-full lg:ml-2 lg:w-52'}
                             `}>
                                 <div className="max-h-60 overflow-y-auto p-1.5 space-y-1">
                                     {branches.map(branch => (
@@ -229,7 +231,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <nav className="flex-1 px-2.5 py-1 space-y-1.5 overflow-y-auto no-scrollbar">
                     {/* PRINCIPAL */}
                     <div className="space-y-1">
-                        {isExpanded ? (
+                        {isNavExpanded ? (
                             <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Principal</p>
                         ) : (
                             <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
@@ -240,7 +242,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 onClick={() => handleTabClick('dashboard')}
                                 icon={<LayoutDashboard size={19} />}
                                 label="Dashboard"
-                                collapsed={!isExpanded}
+                                collapsed={!isNavExpanded}
                             />
                         )}
                         {hasPermission('pos') && (
@@ -249,7 +251,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 onClick={() => handleTabClick('pos')}
                                 icon={<Calculator size={19} />}
                                 label="Punto de Venta"
-                                collapsed={!isExpanded}
+                                collapsed={!isNavExpanded}
                             />
                         )}
                     </div>
@@ -257,7 +259,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {/* CATÁLOGO */}
                     {hasPermission('inventory') && (
                         <div className="space-y-1">
-                            {isExpanded ? (
+                            {isNavExpanded ? (
                                 <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Catálogo</p>
                             ) : (
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
@@ -267,7 +269,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                 onClick={() => handleTabClick('inventory')}
                                 icon={<Box size={19} />}
                                 label="Inventario"
-                                collapsed={!isExpanded}
+                                collapsed={!isNavExpanded}
                             />
                         </div>
                     )}
@@ -275,7 +277,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {/* VENTAS Y FINANZAS */}
                     {(hasPermission('orders') || hasPermission('transactions')) && (
                         <div className="space-y-1">
-                            {isExpanded ? (
+                            {isNavExpanded ? (
                                 <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ventas y Finanzas</p>
                             ) : (
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
@@ -287,7 +289,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     icon={<ShoppingCart size={19} />}
                                     label="Pedidos"
                                     badge={orders.filter(o => o.status === 'pending').length}
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                             {hasPermission('transactions') && (
@@ -296,7 +298,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('transactions')}
                                     icon={<Wallet size={19} />}
                                     label="Transacciones"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                         </div>
@@ -305,7 +307,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {/* CRECIMIENTO */}
                     {(hasPermission('customers') || (userRole === 'admin')) && (
                         <div className="space-y-1">
-                            {isExpanded ? (
+                            {isNavExpanded ? (
                                 <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Crecimiento</p>
                             ) : (
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
@@ -316,7 +318,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('customers')}
                                     icon={<Users size={19} />}
                                     label="Clientes"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                             {userRole === 'admin' && (
@@ -325,7 +327,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('marketing')}
                                     icon={<Megaphone size={19} />}
                                     label="Marketing"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                         </div>
@@ -334,7 +336,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {/* SISTEMA */}
                     {(hasPermission('statistics') || userRole === 'admin') && (
                         <div className="space-y-1">
-                            {isExpanded ? (
+                            {isNavExpanded ? (
                                 <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sistema</p>
                             ) : (
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
@@ -345,7 +347,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('statistics')}
                                     icon={<BarChart3 size={19} />}
                                     label="Estadísticas"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                             {userRole === 'admin' && (
@@ -354,7 +356,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('users')}
                                     icon={<UserCog size={19} />}
                                     label="Equipo"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                             {userRole === 'admin' && (
@@ -363,7 +365,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                                     onClick={() => handleTabClick('settings')}
                                     icon={<Settings size={19} />}
                                     label="Configuración"
-                                    collapsed={!isExpanded}
+                                    collapsed={!isNavExpanded}
                                 />
                             )}
                         </div>
@@ -371,40 +373,40 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 </nav>
 
                 {/* Pie del Sidebar */}
-                <div className={`p-2.5 border-t border-gray-100 dark:border-white/5 space-y-1 pb-safe ${!isExpanded ? 'lg:p-2' : ''}`}>
+                <div className={`p-2.5 border-t border-gray-100 dark:border-white/5 space-y-1 pb-safe ${!isDesktopExpanded ? 'lg:p-2' : ''}`}>
                     {/* Botón Ver Tienda */}
                     <button
                         type="button"
                         onClick={() => { setIsMobileOpen(false); navigate('/'); }}
-                        title={!isExpanded ? "Ver Tienda" : undefined}
+                        title={!isNavExpanded ? "Ver Tienda" : undefined}
                         className={`
                             w-full flex items-center rounded-xl transition-all 
                             text-gray-500 hover:text-ios-blue hover:bg-gray-50 dark:hover:bg-white/5
-                            ${isExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
+                            ${isNavExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
                         `}
                     >
                         <Store size={18} className="shrink-0" />
-                        {isExpanded && <span className="font-medium text-xs truncate">Ver Tienda</span>}
+                        {isNavExpanded && <span className="font-medium text-xs truncate">Ver Tienda</span>}
                     </button>
 
                     {/* Botón Cerrar Sesión */}
                     <button
                         type="button"
                         onClick={logout}
-                        title={!isExpanded ? "Cerrar Sesión" : undefined}
+                        title={!isNavExpanded ? "Cerrar Sesión" : undefined}
                         className={`
                             w-full flex items-center rounded-xl transition-all 
                             text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10
-                            ${isExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
+                            ${isNavExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
                         `}
                     >
                         <LogOut size={18} className="shrink-0" />
-                        {isExpanded && <span className="font-medium text-xs truncate">Cerrar Sesión</span>}
+                        {isNavExpanded && <span className="font-medium text-xs truncate">Cerrar Sesión</span>}
                     </button>
 
                     {/* Versión */}
-                    <div className={`pt-1 px-1 flex items-center text-[10px] text-gray-400 ${isExpanded ? 'justify-between' : 'lg:justify-center'}`}>
-                        {isExpanded ? (
+                    <div className={`pt-1 px-1 flex items-center text-[10px] text-gray-400 ${isNavExpanded ? 'justify-between' : 'lg:justify-center'}`}>
+                        {isNavExpanded ? (
                             <>
                                 <span className="font-bold tracking-wide">ARA</span>
                                 <span className="font-mono bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full font-semibold">
