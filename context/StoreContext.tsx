@@ -252,8 +252,8 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
                 localStorage.setItem(OFFLINE_DATA_KEY, JSON.stringify(freshData));
                 setIsOffline(false);
             }
-            // Si el usuario es staff/admin, sincronizar también registros de auditoría
-            if (currentUser && (userRole === 'admin' || userRole === 'seller')) {
+            // Si el usuario es admin/master, sincronizar también registros de auditoría
+            if (currentUser && (userRole === 'admin' || userRole === 'master')) {
                 fetchLogs();
             }
         } catch (e) {

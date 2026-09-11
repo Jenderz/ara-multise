@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { Customer, SalesAdvisor, PaymentMethod } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
 import { usePOS } from '../../../context/POSContext';
 import { Button } from '../../UIComponents';
@@ -38,17 +39,38 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
     const [orderNote, setOrderNote] = useState('');
     const [showParkedList, setShowParkedList] = useState(false);
 
-    // --- ESTADO PARA ASIGNACIÓN DE VENDEDOR Y COMISIÓN OPCIONAL ---
-    const [selectedSellerId, setSelectedSellerId] = useState<string>(() => currentUser?.id || '');
+    // --- ESTADO PARA ASIGNACIÓN DE ASESOR DE PISO (OPCIONAL) Y COMISIÓN ---
+    const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
+    const [selectedAdvisorObj, setSelectedAdvisorObj] = useState<SalesAdvisor | null>(null);
+    const [localQuickAdvisors, setLocalQuickAdvisors] = useState<SalesAdvisor[]>([]);
     const [applyCommission, setApplyCommission] = useState<boolean>(false);
     const [customCommissionRate, setCustomCommissionRate] = useState<string>('0');
 
-    // --- MODAL DE VENDEDOR Y REGISTRO RÁPIDO DE ASESOR ---
-    const [showSellerModal, setShowSellerModal] = useState(false);
+    // --- MODAL DE ASESOR Y REGISTRO RÁPIDO DE ASESOR ---
+    const [showAdvisorModal, setShowAdvisorModal] = useState(false);
     const [showRegisterNewAdvisor, setShowRegisterNewAdvisor] = useState(false);
     const [quickAdvisorName, setQuickAdvisorName] = useState('');
     const [quickAdvisorRate, setQuickAdvisorRate] = useState('0');
     const [isSavingQuickAdvisor, setIsSavingQuickAdvisor] = useState(false);
+
+    // Solo asesores de venta (combinando ajustes globales con asesores registrados en caliente en esta sesión)
+    const availableAdvisors = useMemo(() => {
+        const fromSettings = (settings.salesAdvisors || []).filter((a: SalesAdvisor) => a.active !== false);
+        const combined = [...fromSettings];
+        localQuickAdvisors.forEach(la => {
+            if (!combined.some(a => a.id === la.id)) {
+                combined.push(la);
+            }
+        });
+        return combined;
+    }, [settings.salesAdvisors, localQuickAdvisors]);
+
+    const selectedAdvisor = useMemo(() => {
+        if (selectedAdvisorObj && selectedAdvisorObj.id === selectedAdvisorId) {
+            return selectedAdvisorObj;
+        }
+        return availableAdvisors.find((a: SalesAdvisor) => a.id === selectedAdvisorId) || null;
+    }, [availableAdvisors, selectedAdvisorId, selectedAdvisorObj]);
 
     const handleSaveQuickAdvisor = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -65,8 +87,12 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                 active: true,
                 createdAt: Date.now()
             };
-            await updateSettings({ salesAdvisors: [...currentAdvisors, newAdvisor] });
-            setSelectedSellerId(newAdvisor.id);
+
+            // 1. Guardar de forma INMEDIATA en memoria local para que esté activo en este mismo instante
+            setLocalQuickAdvisors(prev => [...prev, newAdvisor]);
+            setSelectedAdvisorId(newAdvisor.id);
+            setSelectedAdvisorObj(newAdvisor);
+
             if (newAdvisor.commissionRate && newAdvisor.commissionRate > 0) {
                 setApplyCommission(true);
                 setCustomCommissionRate(String(newAdvisor.commissionRate));
@@ -74,10 +100,14 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                 setApplyCommission(false);
                 setCustomCommissionRate('0');
             }
+
+            // 2. Persistir en ajustes globales
+            await updateSettings({ salesAdvisors: [...currentAdvisors, newAdvisor] });
+
             setQuickAdvisorName('');
             setQuickAdvisorRate('0');
             setShowRegisterNewAdvisor(false);
-            setShowSellerModal(false);
+            setShowAdvisorModal(false);
         } catch (err) {
             console.error("Error saving quick advisor:", err);
         } finally {
@@ -85,50 +115,16 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
         }
     };
 
+    // Cuando cambia el asesor, sincronizar la comisión sugerida si la tiene
     useEffect(() => {
-        if (!selectedSellerId && currentUser?.id) {
-            setSelectedSellerId(currentUser.id);
-        }
-    }, [currentUser]);
-
-    const availableSellers = useMemo(() => {
-        const advisors = (settings.salesAdvisors || [])
-            .filter((a: SalesAdvisor) => a.active !== false)
-            .map((a: SalesAdvisor) => ({
-                id: a.id,
-                name: a.name,
-                type: 'advisor' as const,
-                roleLabel: 'Asesor',
-                commissionRate: a.commissionRate || 0
-            }));
-
-        const users = (settings.users || [])
-            .filter((u: any) => u.active !== false)
-            .map((u: any) => ({
-                id: u.id,
-                name: u.name,
-                type: 'user' as const,
-                roleLabel: u.role === 'admin' ? 'Admin' : 'Cajera',
-                commissionRate: u.commissionRate || 0
-            }));
-
-        return [...advisors, ...users];
-    }, [settings.salesAdvisors, settings.users]);
-
-    const selectedSeller = useMemo(() => {
-        return availableSellers.find((u: any) => u.id === selectedSellerId) || null;
-    }, [availableSellers, selectedSellerId]);
-
-    // Cuando cambia el vendedor, sincronizar la comisión sugerida si la tiene
-    useEffect(() => {
-        if (selectedSeller && selectedSeller.commissionRate && selectedSeller.commissionRate > 0) {
+        if (selectedAdvisor && selectedAdvisor.commissionRate && selectedAdvisor.commissionRate > 0) {
             setApplyCommission(true);
-            setCustomCommissionRate(String(selectedSeller.commissionRate));
+            setCustomCommissionRate(String(selectedAdvisor.commissionRate));
         } else {
             setApplyCommission(false);
             setCustomCommissionRate('0');
         }
-    }, [selectedSellerId]);
+    }, [selectedAdvisorId, selectedAdvisor]);
     
     // --- ESTADO PARA DESCUENTO INDIVIDUAL ---
     const [activeItemDiscount, setActiveItemDiscount] = useState<string | null>(null);
@@ -149,9 +145,9 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
     const finalTotal = Math.max(0, cartTotal - discountAmount);
     const totalBs = finalTotal * activeExchangeRate;
 
-    // Comisión opcional para el vendedor seleccionado
+    // Comisión opcional para el asesor seleccionado
     const activeCommissionRate = applyCommission 
-        ? (customCommissionRate !== '' ? (parseFloat(customCommissionRate) || 0) : (selectedSeller?.commissionRate || 0))
+        ? (customCommissionRate !== '' ? (parseFloat(customCommissionRate) || 0) : (selectedAdvisor?.commissionRate || 0))
         : 0;
     const estimatedCommission = activeCommissionRate > 0 ? (finalTotal * (activeCommissionRate / 100)) : 0;
 
@@ -239,10 +235,15 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                 .join(' + ');
         }
 
-        const sellerId = selectedSeller ? selectedSeller.id : (currentUser?.id || 'web-client');
-        const sellerName = selectedSeller ? selectedSeller.name : (currentUser?.name || 'Venta Mostrador');
         const commissionRate = applyCommission ? activeCommissionRate : 0;
-        const sellerCommission = applyCommission ? estimatedCommission : 0;
+        const advisorCommission = applyCommission ? estimatedCommission : 0;
+
+        // Recuperar asesor activo garantizando que nunca se pierda por retardo de render
+        const activeAdv = selectedAdvisor 
+            || selectedAdvisorObj 
+            || availableAdvisors.find(a => a.id === selectedAdvisorId)
+            || (settings.salesAdvisors || []).find(a => a.id === selectedAdvisorId)
+            || localQuickAdvisors.find(a => a.id === selectedAdvisorId);
 
         prepareCheckout({ 
             name, 
@@ -250,13 +251,17 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             finalAddress, 
             finalPaymentMethod, 
             totalOverride: finalTotal,
-            sellerId,
-            sellerName,
-            sellerCommission,
-            commissionRate
+            advisorId: activeAdv ? activeAdv.id : (selectedAdvisorId || null),
+            advisorName: activeAdv ? activeAdv.name : null,
+            advisorCommission,
+            advisorRate: commissionRate
         });
 
-        // Reset local state
+        // Reset local state (incluyendo asesor para que la siguiente venta inicie como Venta Directa en Caja)
+        setSelectedAdvisorId('');
+        setSelectedAdvisorObj(null);
+        setApplyCommission(false);
+        setCustomCommissionRate('0');
         setOrderNote('');
         setIsMixedPayment(false);
         setMixedPayments([{ method: initialMethod, amount: '' }]);
@@ -275,7 +280,10 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             return;
         }
         const name = selectedCustomer ? selectedCustomer.name : (customerInput || 'Sin Nombre');
-        parkOrder(name, selectedCustomer);
+        parkOrder(name, selectedCustomer, selectedAdvisor?.id || null, selectedAdvisor?.name || null);
+        setSelectedAdvisorId('');
+        setApplyCommission(false);
+        setCustomCommissionRate('0');
         setCustomerInput('');
         setCustomerPhone('+58');
         setCustomerCedula('');
@@ -290,6 +298,11 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
         setShowParkedList(false);
         const order = parkedOrders[index];
         if (order.customer) selectCustomer(order.customer);
+        if (order.advisorId) {
+            setSelectedAdvisorId(order.advisorId);
+        } else {
+            setSelectedAdvisorId('');
+        }
     };
 
     // --- ATAJOS DE TECLADO RÁPIDOS (HOTKEYS) ---
@@ -343,33 +356,49 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                             )}
                         </div>
                         <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5 truncate">
-                            {currentBranch?.name || 'Venta Mostrador'}
+                            {currentBranch?.name || 'Sede'} • <span className="text-gray-600 dark:text-gray-300 font-extrabold">Caja: {currentUser?.name?.split(' ')[0] || 'Mostrador'}</span>
                         </span>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                    {/* Botón de Vendedor / Asesor en Header */}
-                    <button
-                        type="button"
-                        onClick={() => setShowSellerModal(true)}
-                        className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border transition-all active:scale-95 ${
-                            selectedSeller 
-                                ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/50 text-ios-blue' 
-                                : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-blue-600'
-                        }`}
-                        title={selectedSeller ? `Vendedor asignado: ${selectedSeller.name} (${selectedSeller.roleLabel})` : "Asignar vendedor o asesor"}
-                    >
-                        <UserCheck size={14} className={`shrink-0 ${selectedSeller ? "text-ios-blue" : "text-gray-500 dark:text-gray-300"}`} />
-                        <span className="text-[11px] font-bold max-w-[65px] xs:max-w-[85px] sm:max-w-[110px] truncate">
-                            {selectedSeller ? selectedSeller.name.split(' ')[0] : 'Vendedor'}
-                        </span>
-                        {selectedSeller && applyCommission && activeCommissionRate > 0 && (
-                            <span className="text-[9px] font-black bg-emerald-500 text-white px-1 py-0.2 rounded-full shrink-0">
-                                {activeCommissionRate}%
+                    {/* Botón de Asesor de Piso en Header */}
+                    <div className="flex items-center">
+                        <button
+                            type="button"
+                            onClick={() => setShowAdvisorModal(true)}
+                            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border transition-all active:scale-95 ${
+                                selectedAdvisor 
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300 shadow-sm' 
+                                    : 'bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-emerald-600 hover:border-emerald-200'
+                            }`}
+                            title={selectedAdvisor ? `Asesor de piso: ${selectedAdvisor.name}` : "Asignar asesor de venta de piso (opcional)"}
+                        >
+                            <UserCheck size={14} className={`shrink-0 ${selectedAdvisor ? "text-emerald-600 dark:text-emerald-400" : "text-gray-500 dark:text-gray-300"}`} />
+                            <span className="text-[11px] font-bold max-w-[65px] xs:max-w-[85px] sm:max-w-[110px] truncate">
+                                {selectedAdvisor ? selectedAdvisor.name.split(' ')[0] : '+ Asesor'}
                             </span>
+                            {selectedAdvisor && applyCommission && activeCommissionRate > 0 && (
+                                <span className="text-[9px] font-black bg-emerald-500 text-white px-1 py-0.2 rounded-full shrink-0">
+                                    {activeCommissionRate}%
+                                </span>
+                            )}
+                        </button>
+                        {selectedAdvisor && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedAdvisorId('');
+                                    setSelectedAdvisorObj(null);
+                                }}
+                                className="p-1 text-gray-400 hover:text-red-500 rounded-md transition-colors -ml-1"
+                                title="Quitar asesor (Venta directa en caja)"
+                            >
+                                <X size={12} />
+                            </button>
                         )}
-                    </button>
+                    </div>
 
                     {/* Botón Pausar / Historial */}
                     <button
@@ -725,7 +754,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">
-                                <Button variant="secondary" onClick={clearCart} disabled={cart.length === 0} className="col-span-1 bg-red-50 text-red-500 hover:bg-red-100 border-transparent dark:bg-red-900/10 dark:text-red-400 h-10 rounded-xl">
+                                <Button variant="secondary" onClick={() => { clearCart(); setSelectedAdvisorId(''); setApplyCommission(false); setCustomCommissionRate('0'); }} disabled={cart.length === 0} className="col-span-1 bg-red-50 text-red-500 hover:bg-red-100 border-transparent dark:bg-red-900/10 dark:text-red-400 h-10 rounded-xl">
                                     <Trash2 size={20} />
                                 </Button>
                                 <Button
@@ -742,73 +771,64 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             )}
 
             {/* Modal de Asignación de Vendedor y Registro Rápido */}
-            {showSellerModal && (
+            {/* Modal de Asignación Exclusiva de Asesor de Venta y Registro Rápido */}
+            {showAdvisorModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-white/5">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-ios-blue flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                                     <UserCheck size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-sm text-ios-text dark:text-white">Asignar Vendedor / Asesor</h3>
-                                    <p className="text-[10px] text-gray-400">Comisión por venta o venta directa de mostrador</p>
+                                    <h3 className="font-bold text-sm text-ios-text dark:text-white">Asignar Asesor de Venta</h3>
+                                    <p className="text-[10px] text-gray-400">Personal de piso • Facturado por tu caja: <span className="font-bold text-gray-600 dark:text-gray-200">{currentUser?.name || 'Caja'}</span></p>
                                 </div>
                             </div>
                             <button 
                                 type="button" 
-                                onClick={() => { setShowSellerModal(false); setShowRegisterNewAdvisor(false); }} 
+                                onClick={() => { setShowAdvisorModal(false); setShowRegisterNewAdvisor(false); }} 
                                 className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1 rounded-lg"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
-                        {/* Selector de Vendedor */}
+                        {/* Selector de Asesor Exclusivo */}
                         <div className="space-y-3">
                             <div>
                                 <label className="text-[11px] font-bold text-gray-500 uppercase block mb-1.5">
-                                    Vendedor o Asesor Asignado
+                                    Asesor de Piso (Opcional)
                                 </label>
                                 <div className="relative">
                                     <select
-                                        value={selectedSellerId}
-                                        onChange={e => setSelectedSellerId(e.target.value)}
+                                        value={selectedAdvisorId}
+                                        onChange={e => {
+                                            const aid = e.target.value;
+                                            setSelectedAdvisorId(aid);
+                                            const found = availableAdvisors.find((a: SalesAdvisor) => a.id === aid) || localQuickAdvisors.find(a => a.id === aid) || null;
+                                            setSelectedAdvisorObj(found);
+                                        }}
                                         className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold dark:text-white outline-none focus:border-ios-blue"
                                     >
-                                        <option value="">-- Sin Asignar / Venta Directa --</option>
-                                        {/* Asesores */}
-                                        {availableSellers.filter((s: any) => s.type === 'advisor').length > 0 && (
-                                            <optgroup label="👔 Asesores de Venta">
-                                                {availableSellers.filter((s: any) => s.type === 'advisor').map((a: any) => (
-                                                    <option key={a.id} value={a.id}>
-                                                        {a.name} {a.commissionRate > 0 ? `(${a.commissionRate}% com.)` : '(Sin com.)'}
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        )}
-                                        {/* Cajeras y Usuarios del Sistema */}
-                                        {availableSellers.filter((s: any) => s.type === 'user').length > 0 && (
-                                            <optgroup label="🖥️ Cajeras / Acceso Sistema">
-                                                {availableSellers.filter((s: any) => s.type === 'user').map((u: any) => (
-                                                    <option key={u.id} value={u.id}>
-                                                        {u.name} ({u.roleLabel}) {u.commissionRate > 0 ? `(${u.commissionRate}% com.)` : '(Sin com.)'}
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        )}
+                                        <option value="">-- Venta Directa en Caja (Sin Asesor) --</option>
+                                        {availableAdvisors.map((a: SalesAdvisor) => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.name} {(a.commissionRate && a.commissionRate > 0) ? `(${a.commissionRate}% com.)` : '(Sin com.)'}
+                                            </option>
+                                        ))}
                                     </select>
                                     <UserCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
                             </div>
 
-                            {/* Control de Comisión si hay vendedor seleccionado */}
-                            {selectedSeller && (
-                                <div className="bg-gray-50 dark:bg-zinc-800/60 p-3 rounded-2xl border border-gray-100 dark:border-white/5 space-y-2">
+                            {/* Control de Comisión si hay asesor seleccionado */}
+                            {selectedAdvisor && (
+                                <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-2xl border border-emerald-100 dark:border-emerald-800/30 space-y-2">
                                     <div className="flex justify-between items-center">
                                         <div>
-                                            <p className="text-xs font-bold dark:text-white">Comisión para esta Venta</p>
-                                            <p className="text-[10px] text-gray-400">Incentivo aplicado sobre el total facturado</p>
+                                            <p className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Comisión del Asesor</p>
+                                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Porcentaje reconocido a {selectedAdvisor.name}</p>
                                         </div>
                                         <button
                                             type="button"
@@ -917,7 +937,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                         <div className="pt-2">
                             <Button
                                 type="button"
-                                onClick={() => { setShowSellerModal(false); setShowRegisterNewAdvisor(false); }}
+                                onClick={() => { setShowAdvisorModal(false); setShowRegisterNewAdvisor(false); }}
                                 className="w-full py-2.5 text-xs font-bold bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-xl shadow-sm"
                             >
                                 Listo

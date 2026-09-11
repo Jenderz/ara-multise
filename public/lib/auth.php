@@ -38,7 +38,7 @@ function base64UrlDecode($data)
     return base64_decode(strtr($data, '-_', '+/') . str_repeat('=', (4 - strlen($data) % 4) % 4));
 }
 
-function generateSessionToken($user, $secret, $ttlSeconds = 86400)
+function generateSessionToken($user, $secret, $ttlSeconds = 15552000)
 {
     $header = base64UrlEncode(json_encode(['alg' => 'HS256', 'typ' => 'JWT']));
     $payload = base64UrlEncode(json_encode([
@@ -194,9 +194,9 @@ function handleLogin($pdo, $input)
         jsonResponse(['error' => 'Credenciales inválidas'], 401);
     }
 
-    // Generar Token
+    // Generar Token (180 Días de duración ~ 6 meses)
     $secret = getServerSecret($pdo);
-    $token = generateSessionToken($foundUser, $secret, 86400); // 24 Horas
+    $token = generateSessionToken($foundUser, $secret, 15552000); // 180 Días
 
     // Registrar inicio de sesión exitoso
     try {

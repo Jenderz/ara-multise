@@ -4,8 +4,11 @@
 function handleGetLogs($pdo)
 {
     $authUser = getAuthUser($pdo);
-    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-        jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para consultar registros de auditoría.'], 403);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+    }
+    if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+        jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador para consultar registros de auditoría.'], 403);
     }
 
     // Parámetros de Paginación y Búsqueda
@@ -108,8 +111,11 @@ function handleLogActivity($pdo, $input)
 function handleClearLogs($pdo)
 {
     $authUser = getAuthUser($pdo);
-    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-        jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para vaciar registros de auditoría.'], 403);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+    }
+    if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+        jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador para vaciar registros de auditoría.'], 403);
     }
 
     $pdo->exec("TRUNCATE TABLE `activity_logs`");

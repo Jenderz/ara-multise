@@ -41,6 +41,10 @@ function checkAndMigrateDB($pdo) {
                 `seller_name` VARCHAR(255),
                 `seller_commission` DECIMAL(12,2) DEFAULT 0,
                 `commission_rate` DECIMAL(8,2) DEFAULT 0,
+                `advisor_id` VARCHAR(255) DEFAULT NULL,
+                `advisor_name` VARCHAR(255) DEFAULT NULL,
+                `advisor_commission` DECIMAL(12,2) DEFAULT 0,
+                `advisor_rate` DECIMAL(8,2) DEFAULT 0,
                 `delivery_method` VARCHAR(50) DEFAULT 'pos',
                 `pickup_branch_id` INT DEFAULT 0,
                 `stock_deducted` TINYINT(1) DEFAULT 0,
@@ -108,6 +112,13 @@ function checkAndMigrateDB($pdo) {
                 `endpoint` VARCHAR(500) PRIMARY KEY,
                 `p256dh` VARCHAR(255),
                 `auth` VARCHAR(255),
+                `branch_id` INT DEFAULT 1,
+                `user_name` VARCHAR(100) DEFAULT NULL,
+                `cart_items` TEXT DEFAULT NULL,
+                `cart_updated_at` DATETIME NULL DEFAULT NULL,
+                `cart_notified` TINYINT(1) DEFAULT 0,
+                `last_active` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                `last_notified_at` DATETIME NULL DEFAULT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
@@ -170,6 +181,10 @@ function checkAndMigrateDB($pdo) {
                 'seller_name' => "VARCHAR(255)",
                 'seller_commission' => "DECIMAL(12,2) DEFAULT 0",
                 'commission_rate' => "DECIMAL(8,2) DEFAULT 0",
+                'advisor_id' => "VARCHAR(255) DEFAULT NULL",
+                'advisor_name' => "VARCHAR(255) DEFAULT NULL",
+                'advisor_commission' => "DECIMAL(12,2) DEFAULT 0",
+                'advisor_rate' => "DECIMAL(8,2) DEFAULT 0",
                 'subtotal' => "DECIMAL(12,2) DEFAULT 0",
                 'discount' => "DECIMAL(12,2) DEFAULT 0",
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",
@@ -179,6 +194,15 @@ function checkAndMigrateDB($pdo) {
             ],
             'customers' => [
                 'cedula' => "VARCHAR(30) DEFAULT ''"
+            ],
+            'push_subscriptions' => [
+                'branch_id'        => "INT DEFAULT 1",
+                'user_name'        => "VARCHAR(100) DEFAULT NULL",
+                'cart_items'       => "TEXT DEFAULT NULL",
+                'cart_updated_at'  => "DATETIME NULL DEFAULT NULL",
+                'cart_notified'    => "TINYINT(1) DEFAULT 0",
+                'last_active'      => "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+                'last_notified_at' => "DATETIME NULL DEFAULT NULL"
             ]
         ];
         
@@ -196,11 +220,14 @@ function checkAndMigrateDB($pdo) {
             "CREATE INDEX idx_orders_status ON `orders` (`status`)",
             "CREATE INDEX idx_orders_date ON `orders` (`date`)",
             "CREATE INDEX idx_orders_customer_phone ON `orders` (`customer_phone`)",
+            "CREATE INDEX idx_orders_advisor_id ON `orders` (`advisor_id`)",
             "CREATE INDEX idx_product_movements_prod_branch ON `product_movements` (`product_id`, `branch_id`)",
             "CREATE INDEX idx_product_movements_date ON `product_movements` (`date`)",
             "CREATE INDEX idx_products_category ON `products` (`category`)",
             "CREATE INDEX idx_products_barcode ON `products` (`barcode_ean`)",
-            "CREATE INDEX idx_products_created_at ON `products` (`created_at`)"
+            "CREATE INDEX idx_products_created_at ON `products` (`created_at`)",
+            "CREATE INDEX idx_push_cart_abandoned ON `push_subscriptions` (`cart_updated_at`, `cart_notified`)",
+            "CREATE INDEX idx_push_last_active ON `push_subscriptions` (`last_active`, `last_notified_at`)"
         ];
         foreach ($indexes as $idxSql) {
             try {

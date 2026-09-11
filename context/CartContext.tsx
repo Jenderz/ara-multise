@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { useAuth } from './AuthContext';
 import { useSettings } from './SettingsContext';
 import { DEFAULT_IMAGE } from '../config';
+import { updateAppBadge } from '../utils/nativePwa';
 
 interface CartContextType {
     cart: CartItem[];
@@ -22,7 +23,7 @@ interface CartContextType {
     updateCartQuantity: (cartId: string, delta: number) => void;
     clearCart: () => void;
 
-    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string) => Promise<string>;
+    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<string>;
     updateOrder: (order: Order, processStock?: boolean) => Promise<void>;
     deleteOrder: (id: string) => void;
 
@@ -68,7 +69,29 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-    useEffect(() => localStorage.setItem('lyberate_cart', JSON.stringify(cart)), [cart]);
+    useEffect(() => {
+        localStorage.setItem('lyberate_cart', JSON.stringify(cart));
+        const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+        updateAppBadge(totalItems).catch(() => {});
+
+        // Sincronizar estado del carrito en segundo plano para la automatización de Carrito Abandonado
+        const pushEndpoint = localStorage.getItem('ara_push_endpoint');
+        if (pushEndpoint) {
+            const timer = setTimeout(() => {
+                api.syncPushActivity({
+                    endpoint: pushEndpoint,
+                    cart: cart.map(i => ({
+                        productId: i.productId,
+                        productTitle: i.productTitle,
+                        price: i.price,
+                        quantity: i.quantity,
+                        image: i.image
+                    }))
+                }).catch(() => {});
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [cart]);
     useEffect(() => localStorage.setItem('lyberate_wishlist', JSON.stringify(wishlist)), [wishlist]);
 
     const updateLocalCache = (key: 'orders' | 'customers', data: any[]) => {
@@ -109,7 +132,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateCartQuantity = (cartId: string, delta: number) => {
         setCart(prev => prev.map(item => item.cartId === cartId ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
     };
-    const clearCart = () => setCart([]);
+    const clearCart = () => {
+        setCart([]);
+        const pushEndpoint = localStorage.getItem('ara_push_endpoint');
+        if (pushEndpoint) {
+            api.syncPushActivity({ endpoint: pushEndpoint, cart: [] }).catch(() => {});
+        }
+    };
     const toggleWishlist = (productId: string) => setWishlist(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
 
     const createOrder = async (
@@ -127,7 +156,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sellerName?: string,
         sellerCommission?: number,
         commissionRate?: number,
-        couponCode?: string
+        couponCode?: string,
+        advisorId?: string,
+        advisorName?: string,
+        advisorCommission?: number,
+        advisorRate?: number
     ): Promise<string> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
@@ -151,15 +184,34 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             orderDiscount = 0;
         }
 
-        const activeSellerId = sellerId || (currentUser ? currentUser.id : 'web-client');
-        const activeSellerName = sellerName || (currentUser ? currentUser.name : 'Tienda Online');
+        // La caja / cuenta que factura se toma automáticamente de la sesión activa en el POS
+        const isPOSOrder = deliveryMethod === 'pos';
+        const activeSellerId = isPOSOrder 
+            ? (currentUser ? currentUser.id : (sellerId || 'web-client')) 
+            : (sellerId || 'web-client');
+        const activeSellerName = isPOSOrder 
+            ? (currentUser ? currentUser.name : (sellerName || 'Tienda Online')) 
+            : (sellerName || 'Tienda Online');
         
-        // Calcular comisiones si no fueron enviadas explícitamente
+        // Asesor de venta de piso (opcional) y cálculo de su comisión
+        const activeAdvisorId = advisorId || undefined;
+        let activeAdvisorName = advisorName || undefined;
+        if (activeAdvisorId && !activeAdvisorName) {
+            const foundAdv = (settings?.salesAdvisors || []).find((a: any) => a.id === activeAdvisorId);
+            activeAdvisorName = foundAdv?.name;
+        }
+        const activeAdvisorRate = advisorRate !== undefined 
+            ? advisorRate 
+            : (activeAdvisorId ? ((settings?.salesAdvisors || []).find((a: any) => a.id === activeAdvisorId)?.commissionRate || 0) : 0);
+        const activeAdvisorCommission = advisorCommission !== undefined 
+            ? advisorCommission 
+            : (activeAdvisorRate > 0 ? (orderTotal * (activeAdvisorRate / 100)) : 0);
+
+        // Comisión de la cuenta de caja/vendedor si aplica
         let finalRate = commissionRate;
         if (finalRate === undefined) {
             const foundUser = (settings?.users || []).find((u: any) => u.id === activeSellerId);
-            const foundAdvisor = (settings?.salesAdvisors || []).find((a: any) => a.id === activeSellerId);
-            finalRate = foundUser?.commissionRate ?? foundAdvisor?.commissionRate ?? 0;
+            finalRate = foundUser?.commissionRate ?? 0;
         }
 
         let finalCommission = sellerCommission;
@@ -196,6 +248,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sellerName: activeSellerName,
             sellerCommission: finalCommission,
             commissionRate: finalRate,
+            advisorId: activeAdvisorId,
+            advisorName: activeAdvisorName,
+            advisorCommission: activeAdvisorCommission,
+            advisorRate: activeAdvisorRate,
             deliveryMethod,
             pickupBranchId,
             couponCode: couponCode || undefined
@@ -213,7 +269,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // Await order persistence to ensure data reaches server before any potential reload
         try {
-            await api.saveOrder(newOrder, true);
+            const pushEndpoint = localStorage.getItem('ara_push_endpoint');
+            const orderPayload: any = {
+                ...newOrder,
+                ...(pushEndpoint && { pushEndpoint })
+            };
+            await api.saveOrder(orderPayload, true);
         } catch (saveError) {
             // Si el servidor rechaza la orden (concurrencia, falta de stock, etc.), revertir del estado local
             setOrders(prev => {

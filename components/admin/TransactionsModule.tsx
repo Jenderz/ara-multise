@@ -175,7 +175,7 @@ export const TransactionsModule = () => {
 
     const exportToExcel = () => {
         // Crear CSV con todas las transacciones actuales
-        const headers = ['Fecha', 'Hora', 'ID', 'Cliente', 'Monto', 'Método de Pago', 'Estado', 'Vendedor', 'Productos'];
+        const headers = ['Fecha', 'Hora', 'ID', 'Cliente', 'Monto', 'Método de Pago', 'Estado', 'Caja / Facturación', 'Asesor de Piso', 'Productos'];
         const rows = serverOrders.map(order => [
             new Date(order.date).toLocaleDateString('es-ES'),
             new Date(order.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
@@ -185,6 +185,7 @@ export const TransactionsModule = () => {
             order.paymentMethod || 'N/A',
             order.status === 'completed' ? 'Completado' : order.status === 'pending' ? 'Pendiente' : 'Cancelado',
             order.sellerName || 'Sistema',
+            order.advisorName || 'Venta directa (Sin asesor)',
             order.items.length.toString()
         ]);
 
@@ -296,8 +297,7 @@ export const TransactionsModule = () => {
                             <button onClick={() => handlePresetDate('week')} className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/10 text-xs font-bold hover:bg-ios-blue hover:text-white transition-colors">7 Días</button>
                             <button onClick={() => handlePresetDate('month')} className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/10 text-xs font-bold hover:bg-ios-blue hover:text-white transition-colors">Este Mes</button>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            {/* Inputs de fecha y selectores (Mismo código que antes) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                             <div className="space-y-1">
                                 <label className="text-[10px] text-gray-500 font-bold">Desde</label>
                                 <input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 px-2 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/5" />
@@ -317,6 +317,22 @@ export const TransactionsModule = () => {
                                 <select value={selectedMethod} onChange={e => setSelectedMethod(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 px-2 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/5">
                                     <option value="all">Todos</option>
                                     {paymentOptions.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] text-gray-500 font-bold">Caja / Asesor</label>
+                                <select value={selectedSeller} onChange={e => setSelectedSeller(e.target.value)} className="w-full bg-gray-50 dark:bg-black/20 px-2 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/5">
+                                    <option value="all">Todos</option>
+                                    {(settings.users || []).length > 0 && (
+                                        <optgroup label="🖥️ Cajas / Usuarios">
+                                            {(settings.users || []).map((u: any) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                        </optgroup>
+                                    )}
+                                    {(settings.salesAdvisors || []).length > 0 && (
+                                        <optgroup label="👔 Asesores de Piso">
+                                            {(settings.salesAdvisors || []).map((a: any) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                        </optgroup>
+                                    )}
                                 </select>
                             </div>
                         </div>
@@ -379,8 +395,13 @@ export const TransactionsModule = () => {
                                                     {order.status === 'completed' && <span className="px-2 py-0.5 rounded-md bg-green-100 text-green-600 text-[8px] sm:text-[9px] font-black uppercase flex items-center gap-1"><CheckCircle2 size={10} /> Exitoso</span>}
 
                                                     <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black uppercase flex items-center gap-1 ${order.sellerId === 'web-client' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-                                                        <UserCircle size={10} /> {sellerDisplay}
+                                                        <UserCircle size={10} /> Caja: {sellerDisplay}
                                                     </span>
+                                                    {order.advisorName && (
+                                                        <span className="px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black uppercase flex items-center gap-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                                                            👔 Asesor: {order.advisorName}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <p className="text-xs font-bold text-gray-700 dark:text-gray-200 truncate">

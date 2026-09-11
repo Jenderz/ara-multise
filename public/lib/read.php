@@ -305,9 +305,9 @@ function handleGetOrders($pdo, $branchId)
         $params[':method'] = $_GET['method'];
     }
     
-    // Filtro por vendedor
+    // Filtro por vendedor o asesor
     if (!empty($_GET['seller']) && $_GET['seller'] !== 'all') {
-        $where[] = "`seller_id` = :seller";
+        $where[] = "(`seller_id` = :seller OR `advisor_id` = :seller)";
         $params[':seller'] = $_GET['seller'];
     }
     

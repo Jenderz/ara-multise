@@ -2,8 +2,11 @@
 <?php
 function handleBatchWrite($pdo, $input, $branchId) {
     $authUser = getAuthUser($pdo);
-    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-        jsonResponse(['error' => 'No autorizado. Se requiere sesión de administrador para importaciones masivas.'], 403);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+    }
+    if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+        jsonResponse(['error' => 'Acceso denegado. Se requiere sesión de administrador para importaciones masivas.'], 403);
     }
 
     $type = $input['type'] ?? '';
@@ -110,13 +113,15 @@ function handleBatchWrite($pdo, $input, $branchId) {
         }
         elseif ($type === 'orders') {
             $stmt = $pdo->prepare("INSERT INTO `orders` 
-            (id, branch_id, customer_name, customer_phone, customer_address, items, total, subtotal, discount, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate, delivery_method, pickup_branch_id, stock_deducted, coupon_code) 
-            VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :total, :subtotal, :discount, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate, :delivery_method, :pickup_branch_id, :stock_deducted, :coupon_code) 
+            (id, branch_id, customer_name, customer_phone, customer_address, items, total, subtotal, discount, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate, advisor_id, advisor_name, advisor_commission, advisor_rate, delivery_method, pickup_branch_id, stock_deducted, coupon_code) 
+            VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :total, :subtotal, :discount, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate, :advisor_id, :advisor_name, :advisor_commission, :advisor_rate, :delivery_method, :pickup_branch_id, :stock_deducted, :coupon_code) 
             ON DUPLICATE KEY UPDATE 
             `status`=VALUES(`status`), customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), 
             customer_address=VALUES(customer_address), items=VALUES(items), total=VALUES(total), subtotal=VALUES(subtotal), discount=VALUES(discount),
             payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name),
-            seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted), coupon_code=VALUES(coupon_code)");
+            seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate), 
+            advisor_id=VALUES(advisor_id), advisor_name=VALUES(advisor_name), advisor_commission=VALUES(advisor_commission), advisor_rate=VALUES(advisor_rate),
+            delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted), coupon_code=VALUES(coupon_code)");
             
             foreach ($items as $o) {
                 $itemsJson = is_string($o['items']) ? $o['items'] : safeJsonEncode($o['items'] ?? []);
@@ -137,6 +142,10 @@ function handleBatchWrite($pdo, $input, $branchId) {
                     ':seller_name' => $o['sellerName'] ?? ($o['seller_name'] ?? 'Tienda'),
                     ':seller_commission' => floatval($o['sellerCommission'] ?? ($o['seller_commission'] ?? 0)),
                     ':commission_rate' => floatval($o['commissionRate'] ?? ($o['commission_rate'] ?? 0)),
+                    ':advisor_id' => !empty($o['advisorId']) ? strval($o['advisorId']) : (!empty($o['advisor_id']) ? strval($o['advisor_id']) : null),
+                    ':advisor_name' => !empty($o['advisorName']) ? strval($o['advisorName']) : (!empty($o['advisor_name']) ? strval($o['advisor_name']) : null),
+                    ':advisor_commission' => floatval($o['advisorCommission'] ?? ($o['advisor_commission'] ?? 0)),
+                    ':advisor_rate' => floatval($o['advisorRate'] ?? ($o['advisor_rate'] ?? 0)),
                     ':delivery_method' => $o['deliveryMethod'] ?? ($o['delivery_method'] ?? 'pos'),
                     ':pickup_branch_id' => intval($o['pickupBranchId'] ?? ($o['pickup_branch_id'] ?? 0)),
                     ':stock_deducted' => !empty($o['stockDeducted']) ? 1 : 0,

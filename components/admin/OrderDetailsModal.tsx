@@ -100,13 +100,29 @@ export const OrderDetailsModal = ({ order, onClose }: { order: Order, onClose: (
 
                 {/* Footer Totals */}
                 <div className="p-6 bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 flex justify-between items-center">
-                    <div className="text-xs text-gray-500 font-medium">
+                    <div className="text-xs text-gray-500 font-medium space-y-0.5">
                         <div className="flex items-center gap-2 mb-1">
                             <CreditCard size={14}/> 
                             <span className="uppercase">{order.paymentMethod}</span>
                         </div>
-                        <span className="text-gray-400">Vendedor: </span>
-                        <span className="text-gray-700 dark:text-gray-300 font-bold">{order.sellerName || 'Sistema'}</span>
+                        <div>
+                            <span className="text-gray-400">Caja / Facturó: </span>
+                            <span className="text-gray-700 dark:text-gray-300 font-bold">{order.sellerName || 'Sistema'}</span>
+                        </div>
+                        {order.advisorName ? (
+                            <div>
+                                <span className="text-gray-400">Asesor de Piso: </span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{order.advisorName}</span>
+                                {order.advisorCommission !== undefined && order.advisorCommission > 0 && (
+                                    <span className="text-[10px] text-gray-400 ml-1">(${order.advisorCommission.toFixed(2)} com.)</span>
+                                )}
+                            </div>
+                        ) : (
+                            <div>
+                                <span className="text-gray-400">Asesor: </span>
+                                <span className="text-gray-500 italic">Venta directa en caja</span>
+                            </div>
+                        )}
                     </div>
                     <div className="text-right flex flex-col items-end">
                         {(() => {

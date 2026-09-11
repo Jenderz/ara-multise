@@ -109,58 +109,35 @@ const UpdatePrompt = () => {
 const AppContent = () => {
     const { loading, settings } = useStore();
 
-    // --- DYNAMIC MANIFEST GENERATOR ---
+    // --- ACTUALIZACIÓN DINÁMICA DE METADATOS NATIVOS PWA ---
     useEffect(() => {
         if (!settings) return;
 
-        // 1. Generate Manifest Object with RELATIVE PATHS fix
-        const manifest = {
-            name: settings.storeName || "Tienda Virtual",
-            short_name: settings.storeName ? settings.storeName.substring(0, 12) : "Tienda",
-            start_url: "./", // Changed from "/" to "./" to fix manifest error
-            display: "standalone",
-            background_color: settings.darkMode ? "#000000" : "#F2F2F7",
-            theme_color: settings.primaryColor || "#007AFF",
-            orientation: "portrait-primary",
-            scope: "./", // Changed from "/" to "./" to fix manifest error
-            icons: [
-                {
-                    src: settings.appIconUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
-                    sizes: "192x192",
-                    type: "image/png",
-                    purpose: "any maskable"
-                },
-                {
-                    src: settings.appIconUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png",
-                    sizes: "512x512",
-                    type: "image/png",
-                    purpose: "any maskable"
-                }
-            ]
-        };
-
-        // 2. Create Blob & URL
-        const stringManifest = JSON.stringify(manifest);
-        const blob = new Blob([stringManifest], { type: 'application/json' });
-        const manifestURL = URL.createObjectURL(blob);
-
-        // 3. Inject into DOM
-        let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
-        if (link) {
-            link.href = manifestURL;
-        } else {
-            link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = manifestURL;
-            document.head.appendChild(link);
+        // 1. Actualizar título del documento
+        if (settings.storeName) {
+            document.title = settings.storeName;
         }
 
-        // 4. Update Apple Touch Icon dynamically
+        // 2. Actualizar icono para dispositivos Apple (iOS WebClip)
+        const appIcon = settings.appIconUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
         let appleLink = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
         if (appleLink) {
-            appleLink.href = settings.appIconUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
+            appleLink.href = appIcon;
         }
 
+        // 3. Actualizar nombre de la app en la pantalla de inicio de iOS
+        let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]') as HTMLMetaElement;
+        if (appleTitle && settings.storeName) {
+            appleTitle.content = settings.storeName.substring(0, 12);
+        }
+
+        // 4. Actualizar color de la barra de estado según tema y color primario
+        if (settings.primaryColor) {
+            const themeMetas = document.querySelectorAll('meta[name="theme-color"]');
+            themeMetas.forEach(meta => {
+                meta.setAttribute('content', settings.darkMode ? "#000000" : settings.primaryColor);
+            });
+        }
     }, [settings]);
 
     if (loading) {

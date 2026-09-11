@@ -46,6 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// --- CONFIGURACIÓN WEB PUSH VAPID (OPCIONAL: POR DEFECTO YA ESTÁ PRECONFIGURADO) ---
+// define('VAPID_PUBLIC_KEY', 'BMS4ALXFLZGF2W_KYT9Gf8ZbmA8r4RjyEgyikAZO3j56is92_0XyddxO75G9VWDBY9wfG3YUUPPawtYdr-0GpFI');
+// define('VAPID_SUBJECT', 'mailto:notificaciones@ara.com');
+
 // --- CONEXIÓN A BASE DE DATOS ---
 function getDBConnection()
 {
@@ -148,6 +152,10 @@ function mapOrder($o)
     $o['sellerName'] = $o['seller_name'] ?: 'Tienda Online';
     $o['sellerCommission'] = (float)($o['seller_commission'] ?? 0);
     $o['commissionRate'] = (float)($o['commission_rate'] ?? 0);
+    $o['advisorId'] = !empty($o['advisor_id']) ? $o['advisor_id'] : ($o['advisorId'] ?? null);
+    $o['advisorName'] = !empty($o['advisor_name']) ? $o['advisor_name'] : ($o['advisorName'] ?? null);
+    $o['advisorCommission'] = (float)($o['advisor_commission'] ?? ($o['advisorCommission'] ?? 0));
+    $o['advisorRate'] = (float)($o['advisor_rate'] ?? ($o['advisorRate'] ?? 0));
     // Inferencia inteligente para pedidos antiguos o mal formados
     $o['deliveryMethod'] = $o['delivery_method'] ?? (
         (empty($o['seller_id']) || $o['seller_id'] === 'web-client' || $o['seller_id'] === 'online') 

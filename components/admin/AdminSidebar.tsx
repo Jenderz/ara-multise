@@ -409,13 +409,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         {isNavExpanded ? (
                             <>
                                 <span className="font-bold tracking-wide">ARA</span>
-                                <span className="font-mono bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full font-semibold">
-                                    v0.3.0
+                                <span className="font-mono bg-ios-blue/10 text-ios-blue px-2 py-0.5 rounded-full font-bold">
+                                    V 2.0
                                 </span>
                             </>
                         ) : (
-                            <span className="font-mono text-[9px] bg-gray-100 dark:bg-white/10 text-gray-500 px-1 py-0.5 rounded">
-                                v0.3
+                            <span className="font-mono text-[9px] bg-ios-blue/10 text-ios-blue px-1 py-0.5 rounded font-bold">
+                                V 2.0
                             </span>
                         )}
                     </div>

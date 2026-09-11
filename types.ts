@@ -14,6 +14,7 @@ export interface SystemConfig {
   salesAdvisors?: SalesAdvisor[];
   logs?: ActivityLog[];
   planTier?: 'single' | 'multi';
+  pushTemplates?: any;
 }
 
 export interface AnnouncementBarConfig {
@@ -162,6 +163,10 @@ export interface Order {
   sellerName?: string;
   sellerCommission?: number;
   commissionRate?: number;
+  advisorId?: string;
+  advisorName?: string;
+  advisorCommission?: number;
+  advisorRate?: number;
   deliveryMethod?: 'delivery' | 'pickup' | 'pos';
   pickupBranchId?: number;
   stockDeducted?: boolean;
@@ -358,7 +363,7 @@ export interface StoreContextType {
   removeFromCart: (cartId: string) => void;
   updateCartQuantity: (cartId: string, delta: number) => void;
   clearCart: () => void;
-  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string) => Promise<string>;
+  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<string>;
   updateOrder: (order: Order) => Promise<void>;
   deleteOrder: (id: string) => void;
   updateCustomer: (customer: Customer) => Promise<void>;

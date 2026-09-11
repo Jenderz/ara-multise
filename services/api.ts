@@ -158,7 +158,11 @@ export const api = {
     saveBranch: (b: Partial<Branch>) => fetchApi('save_branch', 'POST', b),
     deleteBranch: (id: number) => fetchApi('delete_branch', 'POST', { id }),
 
-    saveSubscription: (sub: PushSubscription) => fetchApi('subscribe_push', 'POST', sub),
+    saveSubscription: (sub: any) => fetchApi('subscribe_push', 'POST', sub),
+    syncPushActivity: (data: { endpoint: string; cart?: any[]; userName?: string }) => fetchApi('sync_push_activity', 'POST', data),
+    testPush: (endpoint?: string) => fetchApi('test_push', 'POST', { endpoint }),
+    sendCustomPush: (data: { title?: string; body: string; url?: string; branchId?: number }) => fetchApi('send_custom_push', 'POST', data),
+    getPushStats: () => fetchApi('get_push_stats'),
     resetDatabase: (opts: string[]) => fetchApi('reset_database', 'POST', { options: opts }),
 
     getTransactions: (filters: any) => api.getOrders({ ...filters, limit: 1000 }).then(res => res?.data || []),

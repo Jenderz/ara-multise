@@ -57,7 +57,7 @@ if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
 $pdo = getDBConnection();
 
 $schemaLock = __DIR__ . '/.schema_version';
-$currentSchemaVersion = 7;
+$currentSchemaVersion = 9;
 if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
     checkAndMigrateDB($pdo);
     @file_put_contents($schemaLock, strval($currentSchemaVersion));
@@ -80,8 +80,11 @@ try {
             break;
         case 'migrate':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+            }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador.'], 403);
             }
             checkAndMigrateDB($pdo);
             @file_put_contents(__DIR__ . '/.schema_version', strval($currentSchemaVersion));
@@ -174,11 +177,34 @@ try {
             break;
         case 'save_category':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para gestionar categorías.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
             }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador para gestionar categorías.'], 403);
+            }
+
+            $catId   = $input['id'] ?? '';
+            $catName = trim($input['name'] ?? '');
+            $catImg  = $input['image'] ?? '';
+
+            // Verificar si es una categoría nueva antes de insertar
+            $checkCat = $pdo->prepare("SELECT id FROM `categories` WHERE id = ?");
+            $checkCat->execute([$catId]);
+            $isNewCategory = ($checkCat->fetchColumn() === false);
+
             $stmt = $pdo->prepare("INSERT INTO `categories` (id, name, image) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), image=VALUES(image)");
-            $stmt->execute([$input['id'], $input['name'], $input['image']]);
+            $stmt->execute([$catId, $catName, $catImg]);
+
+            if ($isNewCategory && !empty($catName)) {
+                try {
+                    require_once __DIR__ . '/lib/push_sender.php';
+                    WebPushSender::notifyNewCategory($pdo, $catName, $catId, $catImg);
+                } catch (Exception $e) {
+                    error_log("[WebPush Category Error] " . $e->getMessage());
+                }
+            }
+
             jsonResponse(['status' => 'success']);
             break;
         case 'delete_category':
@@ -195,16 +221,22 @@ try {
             break;
         case 'reset_database':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere sesión de administrador para reiniciar la base de datos.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+            }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere sesión de administrador para reiniciar la base de datos.'], 403);
             }
             require_once 'lib/write.php';
             handleReset($pdo, $input);
             break;
         case 'save_coupon':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para gestionar cupones.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+            }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador para gestionar cupones.'], 403);
             }
             $c = $input;
             $code = strtoupper(trim(preg_replace('/\s+/', '', (string)($c['code'] ?? ''))));
@@ -216,6 +248,17 @@ try {
             $active = isset($c['active']) ? ($c['active'] ? 1 : 0) : 1;
             $stmt = $pdo->prepare("INSERT INTO `coupons` (code, discount_type, value, active) VALUES (:c, :t, :v, :a) ON DUPLICATE KEY UPDATE discount_type=:t, value=:v, active=:a");
             $stmt->execute([':c' => $code, ':t' => $discountType, ':v' => $value, ':a' => $active]);
+
+            if ($active == 1) {
+                try {
+                    require_once __DIR__ . '/lib/push_sender.php';
+                    $discText = $discountType === 'percentage' ? "{$value}% de descuento" : "\${$value} de descuento";
+                    WebPushSender::notifyNewCoupon($pdo, $code, $discText);
+                } catch (Exception $e) {
+                    error_log("[WebPush Coupon Error] " . $e->getMessage());
+                }
+            }
+
             jsonResponse(['status' => 'success']);
             break;
         case 'delete_coupon':
@@ -239,8 +282,11 @@ try {
 
         case 'upload_pwa_screenshot':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+            }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador.'], 403);
             }
             $b64Data = $input['base64'] ?? '';
             $fileName = $input['fileName'] ?? ''; // desktop.jpg or mobile.jpg
@@ -278,8 +324,11 @@ try {
 
         case 'update_pwa_icon':
             $authUser = getAuthUser($pdo);
-            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            if (!$authUser) {
+                jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+            }
+            if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+                jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador.'], 403);
             }
             $b64Data = $input['base64'] ?? '';
             if (empty($b64Data)) jsonResponse(['error' => 'Missing data'], 400);
@@ -350,11 +399,144 @@ try {
         case 'subscribe_push':
             $sub = $input;
             $keys = $sub['keys'] ?? [];
-            if (!empty($sub['endpoint'])) {
-                $stmt = $pdo->prepare("INSERT INTO `push_subscriptions` (endpoint, p256dh, auth) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE created_at = NOW()");
-                $stmt->execute([$sub['endpoint'], $keys['p256dh'] ?? '', $keys['auth'] ?? '']);
+            $endpoint = $sub['endpoint'] ?? '';
+            if (!empty($endpoint)) {
+                $p256dh   = $keys['p256dh'] ?? '';
+                $auth     = $keys['auth'] ?? '';
+                $bId      = !empty($sub['branchId']) ? intval($sub['branchId']) : $branchId;
+                $userName = !empty($sub['userName']) ? trim($sub['userName']) : null;
+                $cartJson = !empty($sub['cart']) ? safeJsonEncode($sub['cart']) : null;
+                $cartUpdated = $cartJson ? date('Y-m-d H:i:s') : null;
+
+                $stmt = $pdo->prepare("INSERT INTO `push_subscriptions` 
+                    (endpoint, p256dh, auth, branch_id, user_name, cart_items, cart_updated_at, cart_notified, last_active) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW()) 
+                    ON DUPLICATE KEY UPDATE 
+                    p256dh = VALUES(p256dh), 
+                    auth = VALUES(auth), 
+                    branch_id = VALUES(branch_id), 
+                    user_name = COALESCE(VALUES(user_name), user_name),
+                    cart_items = COALESCE(VALUES(cart_items), cart_items),
+                    cart_updated_at = COALESCE(VALUES(cart_updated_at), cart_updated_at),
+                    last_active = NOW()");
+                $stmt->execute([$endpoint, $p256dh, $auth, $bId, $userName, $cartJson, $cartUpdated]);
             }
             jsonResponse(['status' => 'success']);
+            break;
+
+        case 'sync_push_activity':
+            $endpoint = $input['endpoint'] ?? '';
+            if (!empty($endpoint)) {
+                $hasCart = array_key_exists('cart', $input);
+                $cart = $input['cart'] ?? [];
+                $cartEmpty = empty($cart);
+                $cartJson = $cartEmpty ? null : safeJsonEncode($cart);
+
+                if ($hasCart) {
+                    $stmt = $pdo->prepare("UPDATE `push_subscriptions` SET 
+                        cart_items = :cart, 
+                        cart_updated_at = :cart_time, 
+                        cart_notified = 0, 
+                        last_active = NOW() 
+                        WHERE endpoint = :endpoint");
+                    $stmt->execute([
+                        ':cart' => $cartJson,
+                        ':cart_time' => $cartEmpty ? null : date('Y-m-d H:i:s'),
+                        ':endpoint' => $endpoint
+                    ]);
+                } else {
+                    $stmt = $pdo->prepare("UPDATE `push_subscriptions` SET last_active = NOW() WHERE endpoint = ?");
+                    $stmt->execute([$endpoint]);
+                }
+            }
+            jsonResponse(['status' => 'success']);
+            break;
+
+        case 'test_push':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            }
+            require_once __DIR__ . '/lib/push_sender.php';
+            $storeName = WebPushSender::getStoreName($pdo);
+            $endpoint = $input['endpoint'] ?? '';
+            $testPayload = [
+                'title' => "🔔 Notificación de Prueba - {$storeName}",
+                'body'  => "El sistema Web Push nativo de {$storeName} está activo y funcionando correctamente.",
+                'icon'  => './icon.png',
+                'url'   => './'
+            ];
+
+            if (!empty($endpoint)) {
+                $stmt = $pdo->prepare("SELECT p256dh, auth FROM `push_subscriptions` WHERE endpoint = ?");
+                $stmt->execute([$endpoint]);
+                $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($sub) {
+                    $res = WebPushSender::sendNotification($pdo, $endpoint, $sub['p256dh'], $sub['auth'], $testPayload);
+                    jsonResponse(['status' => 'success', 'result' => $res]);
+                } else {
+                    jsonResponse(['error' => 'Endpoint no registrado en la base de datos'], 404);
+                }
+            } else {
+                $res = WebPushSender::broadcast($pdo, $testPayload);
+                jsonResponse(['status' => 'success', 'broadcast_result' => $res]);
+            }
+            break;
+
+        case 'send_custom_push':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador.'], 403);
+            }
+            require_once __DIR__ . '/lib/push_sender.php';
+            $title = trim($input['title'] ?? '');
+            $body  = trim($input['body'] ?? '');
+            $url   = trim($input['url'] ?? './');
+            $targetBranch = !empty($input['branchId']) ? intval($input['branchId']) : null;
+
+            if (empty($body)) {
+                jsonResponse(['error' => 'El mensaje de la notificación no puede estar vacío.'], 400);
+            }
+
+            if (empty($title)) {
+                $title = WebPushSender::getStoreName($pdo);
+            }
+
+            $payload = [
+                'title' => $title,
+                'body'  => $body,
+                'icon'  => !empty($input['icon']) ? $input['icon'] : './icon.png',
+                'url'   => $url
+            ];
+
+            $res = WebPushSender::broadcast($pdo, $payload, $targetBranch);
+            jsonResponse([
+                'status' => 'success',
+                'message' => "Notificación enviada a {$res['success']} dispositivos.",
+                'stats' => $res
+            ]);
+            break;
+
+        case 'get_push_stats':
+            $authUser = getAuthUser($pdo);
+            if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
+                jsonResponse(['error' => 'No autorizado.'], 403);
+            }
+            try {
+                $stmt = $pdo->query("SELECT 
+                    COUNT(*) as total_subscribers,
+                    COUNT(CASE WHEN last_active >= (NOW() - INTERVAL 30 DAY) THEN 1 END) as active_30d,
+                    COUNT(CASE WHEN cart_items IS NOT NULL AND cart_items != '' AND cart_items != '[]' THEN 1 END) as carts_pending
+                    FROM `push_subscriptions`");
+                $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                jsonResponse([
+                    'total' => intval($data['total_subscribers'] ?? 0),
+                    'active30d' => intval($data['active_30d'] ?? 0),
+                    'cartsPending' => intval($data['carts_pending'] ?? 0)
+                ]);
+            } catch (Exception $e) {
+                jsonResponse(['total' => 0, 'active30d' => 0, 'cartsPending' => 0]);
+            }
             break;
 
         default:

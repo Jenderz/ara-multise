@@ -3,6 +3,11 @@ import React, { ErrorInfo, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { HelmetProvider } from 'react-helmet-async';
+import './src/index.css';
+import { requestPersistentStorage } from './utils/nativePwa';
+
+// Solicitar persistencia de almacenamiento para evitar que el SO borre la caché de la tienda
+requestPersistentStorage().catch(() => {});
 
 // Tipado para las propiedades del componente ErrorBoundary
 interface ErrorBoundaryProps {

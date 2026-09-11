@@ -1,13 +1,11 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { AppNotification, NotificationContextType, Order } from '../types';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppNotification, NotificationContextType } from '../types';
 import { useStore } from './StoreContext';
 import { api } from '../services/api';
 
-// --- CONFIGURACIÓN VAPID ---
-// IMPORTANTE: Debes generar tus propias llaves VAPID en tu servidor PHP y poner la PÚBLICA aquí.
-// Puedes usar: https://web-push-codelab.glitch.me/ para generar un par de pruebas.
-const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U'; 
+// --- CONFIGURACIÓN VAPID OFICIAL ARA V 2.0 ---
+const VAPID_PUBLIC_KEY = 'BMS4ALXFLZGF2W_KYT9Gf8ZbmA8r4RjyEgyikAZO3j56is92_0XyddxO75G9VWDBY9wfG3YUUPPawtYdr-0GpFI'; 
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
@@ -33,14 +31,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [isStandalone, setIsStandalone] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
   
-  const { settings, cart, orders } = useStore();
-  const prevOrdersRef = useRef<Order[]>(orders);
-  const cartTimeoutRef = useRef<any>(null);
+  const { settings } = useStore();
 
   useEffect(() => {
     // 1. Detect Permission
     if ('Notification' in window) {
       setPermission(Notification.permission);
+      if (Notification.permission === 'granted') {
+        // Refrescar token / actualizar actividad en el servidor
+        subscribeToPush().catch(() => {});
+      }
     }
 
     // 2. iOS Detection
@@ -87,14 +87,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       setPermission(result);
 
       if (result === 'granted') {
-          // --- AQUÍ OCURRE LA MAGIA REAL ---
-          subscribeToPush();
-          
-          addNotification({
-              title: '¡Notificaciones Activadas!',
-              body: 'Ahora recibirás ofertas reales desde nuestro servidor.',
-              type: 'success'
-          });
+          // Suscribir al Web Push real en el servidor
+          await subscribeToPush();
       }
     } catch (e) {
       console.error("Error al pedir permisos:", e);
@@ -111,7 +105,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         let subscription = await registration.pushManager.getSubscription();
 
         if (!subscription) {
-            // Crear nueva suscripción real contra Google/Mozilla FCM
+            // Crear nueva suscripción real contra FCM / Web Push Service
             const convertedVapidKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -119,11 +113,14 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             });
         }
 
-        // Enviar el objeto de suscripción (JSON) a TU servidor PHP
-        // Este objeto contiene: endpoint, keys { p256dh, auth }
         if (subscription) {
-            await api.saveSubscription(subscription);
-            console.log("Suscripción Web Push enviada al servidor PHP");
+            localStorage.setItem('ara_push_endpoint', subscription.endpoint);
+            const subJson = subscription.toJSON();
+            await api.saveSubscription({
+                ...subJson,
+                endpoint: subscription.endpoint,
+            });
+            console.log("Suscripción Web Push vinculada en el servidor ARA V 2.0");
         }
 
     } catch (error) {
@@ -156,52 +153,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       }
   };
 
-  // --- AUTOMATION (Local) ---
-  useEffect(() => {
-    if (!settings.enableAbandonedCart) {
-        if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-        return;
-    }
-    if (cart.length > 0) {
-        if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-        cartTimeoutRef.current = setTimeout(() => {
-            addNotification({
-                title: '¿Olvidaste algo?',
-                body: 'Tus productos te esperan en el carrito.',
-                type: 'warning'
-            });
-        }, 30000); 
-    } else {
-        if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current);
-    }
-    return () => { if (cartTimeoutRef.current) clearTimeout(cartTimeoutRef.current); };
-  }, [cart, settings.enableAbandonedCart]);
-
-  useEffect(() => {
-      if (!settings.enableOrderUpdates) {
-          prevOrdersRef.current = orders;
-          return;
-      }
-      const prevOrders = prevOrdersRef.current;
-      if (prevOrders.length === orders.length) {
-          orders.forEach(order => {
-              const oldOrder = prevOrders.find(o => o.id === order.id);
-              if (oldOrder && oldOrder.status !== order.status) {
-                  let msg = '';
-                  let type: AppNotification['type'] = 'info';
-                  if (order.status === 'completed') {
-                      msg = `Tu pedido #${order.id} ha sido completado.`;
-                      type = 'success';
-                  } else if (order.status === 'cancelled') {
-                      msg = `El pedido #${order.id} ha sido cancelado.`;
-                      type = 'warning';
-                  }
-                  if (msg) addNotification({ title: 'Actualización de Pedido', body: msg, type });
-              }
-          });
-      }
-      prevOrdersRef.current = orders;
-  }, [orders, settings.enableOrderUpdates]);
 
   return (
     <NotificationContext.Provider value={{

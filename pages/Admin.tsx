@@ -223,7 +223,7 @@ export const Admin = () => {
                 {activeTab === 'statistics' && hasPermission('statistics') && <StatisticsModule orders={orders} products={products} customers={customers} categories={categories} />}
 
                 {userRole === 'admin' && activeTab === 'users' && <UsersModule />}
-                {userRole === 'admin' && activeTab === 'marketing' && <MarketingModule coupons={coupons} addCoupon={addCoupon} toggleCoupon={toggleCoupon} deleteCoupon={deleteCoupon} settings={settings} />}
+                {userRole === 'admin' && activeTab === 'marketing' && <MarketingModule coupons={coupons} addCoupon={addCoupon} toggleCoupon={toggleCoupon} deleteCoupon={deleteCoupon} settings={settings} updateSettings={updateSettings} />}
                 {userRole === 'admin' && activeTab === 'settings' && <SettingsModule settings={settings} updateSettings={updateSettings} logout={logout} />}
             </main>
 

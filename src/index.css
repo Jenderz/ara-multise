@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+:root {
+  --font-main: 'Inter', sans-serif;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+body {
+  background-color: #F2F2F7;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  /* Evita selección de texto para simular App Nativa */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.dark body {
+  background-color: #000000;
+}
+
+/* Permitir selección solo en inputs y textos editables */
+input, textarea, .prose {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Ocultar barra de desplazamiento sin perder funcionalidad */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Efectos Glassmorphism iOS */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.dark .glass-panel {
+  background: rgba(30, 30, 30, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Animaciones modernas de interfaz */
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-pulse-slow { animation: pulseSlow 10s infinite alternate; }
+.animate-scan-line { animation: scanLine 2s linear infinite; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes pulseSlow { from { transform: scale(1.0); } to { transform: scale(1.1); } }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
+@keyframes scanLine {
+  0% { transform: translateY(-50px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(50px); opacity: 0; }
+}
+
+/* iOS PWA Safe Area Insets (Notch, Dynamic Island y Home Bar) */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+.pt-safe { padding-top: env(safe-area-inset-top, 0px) !important; }
+.pl-safe { padding-left: env(safe-area-inset-left, 0px) !important; }
+.pr-safe { padding-right: env(safe-area-inset-right, 0px) !important; }
+
+/* Cabeceras fijas en iOS PWA */
+.header-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem) !important;
+}
+
+/* Drawer / Navegación móvil */
+.sidebar-safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem) !important;
+}
+.sidebar-safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
+}
+
+/* Desktop Window Controls Overlay (cuando la PWA corre en escritorio) */
+@media (display-mode: window-controls-overlay) {
+  .titlebar-safe {
+    padding-top: env(titlebar-area-height, 32px);
+  }
+}

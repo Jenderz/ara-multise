@@ -1,12 +1,18 @@
 {
+  "id": "./?source=pwa",
   "name": "Tienda Virtual",
   "short_name": "Tienda",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#F2F2F7",
   "theme_color": "#007AFF",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "handle_links": "preferred",
   "categories": [
     "shopping",
     "lifestyle",

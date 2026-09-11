@@ -16,7 +16,7 @@ interface POSContextType {
     clearCart: () => void;
 
     parkedOrders: any[];
-    parkOrder: (name: string, customer: Customer | null) => void;
+    parkOrder: (name: string, customer: Customer | null, advisorId?: string | null, advisorName?: string | null) => void;
     restoreOrder: (index: number) => void;
     deleteParkedOrder: (index: number) => void;
 
@@ -229,9 +229,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const clearCart = () => setCart([]);
 
     // --- ACCIONES DE ÓRDENES PAUSADAS ---
-    const parkOrder = (name: string, customer: Customer | null) => {
+    const parkOrder = (name: string, customer: Customer | null, advisorId?: string | null, advisorName?: string | null) => {
         if (cart.length === 0) return;
-        setParkedOrders(prev => [...prev, { name: name || `Orden ${prev.length + 1}`, cart, date: Date.now(), customer }]);
+        setParkedOrders(prev => [...prev, { name: name || `Orden ${prev.length + 1}`, cart, date: Date.now(), customer, advisorId, advisorName }]);
         setCart([]);
         addNotification({ title: 'Orden Pausada', body: 'La orden se guardó temporalmente.', type: 'info' });
     };
@@ -289,6 +289,9 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
 
         try {
+            const cashierId = currentUser?.id || 'web-client';
+            const cashierName = currentUser?.name || 'Venta Mostrador';
+
             const orderId = await createOrder(
                 checkoutDetails.name,
                 checkoutDetails.phone,
@@ -300,10 +303,15 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 discountAmount,
                 'pos',
                 currentBranch?.id || 1,
-                checkoutDetails.sellerId,
-                checkoutDetails.sellerName,
-                checkoutDetails.sellerCommission,
-                checkoutDetails.commissionRate
+                cashierId,
+                cashierName,
+                checkoutDetails.sellerCommission || 0,
+                checkoutDetails.commissionRate || 0,
+                undefined, // couponCode
+                checkoutDetails.advisorId || undefined,
+                checkoutDetails.advisorName || undefined,
+                checkoutDetails.advisorCommission || 0,
+                checkoutDetails.advisorRate || 0
             );
 
             // 1. Descontar optimistamente el stock en la memoria local
@@ -325,10 +333,14 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 discount: discountAmount,
                 paymentMethod: checkoutDetails.finalPaymentMethod,
                 deliveryMethod: 'pos',
-                sellerId: checkoutDetails.sellerId || currentUser?.id,
-                sellerName: checkoutDetails.sellerName || currentUser?.name,
+                sellerId: cashierId,
+                sellerName: cashierName,
                 sellerCommission: checkoutDetails.sellerCommission || 0,
                 commissionRate: checkoutDetails.commissionRate || 0,
+                advisorId: checkoutDetails.advisorId || undefined,
+                advisorName: checkoutDetails.advisorName || undefined,
+                advisorCommission: checkoutDetails.advisorCommission || 0,
+                advisorRate: checkoutDetails.advisorRate || 0,
                 branchId: currentBranch?.id || 1,
                 date: Date.now(),
                 status: 'completed'

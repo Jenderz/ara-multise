@@ -14,15 +14,17 @@ function handleSaveProduct($pdo, $input, $branchId)
 
     $p = $input;
     $prevStock = 0;
+    $prevSalePrice = 0;
     $isNew = true;
 
-    // Verificar stock anterior (Padre)
+    // Verificar stock y oferta anterior (Padre)
     if (!empty($p['id'])) {
-        $stmtCheck = $pdo->prepare("SELECT stock FROM inventory WHERE product_id = ? AND branch_id = ?");
-        $stmtCheck->execute([$p['id'], $branchId]);
-        $res = $stmtCheck->fetchColumn();
-        if ($res !== false) {
-            $prevStock = (int)$res;
+        $stmtCheck = $pdo->prepare("SELECT i.stock, pr.sale_price FROM products pr LEFT JOIN inventory i ON (pr.id = i.product_id AND i.branch_id = ?) WHERE pr.id = ?");
+        $stmtCheck->execute([$branchId, $p['id']]);
+        $res = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        if ($res) {
+            $prevStock = (int)($res['stock'] ?? 0);
+            $prevSalePrice = floatval($res['sale_price'] ?? 0);
             $isNew = false;
         }
     }
@@ -127,6 +129,20 @@ function handleSaveProduct($pdo, $input, $branchId)
             ->execute([generateUniqueId(), $p['id'], $effectiveBranchId, $userId, $userName, $type, abs($diff), $currentParentStock, $ref, time() * 1000]);
     }
 
+    // Disparo de Web Push automático si el producto entra en oferta
+    $currentSalePrice = floatval($p['salePrice'] ?? 0);
+    $currentPrice = floatval($p['price'] ?? 0);
+    $isVisible = ($p['isVisible'] ?? true);
+
+    if ($isVisible && $currentSalePrice > 0 && $currentSalePrice < $currentPrice && abs($currentSalePrice - $prevSalePrice) > 0.01) {
+        try {
+            require_once __DIR__ . '/push_sender.php';
+            WebPushSender::notifyNewOffer($pdo, $p['title'] ?? 'Producto en Oferta', $currentSalePrice, $currentPrice, $p['id'], $effectiveBranchId);
+        } catch (Exception $e) {
+            error_log("[WebPush Offer Error] " . $e->getMessage());
+        }
+    }
+
     jsonResponse(['status' => 'success']);
 }
 
@@ -142,6 +158,10 @@ function handleSaveOrder($pdo, $input, $branchId)
         $stmtCheck->execute([strval($o['id'])]);
         $existingOrder = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
+        // Identificar si la orden proviene del Staff autenticado (POS/Admin) o de un cliente web público
+        $authUser = getAuthUser($pdo);
+        $isStaff = ($authUser && in_array($authUser['role'] ?? '', ['admin', 'master', 'seller', 'cashier']));
+
         // LÓGICA DE ASIGNACIÓN DE SEDE INTELIGENTE (por prioridad):
         // P1: pickup/pos con sede explícita → siempre usar esa sede
         // P2: Orden ya existente (edición) → preservar sede original
@@ -154,6 +174,34 @@ function handleSaveOrder($pdo, $input, $branchId)
         if (($deliveryMethod === 'pickup' || $deliveryMethod === 'pos') && $pickupBranch > 0) {
             // P1: Retiro en tienda con sede seleccionada explícitamente
             $activeBranchId = $pickupBranch;
+
+            // Si es un cliente web solicitando retiro en tienda, validar que dicha sede tenga existencias reales
+            if (!$isStaff && $deliveryMethod === 'pickup') {
+                $itemsArrCheck = safeJsonDecode($itemsJson);
+                if (is_array($itemsArrCheck)) {
+                    foreach ($itemsArrCheck as $it) {
+                        if (!empty($it['productId']) && !str_starts_with($it['productId'], 'manual-') && !str_starts_with($it['productId'], 'custom')) {
+                            $tId = !empty($it['variantId']) ? strval($it['variantId']) : strval($it['productId']);
+                            $reqQty = max(1, intval($it['quantity'] ?? 1));
+
+                            $pCheck = $pdo->prepare("SELECT track_stock, title FROM `products` WHERE `id` = ? OR variants LIKE ? LIMIT 1");
+                            $pCheck->execute([$tId, '%' . $tId . '%']);
+                            $pRow = $pCheck->fetch(PDO::FETCH_ASSOC);
+                            $tracks = $pRow ? (bool)($pRow['track_stock'] ?? 1) : true;
+
+                            if ($tracks) {
+                                $stkCheck = $pdo->prepare("SELECT `stock` FROM `inventory` WHERE `product_id` = ? AND `branch_id` = ?");
+                                $stkCheck->execute([$tId, $pickupBranch]);
+                                $curAvail = intval($stkCheck->fetchColumn() ?: 0);
+                                if ($curAvail < $reqQty) {
+                                    $pName = $it['productTitle'] ?? ($pRow['title'] ?? 'el producto seleccionado');
+                                    throw new Exception("Lo sentimos, no hay existencias disponibles de '{$pName}' en la sede seleccionada para retiro en tienda.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         } elseif ($activeBranchId > 0) {
             // P3: Sede enviada directamente por el frontend (POS, staff, etc.) — ya está asignada
         } elseif ($existingOrder && !empty($existingOrder['branch_id']) && intval($existingOrder['branch_id']) > 0) {
@@ -201,6 +249,27 @@ function handleSaveOrder($pdo, $input, $branchId)
             if ($selectedCandidate > 0) {
                 $activeBranchId = $selectedCandidate;
             } else {
+                // Si ninguna sede individual cuenta con todo el pedido para delivery web, verificar si los productos están totalmente agotados
+                if (!$isStaff && !empty($requiredItems)) {
+                    foreach ($requiredItems as $itemProdId => $reqQty) {
+                        $checkParentStmt = $pdo->prepare("SELECT track_stock, title FROM `products` WHERE `id` = ? OR variants LIKE ? LIMIT 1");
+                        $checkParentStmt->execute([$itemProdId, '%' . $itemProdId . '%']);
+                        $pRow = $checkParentStmt->fetch(PDO::FETCH_ASSOC);
+                        $trackStock = $pRow ? (bool)($pRow['track_stock'] ?? 1) : true;
+                        if ($trackStock) {
+                            $branchIdsSafe = array_map('intval', $activeBranchList ?: [1]);
+                            $inClause = implode(',', $branchIdsSafe);
+                            $sumStockStmt = $pdo->query("SELECT COALESCE(SUM(stock), 0) FROM `inventory` WHERE `product_id` = " . $pdo->quote($itemProdId) . " AND `branch_id` IN ({$inClause})");
+                            $totalAvailable = intval($sumStockStmt ? $sumStockStmt->fetchColumn() : 0);
+
+                            if ($totalAvailable < $reqQty) {
+                                $title = $pRow['title'] ?? "el producto solicitado";
+                                throw new Exception("Lo sentimos, '{$title}' no cuenta con existencias suficientes en nuestras sedes (Disponible: {$totalAvailable}, Solicitado: {$reqQty}).");
+                            }
+                        }
+                    }
+                }
+
                 // Fallback: sede del header o primera sede activa disponible
                 $activeBranchId = intval($branchId > 0 ? $branchId : ($activeBranchList[0] ?? 1));
             }
@@ -212,8 +281,6 @@ function handleSaveOrder($pdo, $input, $branchId)
         $oldBranchId = $existingOrder ? intval($existingOrder['branch_id'] ?: $activeBranchId) : $activeBranchId;
 
         // 1.1 VALIDACIÓN DE PRECIOS DEL SERVIDOR (PROTECCIÓN CONTRA MANIPULACIÓN DE TOTALES)
-        $authUser = getAuthUser($pdo);
-        $isStaff = ($authUser && in_array($authUser['role'] ?? '', ['admin', 'master', 'seller', 'cashier']));
         $itemsArr = safeJsonDecode($itemsJson);
 
         if (!$isStaff && !empty($itemsArr)) {
@@ -506,12 +573,12 @@ function handleSaveOrder($pdo, $input, $branchId)
         }
 
         // 5. Guardar Orden con estado de stock_deducted actualizado y código de cupón
-        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate, delivery_method, pickup_branch_id, stock_deducted, coupon_code) 
-        VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate, :delivery_method, :pickup_branch_id, :stock_deducted, :coupon_code) 
+        $smtInsert = "INSERT INTO `orders` (id, branch_id, customer_name, customer_phone, customer_address, items, subtotal, discount, total, `status`, `date`, payment_method, seller_id, seller_name, seller_commission, commission_rate, advisor_id, advisor_name, advisor_commission, advisor_rate, delivery_method, pickup_branch_id, stock_deducted, coupon_code) 
+        VALUES (:id, :branch_id, :customer_name, :customer_phone, :customer_address, :items, :subtotal, :discount, :total, :status, :date, :payment_method, :seller_id, :seller_name, :seller_commission, :commission_rate, :advisor_id, :advisor_name, :advisor_commission, :advisor_rate, :delivery_method, :pickup_branch_id, :stock_deducted, :coupon_code) 
         ON DUPLICATE KEY UPDATE 
         `status`=VALUES(`status`), 
         `branch_id`=VALUES(`branch_id`), 
-        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted), coupon_code=VALUES(coupon_code)";
+        customer_name=VALUES(customer_name), customer_phone=VALUES(customer_phone), customer_address=VALUES(customer_address), items=VALUES(items), subtotal=VALUES(subtotal), discount=VALUES(discount), total=VALUES(total), payment_method=VALUES(payment_method), seller_id=VALUES(seller_id), seller_name=VALUES(seller_name), seller_commission=VALUES(seller_commission), commission_rate=VALUES(commission_rate), advisor_id=VALUES(advisor_id), advisor_name=VALUES(advisor_name), advisor_commission=VALUES(advisor_commission), advisor_rate=VALUES(advisor_rate), delivery_method=VALUES(delivery_method), pickup_branch_id=VALUES(pickup_branch_id), stock_deducted=VALUES(stock_deducted), coupon_code=VALUES(coupon_code)";
 
         $stmt = $pdo->prepare($smtInsert);
         $stmt->execute([
@@ -531,6 +598,10 @@ function handleSaveOrder($pdo, $input, $branchId)
             ':seller_name' => $o['sellerName'] ?? '',
             ':seller_commission' => floatval($o['sellerCommission'] ?? ($o['seller_commission'] ?? 0)),
             ':commission_rate' => floatval($o['commissionRate'] ?? ($o['commission_rate'] ?? 0)),
+            ':advisor_id' => !empty($o['advisorId']) ? strval($o['advisorId']) : (!empty($o['advisor_id']) ? strval($o['advisor_id']) : null),
+            ':advisor_name' => !empty($o['advisorName']) ? strval($o['advisorName']) : (!empty($o['advisor_name']) ? strval($o['advisor_name']) : null),
+            ':advisor_commission' => floatval($o['advisorCommission'] ?? ($o['advisor_commission'] ?? 0)),
+            ':advisor_rate' => floatval($o['advisorRate'] ?? ($o['advisor_rate'] ?? 0)),
             ':delivery_method' => $o['deliveryMethod'] ?? (
                 (empty($o['sellerId']) || $o['sellerId'] === 'web-client' || $o['sellerId'] === 'online') ? 'delivery' : 'pos'
             ),
@@ -540,6 +611,15 @@ function handleSaveOrder($pdo, $input, $branchId)
         ]);
 
         $pdo->commit();
+
+        // Limpiar carrito de la suscripción push tras completar la orden con éxito
+        if (!empty($o['pushEndpoint'])) {
+            try {
+                $cleanStmt = $pdo->prepare("UPDATE `push_subscriptions` SET cart_items = NULL, cart_updated_at = NULL, cart_notified = 0 WHERE endpoint = ?");
+                $cleanStmt->execute([$o['pushEndpoint']]);
+            } catch (Exception $e) {}
+        }
+
         jsonResponse(['status' => 'success', 'stock_deducted' => $isDeducted]);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -558,10 +638,11 @@ function handleSaveSettings($pdo, $input)
     $isFullAdmin = ($role === 'admin' || $role === 'master');
     // Si no es administrador principal, solo tiene permiso de registrar asesores de venta (salesAdvisors) desde el POS
     if (!$isFullAdmin) {
-        $keys = array_keys($input);
-        if (count($keys) !== 1 || $keys[0] !== 'salesAdvisors') {
+        if (!isset($input['salesAdvisors'])) {
             jsonResponse(['error' => 'No autorizado. Se requiere sesión de administrador para modificar la configuración global.'], 403);
         }
+        // Para cajeras y personal operativo, procesar exclusivamente salesAdvisors sin bloquear por otras claves
+        $input = ['salesAdvisors' => $input['salesAdvisors']];
     }
 
     // Cargar usuarios actuales de la base de datos para preservar sus contraseñas existentes
@@ -705,8 +786,11 @@ function handleDelete($pdo, $table, $idField, $idValue)
 function handleReset($pdo, $input)
 {
     $authUser = getAuthUser($pdo);
-    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-        jsonResponse(['error' => 'No autorizado. Se requiere sesión de administrador para reiniciar la base de datos.'], 403);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+    }
+    if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+        jsonResponse(['error' => 'Acceso denegado. Se requiere sesión de administrador para reiniciar la base de datos.'], 403);
     }
 
     $opts = $input['options'] ?? [];
@@ -750,8 +834,11 @@ function handleReset($pdo, $input)
 function handleSaveBranch($pdo, $input)
 {
     $authUser = getAuthUser($pdo);
-    if (!$authUser || ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master')) {
-        jsonResponse(['error' => 'No autorizado. Se requiere rol de administrador para gestionar sedes.'], 403);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Sesión expirada o no iniciada.'], 401);
+    }
+    if ($authUser['role'] !== 'admin' && $authUser['role'] !== 'master') {
+        jsonResponse(['error' => 'Acceso denegado. Se requiere rol de administrador para gestionar sedes.'], 403);
     }
 
     // 1. Obtener Plan Tier desde Settings

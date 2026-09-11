@@ -162,7 +162,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
                     <div class="text-xs">
                         <div><b>Orden:</b> #${order.id.slice(0, 8)}</div>
                         ${activeBranchName ? `<div><b>Sede:</b> ${activeBranchName}</div>` : ''}
-                        ${order.sellerName ? `<div><b>Vendedor:</b> ${order.sellerName}</div>` : ''}
+                        ${order.sellerName ? `<div><b>Caja:</b> ${order.sellerName}</div>` : ''}
+                        ${order.advisorName ? `<div><b>Asesor:</b> ${order.advisorName}</div>` : ''}
                         <div><b>Cliente:</b> ${order.customerName}</div>
                         ${order.customerPhone ? `<div><b>Tel:</b> ${order.customerPhone}</div>` : ''}
                         ${deliveryInfo}
@@ -365,7 +366,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
                         <div className="flex flex-col gap-1 mb-3">
                             <div className="flex justify-between"><span>Orden:</span><span className="font-bold">#{order.id.slice(0, 8)}</span></div>
                             {activeBranchName && <div className="flex justify-between"><span>Sede:</span><span>{activeBranchName}</span></div>}
-                            {order.sellerName && <div className="flex justify-between"><span>Vendedor:</span><span>{order.sellerName}</span></div>}
+                            {order.sellerName && <div className="flex justify-between"><span>Caja:</span><span>{order.sellerName}</span></div>}
+                            {order.advisorName && <div className="flex justify-between"><span>Asesor:</span><span className="font-bold">{order.advisorName}</span></div>}
                             <div className="flex justify-between"><span>Cliente:</span><span className="font-bold">{order.customerName}</span></div>
                             {order.customerPhone && <div className="flex justify-between"><span>Tel:</span><span>{order.customerPhone}</span></div>}
 

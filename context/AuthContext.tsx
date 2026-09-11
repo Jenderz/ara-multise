@@ -44,35 +44,65 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper para validar si el token de sesión JWT ha expirado
+const isTokenExpired = (token: string | null): boolean => {
+    if (!token) return true;
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return true;
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        const payload = JSON.parse(jsonPayload);
+        if (!payload.exp) return false;
+        return Date.now() >= payload.exp * 1000;
+    } catch {
+        return true;
+    }
+};
+
+const clearAuthStorage = () => {
+    localStorage.removeItem('lyberate_auth_token');
+    localStorage.removeItem('lyberate_user');
+    localStorage.removeItem('lyberate_role');
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { settings, updateSettings } = useSettings();
 
     const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
         try {
             const token = localStorage.getItem('lyberate_auth_token');
-            if (!token) {
-                localStorage.removeItem('lyberate_user');
-                localStorage.removeItem('lyberate_role');
+            if (!token || isTokenExpired(token)) {
+                clearAuthStorage();
                 return null;
             }
             const saved = localStorage.getItem('lyberate_user');
             return saved ? JSON.parse(saved) : null;
-        } catch { return null; }
+        } catch {
+            clearAuthStorage();
+            return null;
+        }
     });
 
     const [userRole, setUserRole] = useState<UserRole>(() => {
         const token = localStorage.getItem('lyberate_auth_token');
-        if (!token) return null;
+        if (!token || isTokenExpired(token)) {
+            clearAuthStorage();
+            return null;
+        }
         return (localStorage.getItem('lyberate_role') as UserRole) || (currentUser ? currentUser.role : null);
     });
 
     useEffect(() => {
         const handleUnauthorized = () => {
+            clearAuthStorage();
             setUserRole(null);
             setCurrentUser(null);
-            localStorage.removeItem('lyberate_role');
-            localStorage.removeItem('lyberate_user');
-            localStorage.removeItem('lyberate_auth_token');
         };
         window.addEventListener('lyberate:unauthorized', handleUnauthorized);
         return () => window.removeEventListener('lyberate:unauthorized', handleUnauthorized);
@@ -143,11 +173,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = () => {
         logActivity('login', 'Cierre de sesión');
+        clearAuthStorage();
         setUserRole(null);
         setCurrentUser(null);
-        localStorage.removeItem('lyberate_role');
-        localStorage.removeItem('lyberate_user');
-        localStorage.removeItem('lyberate_auth_token');
     };
 
     // --- USER MANAGEMENT SEGURO Y OPTIMIZADO ---
