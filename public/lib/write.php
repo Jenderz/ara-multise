@@ -696,7 +696,55 @@ function handleSaveSettings($pdo, $input)
 
         $pdo->prepare("INSERT INTO `settings` (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$k, $val]);
     }
+
+    syncPhysicalManifestFiles($pdo);
     jsonResponse(['status' => 'success']);
+}
+
+function syncPhysicalManifestFiles($pdo)
+{
+    try {
+        $stmt = $pdo->query("SELECT `setting_key`, `setting_value` FROM `settings` WHERE `setting_key` IN ('storeName', 'seoTitle', 'seoDescription', 'appIconUrl', 'logoUrl', 'primaryColor')");
+        $s = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $s[$row['setting_key']] = $row['setting_value'];
+        }
+        $storeName = trim($s['storeName'] ?? '');
+        $seoTitle  = trim($s['seoTitle'] ?? '');
+        $appName   = !empty($storeName) ? $storeName : (!empty($seoTitle) ? $seoTitle : 'Tienda Virtual');
+        $shortName = !empty($storeName) ? (mb_strlen($storeName) > 12 ? mb_substr($storeName, 0, 12) : $storeName) : 'Tienda';
+        $iconUrl   = !empty($s['appIconUrl']) ? $s['appIconUrl'] : (!empty($s['logoUrl']) ? $s['logoUrl'] : 'https://cdn-icons-png.flaticon.com/512/3081/3081559.png');
+        $themeCol  = !empty($s['primaryColor']) ? $s['primaryColor'] : '#007AFF';
+        $desc      = !empty($s['seoDescription']) ? $s['seoDescription'] : "Tienda oficial de {$appName}. Realiza tus pedidos con la mejor experiencia online.";
+
+        $candidateFiles = [
+            __DIR__ . '/../manifest.json',
+            __DIR__ . '/../../manifest.json',
+            __DIR__ . '/../../dist/manifest.json'
+        ];
+
+        foreach ($candidateFiles as $file) {
+            if (file_exists($file) && is_writable($file)) {
+                $content = @file_get_contents($file);
+                if ($content) {
+                    $json = json_decode($content, true);
+                    if (is_array($json)) {
+                        $json['name'] = $appName;
+                        $json['short_name'] = $shortName;
+                        $json['theme_color'] = $themeCol;
+                        $json['description'] = $desc;
+                        if (!empty($json['icons']) && is_array($json['icons'])) {
+                            foreach ($json['icons'] as &$ic) {
+                                $ic['src'] = $iconUrl;
+                            }
+                            unset($ic);
+                        }
+                        @file_put_contents($file, json_encode($json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+                    }
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
 }
 
 function handleDelete($pdo, $table, $idField, $idValue)

@@ -41,6 +41,9 @@
   RewriteCond %{REQUEST_URI} ^/product/(.+)$ [NC]
   RewriteRule ^ /seo-proxy.php?slug=%1 [L,QSA]
 
+  # 2.5 MANIFEST DINÁMICO PWA (Nombre e icono dinámicos según configuración en BD)
+  RewriteRule ^manifest\.json$ manifest.json.php [L,QSA]
+
   # 3. Excluir archivos y carpetas reales
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

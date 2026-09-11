@@ -269,6 +269,14 @@ Dentro del menú lateral del Backoffice (**Marketing**), el administrador dispon
    - **Envío Masivo o Prueba:** Permite enviar una prueba al navegador del administrador o lanzar la campaña a toda la base de suscriptores.
 3. **Mensajes Automáticos:** Editor en vivo para personalizar los textos predeterminados de los 5 disparadores del sistema, con guardado persistente en la tabla `settings`.
 
+### E. Web App Manifest Dinámico PWA (Marca e Instalación Personalizada)
+- **Cero Nombres Genéricos:** Al pulsar "Instalar aplicación" en Chrome, Edge, Android o iOS, la PWA muestra el nombre real configurado en la tienda (`storeName` o `seoTitle`), su icono comercial (`appIconUrl`) y su paleta de colores corporativos.
+- **Resolución Multi-Capa (Frontend + Backend):**
+  - **Backend (`manifest.json.php` + `.htaccess`):** Si el navegador o el sistema operativo solicita `/manifest.json`, Apache lo reescribe transparentemente a `manifest.json.php`, leyéndolo en vivo de MySQL.
+  - **Frontend (`SettingsContext.tsx`):** Inyecta en caliente un Blob dinámico del manifest, actualiza `<title>`, favicon, `<link rel="apple-touch-icon">` y `<meta name="apple-mobile-web-app-title">`.
+  - **Pre-hidratación Ultrarrápida (`index.html`):** Lee la caché local antes de que cargue el bundle de React para evitar parpadeos de nombres genéricos.
+  - **Sincronización Física:** Al guardar cambios de configuración en el panel, el backend actualiza automáticamente los archivos `manifest.json` en disco.
+
 ---
 
 ## 10. Configuración de Tareas Programadas (Cron Job en cPanel)

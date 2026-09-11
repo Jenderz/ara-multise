@@ -12,12 +12,36 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tienda">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png">
+    <meta name="apple-mobile-web-app-title" content="Tienda" id="app-title-meta">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" id="app-touch-icon">
     <!-- Changed to relative path for subfolder compatibility -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="./manifest.json" id="app-manifest">
     
     <title>Tienda Virtual</title>
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('lyberate_api_offline_cache');
+          if (raw) {
+            var data = JSON.parse(raw);
+            var s = data && data.settings;
+            if (s) {
+              var title = (s.storeName || s.seoTitle || '').trim();
+              if (title) {
+                document.title = title;
+                var metaTitle = document.getElementById('app-title-meta');
+                if (metaTitle) metaTitle.setAttribute('content', s.storeName ? (s.storeName.length > 12 ? s.storeName.slice(0, 12) : s.storeName) : title);
+              }
+              var icon = s.appIconUrl || s.logoUrl;
+              if (icon) {
+                var touchIcon = document.getElementById('app-touch-icon');
+                if (touchIcon) touchIcon.setAttribute('href', icon);
+              }
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
     <!-- Google Fonts Import -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

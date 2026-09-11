@@ -64,8 +64,8 @@ self.addEventListener('message', (event) => {
 // Gestión de Notificaciones Web Push (integrado con NotificationContext)
 self.addEventListener('push', (event: PushEvent) => {
   let data = {
-    title: 'Tienda Virtual',
-    body: 'Tienes una nueva notificación.',
+    title: 'Nueva Notificación',
+    body: 'Tienes una novedad en la tienda.',
     icon: './icon.png',
     url: './',
   };
