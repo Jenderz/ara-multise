@@ -14,7 +14,7 @@ function handleGetLogs($pdo)
     $offset = ($page - 1) * $limit;
 
     $search = $_GET['search'] ?? '';
-    $userId = $_GET['user_id'] ?? '';
+    $userId = $_GET['user_id'] ?? ($_GET['userId'] ?? '');
 
     $where = ["1=1"];
     $params = [];
