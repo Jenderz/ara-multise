@@ -14,8 +14,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tienda" id="app-title-meta">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" id="app-touch-icon">
-    <!-- Changed to relative path for subfolder compatibility -->
-    <link rel="manifest" href="./manifest.json" id="app-manifest">
+    <!-- Manifest absoluto para evitar que el bundler lo reubique en /assets/ -->
+    <link rel="manifest" href="/manifest.json" id="app-manifest">
     
     <title>Tienda Virtual</title>
     <script>

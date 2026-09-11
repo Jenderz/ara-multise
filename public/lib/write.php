@@ -729,8 +729,11 @@ function syncPhysicalManifestFiles($pdo)
                 if ($content) {
                     $json = json_decode($content, true);
                     if (is_array($json)) {
+                        $json['id'] = '/?source=pwa';
                         $json['name'] = $appName;
                         $json['short_name'] = $shortName;
+                        $json['start_url'] = '/';
+                        $json['scope'] = '/';
                         $json['theme_color'] = $themeCol;
                         $json['description'] = $desc;
                         if (!empty($json['icons']) && is_array($json['icons'])) {

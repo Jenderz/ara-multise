@@ -60,11 +60,11 @@ $description = !empty($seoDesc)
 $iconUrl = !empty($appIcon) ? $appIcon : (!empty($logo) ? $logo : 'https://cdn-icons-png.flaticon.com/512/3081/3081559.png');
 
 $manifest = [
-    'id' => './?source=pwa',
+    'id' => '/?source=pwa',
     'name' => $appName,
     'short_name' => $shortName,
-    'start_url' => './',
-    'scope' => './',
+    'start_url' => '/',
+    'scope' => '/',
     'display' => 'standalone',
     'display_override' => ['window-controls-overlay', 'standalone', 'minimal-ui'],
     'background_color' => '#F2F2F7',
@@ -95,7 +95,7 @@ $manifest = [
             'name' => 'Ver Carrito',
             'short_name' => 'Carrito',
             'description' => 'Revisar mi bolsa de compras',
-            'url' => './?action=cart',
+            'url' => '/?action=cart',
             'icons' => [
                 [
                     'src' => 'https://cdn-icons-png.flaticon.com/512/1170/1170678.png',
@@ -107,7 +107,7 @@ $manifest = [
             'name' => 'Explorar',
             'short_name' => 'Tienda',
             'description' => 'Buscar productos',
-            'url' => '#/shop',
+            'url' => '/#/shop',
             'icons' => [
                 [
                     'src' => 'https://cdn-icons-png.flaticon.com/512/2832/2832495.png',
@@ -118,14 +118,14 @@ $manifest = [
     ],
     'screenshots' => [
         [
-            'src' => './screenshots/desktop.jpg',
+            'src' => '/screenshots/desktop.jpg',
             'sizes' => '1920x1080',
             'type' => 'image/jpeg',
             'form_factor' => 'wide',
             'label' => 'Escritorio: Gestión completa'
         ],
         [
-            'src' => './screenshots/mobile.jpg',
+            'src' => '/screenshots/mobile.jpg',
             'sizes' => '1080x1920',
             'type' => 'image/jpeg',
             'form_factor' => 'narrow',

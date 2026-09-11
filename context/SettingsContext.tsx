@@ -287,11 +287,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         // Inyección dinámica del Manifest PWA para diálogo de instalación nativo
         try {
             const dynamicManifest = {
-                id: "./?source=pwa",
+                id: "/?source=pwa",
                 name: appTitle,
                 short_name: shortName,
-                start_url: "./",
-                scope: "./",
+                start_url: "/",
+                scope: "/",
                 display: "standalone",
                 display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
                 background_color: "#F2F2F7",
@@ -320,14 +320,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                         name: "Ver Carrito",
                         short_name: "Carrito",
                         description: "Revisar mi bolsa de compras",
-                        url: "./?action=cart",
+                        url: "/?action=cart",
                         icons: [{ src: "https://cdn-icons-png.flaticon.com/512/1170/1170678.png", sizes: "192x192" }]
                     },
                     {
                         name: "Explorar",
                         short_name: "Tienda",
                         description: "Buscar productos",
-                        url: "#/shop",
+                        url: "/#/shop",
                         icons: [{ src: "https://cdn-icons-png.flaticon.com/512/2832/2832495.png", sizes: "192x192" }]
                     }
                 ]
