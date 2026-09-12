@@ -52,8 +52,9 @@ function handleGetAll($pdo, $branchId)
     $sStmt = $pdo->query("SELECT * FROM `settings`");
     while ($r = $sStmt->fetch()) {
         $v = $r['setting_value'];
-        if ($v === 'true') $v = true;
-        elseif ($v === 'false') $v = false;
+        $vLower = is_string($v) ? strtolower(trim($v)) : '';
+        if ($v === 'true' || $vLower === 'true' || $v === '1' || $v === 1) $v = true;
+        elseif ($v === 'false' || $vLower === 'false' || $v === '0' || $v === 0) $v = false;
         else {
             $j = json_decode($v, true);
             if (json_last_error() === JSON_ERROR_NONE) $v = $j;
@@ -109,6 +110,16 @@ function handleGetAll($pdo, $branchId)
 
     $rawProds = $stmt->fetchAll();
     $prods = array_map('mapProduct', $rawProds);
+
+    // Fallback de compatibilidad: garantizar mapeo camelCase de campos de joyería incluso con config.php legado
+    foreach ($prods as &$p) {
+        if (!isset($p['pricingType']) && isset($p['pricing_type'])) $p['pricingType'] = $p['pricing_type'];
+        if (!isset($p['metalType']) && isset($p['metal_type'])) $p['metalType'] = $p['metal_type'];
+        if (!isset($p['weightGram']) && isset($p['weight_gram'])) $p['weightGram'] = (float)$p['weight_gram'];
+        if (!isset($p['makingCost']) && isset($p['making_cost'])) $p['makingCost'] = (float)$p['making_cost'];
+        if (!isset($p['makingCostType']) && isset($p['making_cost_type'])) $p['makingCostType'] = $p['making_cost_type'];
+    }
+    unset($p);
 
     // 2. Hidratación de Variantes (Optimizado)
     // Obtenemos el stock de TODAS las variantes relevantes.
@@ -392,8 +403,9 @@ function handleGetSettings($pdo)
     $sStmt = $pdo->query("SELECT * FROM `settings`");
     while ($r = $sStmt->fetch()) {
         $v = $r['setting_value'];
-        if ($v === 'true') $v = true;
-        elseif ($v === 'false') $v = false;
+        $vLower = is_string($v) ? strtolower(trim($v)) : '';
+        if ($v === 'true' || $vLower === 'true' || $v === '1' || $v === 1) $v = true;
+        elseif ($v === 'false' || $vLower === 'false' || $v === '0' || $v === 0) $v = false;
         else {
             $j = json_decode($v, true);
             if (json_last_error() === JSON_ERROR_NONE) $v = $j;

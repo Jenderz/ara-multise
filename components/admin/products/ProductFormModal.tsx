@@ -9,6 +9,7 @@ import { generateId } from '../Shared';
 import { useStore } from '../../../context/StoreContext';
 import { generateEAN13, renderBarcodeSVG, normalizeToEAN13 } from '../../../utils/barcodeUtils';
 import { BarcodePrintModal } from './BarcodePrintModal';
+import { ProductJewelryFields, calculateJewelryPrice, isJewelryPluginEnabled as checkJewelryPlugin } from '../../../plugins/jewelry';
 
 interface ProductFormModalProps {
     isOpen: boolean;
@@ -19,7 +20,8 @@ interface ProductFormModalProps {
 }
 
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, product, onSave, categories }) => {
-    const { currentBranch } = useStore();
+    const { currentBranch, settings, activeExchangeRate, activeCurrencySymbol } = useStore();
+    const isJewelryPluginEnabled = checkJewelryPlugin(settings);
 
     // --- CROPPER STATE ---
     const [cropImage, setCropImage] = useState<string | null>(null);
@@ -409,8 +411,26 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* PLUGIN JOYERÍA: Campos de peso y metal si está activo */}
+                                    {isJewelryPluginEnabled && (
+                                        <ProductJewelryFields
+                                            formData={formData}
+                                            onChange={(updates) => setFormData((prev) => ({ ...prev, ...updates }))}
+                                            metalRates={settings?.jewelry_metal_rates}
+                                            exchangeRate={activeExchangeRate}
+                                            activeCurrencySymbol={activeCurrencySymbol}
+                                        />
+                                    )}
+
                                     <div className="grid grid-cols-3 gap-4">
-                                        <Input label="Precio Venta ($)" type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })} />
+                                        <Input
+                                            label={formData.pricingType === 'by_weight' ? "Precio Venta ($) [Auto x Peso]" : "Precio Venta ($)"}
+                                            type="number"
+                                            value={formData.price}
+                                            onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                                            disabled={formData.pricingType === 'by_weight'}
+                                        />
                                         <Input label="Costo ($)" type="number" value={formData.cost} onChange={e => setFormData({ ...formData, cost: parseFloat(e.target.value) })} />
                                         <Input label="Oferta ($)" type="number" value={formData.salePrice || ''} onChange={e => handleGlobalSalePriceChange(parseFloat(e.target.value))} placeholder="Opcional" />
                                     </div>
@@ -537,6 +557,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                 <tr>
                                                     <th className="p-3 w-10 text-center"></th>
                                                     <th className="p-3">Variante</th>
+                                                    {isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (
+                                                        <th className="p-3 w-20 text-amber-600 dark:text-amber-400">Peso (g)</th>
+                                                    )}
                                                     <th className="p-3 w-20">Precio</th>
                                                     <th className="p-3 w-20">Oferta</th>
                                                     <th className="p-3 w-28">Stock Local</th>
@@ -563,10 +586,36 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 ))}
                                                             </div>
                                                         </td>
+                                                        {isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (
+                                                            <td className="p-3">
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0"
+                                                                    placeholder="0.00"
+                                                                    className="w-full bg-transparent border-b border-amber-300 dark:border-amber-500/30 focus:border-amber-500 outline-none text-xs py-1 dark:text-white font-mono"
+                                                                    value={v.weightGram || ''}
+                                                                    onChange={e => {
+                                                                        const w = Math.max(0, parseFloat(e.target.value) || 0);
+                                                                        const newP = calculateJewelryPrice({
+                                                                            weightGram: w,
+                                                                            metalType: formData.metalType,
+                                                                            rates: settings?.jewelry_metal_rates,
+                                                                            makingCost: formData.makingCost,
+                                                                            makingCostType: formData.makingCostType
+                                                                        });
+                                                                        const updated = [...formData.variants];
+                                                                        updated[idx] = { ...v, weightGram: w, price: newP };
+                                                                        setFormData({ ...formData, variants: updated });
+                                                                    }}
+                                                                />
+                                                            </td>
+                                                        )}
                                                         <td className="p-3">
                                                             <input
                                                                 type="number"
-                                                                className="w-full bg-transparent border-b border-gray-200 dark:border-white/10 focus:border-ios-blue outline-none text-xs py-1 dark:text-white font-mono"
+                                                                disabled={isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (v.weightGram ?? 0) > 0}
+                                                                className={`w-full bg-transparent border-b border-gray-200 dark:border-white/10 focus:border-ios-blue outline-none text-xs py-1 dark:text-white font-mono ${isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (v.weightGram ?? 0) > 0 ? 'opacity-70 cursor-not-allowed' : ''}`}
                                                                 value={v.price}
                                                                 onChange={e => updateVariant(idx, 'price', Number(e.target.value))}
                                                             />
@@ -683,6 +732,36 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (
+                                                    <div className="pt-2 border-t border-amber-200/50 dark:border-amber-500/20">
+                                                        <label className="text-[9px] text-amber-600 dark:text-amber-400 uppercase font-bold block mb-1">Peso en Báscula (g)</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                min="0"
+                                                                placeholder="0.00"
+                                                                className="w-full bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-500/20 rounded-lg p-2 text-xs font-bold text-gray-900 dark:text-white outline-none font-mono pr-7"
+                                                                value={v.weightGram || ''}
+                                                                onChange={e => {
+                                                                    const w = Math.max(0, parseFloat(e.target.value) || 0);
+                                                                    const newP = calculateJewelryPrice({
+                                                                        weightGram: w,
+                                                                        metalType: formData.metalType,
+                                                                        rates: settings?.jewelry_metal_rates,
+                                                                        makingCost: formData.makingCost,
+                                                                        makingCostType: formData.makingCostType
+                                                                    });
+                                                                    const updated = [...formData.variants];
+                                                                    updated[idx] = { ...v, weightGram: w, price: newP };
+                                                                    setFormData({ ...formData, variants: updated });
+                                                                }}
+                                                            />
+                                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">gr</span>
+                                                        </div>
+                                                    </div>
+                                                )}
 
                                                 <div className="grid grid-cols-3 gap-3 pt-2 border-t border-gray-50 dark:border-white/5">
                                                     <div>

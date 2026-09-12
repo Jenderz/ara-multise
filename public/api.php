@@ -57,7 +57,7 @@ if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
 $pdo = getDBConnection();
 
 $schemaLock = __DIR__ . '/.schema_version';
-$currentSchemaVersion = 9;
+$currentSchemaVersion = 10;
 if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
     checkAndMigrateDB($pdo);
     @file_put_contents($schemaLock, strval($currentSchemaVersion));

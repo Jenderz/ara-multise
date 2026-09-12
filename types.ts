@@ -15,6 +15,10 @@ export interface SystemConfig {
   logs?: ActivityLog[];
   planTier?: 'single' | 'multi';
   pushTemplates?: any;
+  /** Configuración de Plugins del Sistema (Activables vía Base de Datos) */
+  plugin_jewelry_enabled?: boolean;
+  jewelry_metal_rates?: Record<string, number>;
+  jewelry_show_breakdown?: boolean;
 }
 
 export interface AnnouncementBarConfig {
@@ -62,6 +66,8 @@ export interface ProductVariant {
   image?: string;
   /** Código de barras EAN-13 de esta variante específica */
   barcodeEan?: string;
+  /** Peso en gramos para joyería (opcional por variante/talla) */
+  weightGram?: number;
 }
 
 export interface Product {
@@ -93,6 +99,13 @@ export interface Product {
   createdAt: number;
   /** Código de barras EAN-13 generado automáticamente (categoría + código producto) */
   barcodeEan?: string;
+
+  // --- PLUGIN JOYERÍA (Venta por peso) ---
+  pricingType?: 'fixed' | 'by_weight';
+  metalType?: 'gold_24k' | 'gold_18k' | 'gold_14k' | 'gold_10k' | 'silver_925' | string;
+  weightGram?: number;
+  makingCost?: number;
+  makingCostType?: 'fixed' | 'per_gram';
 }
 
 

@@ -31,12 +31,13 @@ function handleSaveProduct($pdo, $input, $branchId)
 
     // 1. Guardar Datos Maestros del Producto (JSON variants se guarda como referencia estructural)
     $stmt = $pdo->prepare("INSERT INTO `products` 
-        (id, code, title, description, cost, price, sale_price, images, category, extra_categories, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean) 
-        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :extra_categories, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock, :barcode_ean) 
+        (id, code, title, description, cost, price, sale_price, images, category, extra_categories, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean, pricing_type, metal_type, weight_gram, making_cost, making_cost_type) 
+        VALUES (:id, :code, :title, :description, :cost, :price, :sale_price, :images, :category, :extra_categories, :is_visible, :is_featured, :variant_options, :variants, :created_at, :track_stock, :min_stock, :barcode_ean, :pricing_type, :metal_type, :weight_gram, :making_cost, :making_cost_type) 
         ON DUPLICATE KEY UPDATE 
         code=VALUES(code), title=VALUES(title), description=VALUES(description), cost=VALUES(cost), price=VALUES(price), sale_price=VALUES(sale_price), 
         images=VALUES(images), category=VALUES(category), extra_categories=VALUES(extra_categories), is_visible=VALUES(is_visible), is_featured=VALUES(is_featured), 
-        variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock), barcode_ean=VALUES(barcode_ean)");
+        variant_options=VALUES(variant_options), variants=VALUES(variants), track_stock=VALUES(track_stock), min_stock=VALUES(min_stock), barcode_ean=VALUES(barcode_ean),
+        pricing_type=VALUES(pricing_type), metal_type=VALUES(metal_type), weight_gram=VALUES(weight_gram), making_cost=VALUES(making_cost), making_cost_type=VALUES(making_cost_type)");
 
     $stmt->execute([
         ':id'               => $p['id'],
@@ -62,7 +63,12 @@ function handleSaveProduct($pdo, $input, $branchId)
         ':created_at'       => time() * 1000, // FORCE SERVER TIME
         ':track_stock'      => ($p['trackStock'] ?? true) ? 1 : 0,
         ':min_stock'        => intval($p['minStock'] ?? 5),
-        ':barcode_ean'      => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
+        ':barcode_ean'      => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? ''),
+        ':pricing_type'     => $p['pricingType'] ?? ($p['pricing_type'] ?? 'fixed'),
+        ':metal_type'       => !empty($p['metalType']) ? $p['metalType'] : (!empty($p['metal_type']) ? $p['metal_type'] : null),
+        ':weight_gram'      => floatval($p['weightGram'] ?? ($p['weight_gram'] ?? 0)),
+        ':making_cost'      => floatval($p['makingCost'] ?? ($p['making_cost'] ?? 0)),
+        ':making_cost_type' => $p['makingCostType'] ?? ($p['making_cost_type'] ?? 'fixed')
     ]);
 
     // 2. Gestión de Inventario MULTISEDE (PADRE y VARIANTES)

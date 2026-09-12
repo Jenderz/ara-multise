@@ -133,6 +133,12 @@ function mapProduct($p)
     $p['extraCategories']  = (!empty($rawExtra) && $rawExtra !== 'null')
         ? array_values(array_filter(safeJsonDecode($rawExtra), fn($c) => is_string($c) && $c !== ''))
         : [];
+    // Plugin Joyería: atributos de venta por peso
+    $p['pricingType']      = $p['pricing_type'] ?? 'fixed';
+    $p['metalType']        = !empty($p['metal_type']) ? $p['metal_type'] : null;
+    $p['weightGram']       = (float)($p['weight_gram'] ?? 0);
+    $p['makingCost']       = (float)($p['making_cost'] ?? 0);
+    $p['makingCostType']   = $p['making_cost_type'] ?? 'fixed';
     return $p;
 }
 

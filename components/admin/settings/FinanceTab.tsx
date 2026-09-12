@@ -6,6 +6,7 @@ import { StoreSettings, Product, PaymentMethod } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
 import { useNotification } from '../../../context/NotificationContext';
 import { generateId } from '../Shared';
+import { MetalRatesManager, isJewelryPluginEnabled as checkJewelryPlugin } from '../../../plugins/jewelry';
 
 // Modal de Simulación (Integrado localmente)
 const PriceSimulationModal = ({ isOpen, onClose, products, percentage, rounding, onApply }: any) => {
@@ -183,8 +184,18 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
         }
     };
 
+    const isJewelryPluginEnabled = checkJewelryPlugin(settings);
+
     return (
         <div className="space-y-6 animate-fade-in">
+            {/* PLUGIN JOYERÍA: Pizarra de Cotización de Metales (Solo si está activo) */}
+            {isJewelryPluginEnabled && (
+                <MetalRatesManager
+                    settings={settings}
+                    onUpdateSettings={onUpdate}
+                />
+            )}
+
             {/* PANEL DE MÉTODOS DE PAGO */}
             <Card className="p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

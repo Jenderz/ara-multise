@@ -24,6 +24,7 @@
 9. [Sistema de Notificaciones Web Push y Automatizaciones (V 2.0)](#9-sistema-de-notificaciones-web-push-y-automatizaciones-v-20)
 10. [Configuración de Tareas Programadas (Cron Job en cPanel)](#10-configuración-de-tareas-programadas-cron-job-en-cpanel)
 11. [Scripts SQL de Migración e Instalación DDL](#11-scripts-sql-de-migración-e-instalación-ddl)
+12. [Plugin Modular de Joyería (Venta por Peso en Oro/Plata)](#12-plugin-modular-de-joyería-venta-por-peso-en-oroplata)
 
 
 ---
@@ -602,6 +603,53 @@ VALUES (1, 'Sede Principal', 'Matriz', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
 ```
+
+---
+
+## 12. Plugin Modular de Joyería (Venta por Peso en Oro/Plata)
+
+Este módulo está diseñado para joyerías donde las prendas se valoran en función de su **peso en gramos en balanza** y la **cotización volátil del oro/plata**, convirtiéndose automáticamente a Bolívares según la **tasa de cambio paralela**.
+
+El plugin opera bajo la arquitectura **Feature Flag / Código Durmiente**: para el 100% de las tiendas habituales (ropa, zapatos, repuestos) permanece completamente inactivo e invisible sin alterar la base de datos ni la interfaz.
+
+### 🔑 Activación en Base de Datos (phpMyAdmin)
+
+Para habilitar el plugin en una instancia específica de joyería, ejecuta la siguiente instrucción SQL en phpMyAdmin:
+
+```sql
+-- Activar Plugin de Joyería
+INSERT INTO `settings` (`setting_key`, `setting_value`) 
+VALUES ('plugin_jewelry_enabled', 'true') 
+ON DUPLICATE KEY UPDATE `setting_value` = 'true';
+
+-- (Opcional) Inicializar cotizaciones base del día
+INSERT INTO `settings` (`setting_key`, `setting_value`) 
+VALUES ('jewelry_metal_rates', '{"gold_24k":85,"gold_18k":68,"gold_14k":54,"gold_10k":40,"silver_925":1.2}') 
+ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`);
+```
+
+> **Para desactivar:**
+> ```sql
+> UPDATE `settings` SET `setting_value` = 'false' WHERE `setting_key` = 'plugin_jewelry_enabled';
+> ```
+
+### 💎 Funcionalidades Disponibles al Activar
+
+1. **Pizarra de Metales del Día (`Ajustes > Finanzas`)**:
+   - Permite fijar el valor por gramo en USD para: **Oro 24k**, **Oro 18k**, **Oro 14k**, **Oro 10k** y **Plata 925**.
+   - Muestra la equivalencia en vivo en Bolívares a la tasa paralela activa.
+   - Botón de **"Guardar y Actualizar Precios"**: recalcula y actualiza en 1 clic el precio de venta de todas las joyas registradas en catálogo y POS.
+2. **Formulario de Producto (`Modal de Crear / Editar`)**:
+   - Selector: **"Precio Fijo"** (estuches, paños, accesorios) vs **"Por Peso"** (joyas).
+   - Selector de metal y pureza.
+   - Input de **Peso en báscula (g)**.
+   - Input de **Hechura / Mano de obra** (fija o por gramo).
+   - Bloqueo de precio manual y autocompletado en vivo para prevenir errores humanos.
+   - Soporte de peso individual por variante (ej. Anillo talla 6 vs talla 9).
+3. **Ficha Técnica en Tienda Pública**:
+   - Muestra un badge dorado elegante con el kilataje y peso exacto de la pieza (`⚖️ 3.85g • Oro 18k`).
+4. **Protección Histórica de Ventas**:
+   - Los pedidos y facturas pasadas (`orders`) son inmutables: las fluctuaciones diarias del oro o del dólar jamás alteran las ventas históricas ni las comisiones ya liquidadas.
 
 ---
 

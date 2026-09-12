@@ -21,7 +21,12 @@ function checkAndMigrateDB($pdo) {
                 `created_at` BIGINT,
                 `track_stock` TINYINT(1) DEFAULT 1,
                 `min_stock` INT DEFAULT 5,
-                `barcode_ean` VARCHAR(255)
+                `barcode_ean` VARCHAR(255),
+                `pricing_type` VARCHAR(20) DEFAULT 'fixed',
+                `metal_type` VARCHAR(50) DEFAULT NULL,
+                `weight_gram` DECIMAL(10,3) DEFAULT 0,
+                `making_cost` DECIMAL(12,2) DEFAULT 0,
+                `making_cost_type` VARCHAR(20) DEFAULT 'fixed'
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
             
             "orders" => "CREATE TABLE IF NOT EXISTS `orders` (
@@ -174,6 +179,11 @@ function checkAndMigrateDB($pdo) {
                 'min_stock'        => "INT DEFAULT 5",
                 'barcode_ean'      => "VARCHAR(255)",
                 'extra_categories' => "TEXT DEFAULT NULL",  // Multi-categoría
+                'pricing_type'     => "VARCHAR(20) DEFAULT 'fixed'",
+                'metal_type'       => "VARCHAR(50) DEFAULT NULL",
+                'weight_gram'      => "DECIMAL(10,3) DEFAULT 0",
+                'making_cost'      => "DECIMAL(12,2) DEFAULT 0",
+                'making_cost_type' => "VARCHAR(20) DEFAULT 'fixed'",
             ],
             'orders' => [
                 'branch_id' => "INT DEFAULT 1", 

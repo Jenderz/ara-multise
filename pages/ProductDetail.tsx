@@ -5,11 +5,12 @@ import { useStore } from '../context/StoreContext';
 import { extractProductIdFromSlug } from '../utils/slugify';
 import { ShopLayout } from '../components/Layout';
 import { Button } from '../components/UIComponents';
-import { ChevronLeft, Heart, Check, X, AlertCircle, Store, MapPin, Globe, Share2 } from 'lucide-react';
+import { ChevronLeft, Heart, Check, X, AlertCircle, Store, MapPin, Globe, Share2, Scale } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { DEFAULT_IMAGE } from '../config';
 import { trackProductView } from './Home';
 import { generateProductSlug } from '../utils/slugify';
+import { isJewelryPluginEnabled } from '../plugins/jewelry';
 
 export const ProductDetail = () => {
     const { id: slugParam } = useParams();
@@ -214,9 +215,14 @@ export const ProductDetail = () => {
 
                 {/* Detalles del Producto */}
                 <div className="flex flex-col pt-4">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                         <span className="text-ios-blue font-black uppercase tracking-[0.2em] text-[10px] bg-ios-blue/10 px-3 py-1 rounded-full">{product.category}</span>
-
+                        {isJewelryPluginEnabled(settings) && (product.pricingType === 'by_weight' || (product as any).pricing_type === 'by_weight') && (product.weightGram ?? (product as any).weight_gram ?? 0) > 0 && (
+                            <span className="text-amber-700 dark:text-amber-300 font-extrabold uppercase tracking-[0.1em] text-[10px] bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                                <Scale size={12} className="text-amber-600 dark:text-amber-400" />
+                                {product.weightGram || (product as any).weight_gram}g {product.metalType || (product as any).metal_type ? `(${String(product.metalType || (product as any).metal_type).replace('gold_', 'Oro ').replace('silver_', 'Plata ')})` : ''}
+                            </span>
+                        )}
                     </div>
 
                     <h1 className="text-4xl lg:text-5xl font-serif font-bold text-ios-text dark:text-white mb-4 leading-tight">{product.title}</h1>
