@@ -200,8 +200,8 @@ export const Admin = () => {
                 setIsMobileOpen={setIsSidebarOpen}
             />
 
-            <main className="flex-1 overflow-y-auto h-[calc(100dvh-70px)] lg:h-screen p-4 lg:p-8 w-full bg-ios-bg dark:bg-black pb-safe min-w-0 transition-all duration-300">
-                {activeTab === 'dashboard' && hasPermission('dashboard') && <DashboardModule orders={orders} products={products} customers={customers} />}
+            <main className="flex-1 overflow-y-auto h-[calc(100dvh-70px)] lg:h-screen p-3 sm:p-4 lg:p-8 w-full bg-ios-bg dark:bg-black pb-28 lg:pb-8 min-w-0 transition-all duration-300">
+                {activeTab === 'dashboard' && hasPermission('dashboard') && <DashboardModule orders={orders} products={products} customers={customers} setActiveTab={setActiveTab} />}
                 {activeTab === 'pos' && hasPermission('pos') && <POSModule />}
 
                 {activeTab === 'inventory' && hasPermission('inventory') &&

@@ -118,27 +118,27 @@ export const SettingsModule = ({ settings, updateSettings, logout }: { settings:
     const TabButton = ({ id, label, icon }: any) => (
         <button
             onClick={() => setActiveSection(id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeSection === id ? 'bg-ios-blue text-white shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5'}`}
+            className={`w-auto md:w-full shrink-0 whitespace-nowrap flex items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-3 rounded-xl transition-all ${activeSection === id ? 'bg-ios-blue text-white shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5'}`}
         >
             {icon}
-            <span className="text-sm font-bold">{label}</span>
+            <span className="text-xs sm:text-sm font-bold">{label}</span>
         </button>
     );
 
     return (
-        <div className="h-full flex flex-col md:flex-row gap-6 pb-20 md:pb-0 animate-fade-in">
+        <div className="h-full flex flex-col md:flex-row gap-4 sm:gap-6 pb-28 md:pb-8 animate-fade-in">
             {/* Sidebar de Navegación */}
-            <div className="w-full md:w-64 shrink-0 bg-white dark:bg-zinc-900 rounded-[2rem] p-4 shadow-sm border border-gray-100 dark:border-white/5 h-fit">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest px-4 mb-4 mt-2">Menú Ajustes</h3>
-                <div className="space-y-1">
-                    <TabButton id="general" label="General & Contacto" icon={<LayoutTemplate size={18} />} />
-                    <TabButton id="branches" label="Sedes (Sucursales)" icon={<Store size={18} />} />
-                    <TabButton id="appearance" label="Apariencia & Marca" icon={<Palette size={18} />} />
-                    <TabButton id="hero" label="Portada (Hero)" icon={<Home size={18} />} />
-                    <TabButton id="gift" label="Banner Regalo" icon={<Gift size={18} />} />
-                    <TabButton id="finance" label="Finanzas & Inflación" icon={<Banknote size={18} />} />
-                    <TabButton id="data" label="Respaldo y Datos" icon={<Database size={18} />} />
-                    <TabButton id="security" label="Seguridad & Acceso" icon={<ShieldCheck size={18} />} />
+            <div className="w-full md:w-64 shrink-0 bg-white dark:bg-zinc-900 rounded-2xl md:rounded-[2rem] p-2 sm:p-4 shadow-sm border border-gray-100 dark:border-white/5 h-fit">
+                <h3 className="hidden md:block text-xs font-black text-gray-400 uppercase tracking-widest px-4 mb-4 mt-2">Menú Ajustes</h3>
+                <div className="flex md:flex-col gap-1 overflow-x-auto no-scrollbar scrollbar-none pb-1 md:pb-0">
+                    <TabButton id="general" label="General" icon={<LayoutTemplate size={16} />} />
+                    <TabButton id="branches" label="Sedes" icon={<Store size={16} />} />
+                    <TabButton id="appearance" label="Apariencia" icon={<Palette size={16} />} />
+                    <TabButton id="hero" label="Portada" icon={<Home size={16} />} />
+                    <TabButton id="gift" label="Regalo" icon={<Gift size={16} />} />
+                    <TabButton id="finance" label="Finanzas" icon={<Banknote size={16} />} />
+                    <TabButton id="data" label="Datos" icon={<Database size={16} />} />
+                    <TabButton id="security" label="Seguridad" icon={<ShieldCheck size={16} />} />
                 </div>
             </div>
 

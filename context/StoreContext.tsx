@@ -177,21 +177,33 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
                     }
                 } catch (e) { parsedItems = []; }
 
+                const rawDate = Number(o.date || o.created_at || Date.now());
+                const date = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+
                 return {
-                    id: o.id,
+                    id: String(o.id),
                     branchId: parseInt(o.branchId || o.branch_id || '1'),
-                    date: Number(o.date || o.created_at || Date.now()),
+                    date,
                     status: o.status || 'pending',
                     total: Number(o.total || o.order_total || 0),
+                    subtotal: Number(o.subtotal ?? 0),
+                    discount: Number(o.discount ?? 0),
                     customerName: o.customerName || o.customer_name || 'Cliente',
                     customerPhone: o.customerPhone || o.customer_phone || '',
                     customerAddress: o.customerAddress || o.customer_address || '',
                     paymentMethod: o.paymentMethod || o.payment_method || 'Por Definir',
                     sellerId: o.sellerId || o.seller_id || 'web-client',
                     sellerName: o.sellerName || o.seller_name || 'Tienda',
+                    sellerCommission: Number(o.sellerCommission ?? o.seller_commission ?? 0),
+                    commissionRate: Number(o.commissionRate ?? o.commission_rate ?? 0),
+                    advisorId: o.advisorId || o.advisor_id || undefined,
+                    advisorName: o.advisorName || o.advisor_name || undefined,
+                    advisorCommission: Number(o.advisorCommission ?? o.advisor_commission ?? 0),
+                    advisorRate: Number(o.advisorRate ?? o.advisor_rate ?? 0),
                     deliveryMethod: o.deliveryMethod || o.delivery_method,
                     pickupBranchId: parseInt(o.pickupBranchId || o.pickup_branch_id || '0'),
                     stockDeducted: Boolean(o.stockDeducted || o.stock_deducted),
+                    couponCode: o.couponCode || o.coupon_code || undefined,
                     items: Array.isArray(parsedItems) ? parsedItems : []
                 };
             }).sort((a: Order, b: Order) => b.date - a.date);

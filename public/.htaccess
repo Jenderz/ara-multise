@@ -54,18 +54,23 @@
   RewriteRule ^ index.html [L]
 </IfModule>
 
-# 5. Configuración de Caché para PWA
+# 5. Configuración de Caché para PWA y Activos
 <IfModule mod_headers.c>
   # Archivos estáticos con hash de Vite: Cachear por 1 año
   <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|svg|woff|woff2)$">
     Header set Cache-Control "max-age=31536000, public, immutable"
   </FilesMatch>
 
-  # Service Worker, Manifest e Index: NUNCA CACHEAR (Debe ir DESPUÉS para tener máxima precedencia sobre .js y .html)
-  <FilesMatch "(sw\.js|manifest\.json|index\.html)$">
+  # Service Worker, Manifest e Index: NUNCA CACHEAR (Debe tener máxima precedencia sobre .js y .html)
+  # Se limpian cabeceras previas (unset) para evitar que Cloudflare o proxies hereden max-age de la regla anterior.
+  <FilesMatch "(sw\.js|manifest\.json|manifest\.php|manifest\.json\.php|index\.html)$">
+    Header unset Cache-Control
+    Header unset Pragma
+    Header unset Expires
     Header always set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
     Header always set Pragma "no-cache"
     Header always set Expires "0"
+    Header always set Service-Worker-Allowed "/"
   </FilesMatch>
 </IfModule>
 

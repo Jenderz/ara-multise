@@ -31,7 +31,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [isStandalone, setIsStandalone] = useState(false);
   const [showInstallModal, setShowInstallModal] = useState(false);
   
-  const { settings } = useStore();
+  const { settings, currentBranch } = useStore();
 
   useEffect(() => {
     // 1. Detect Permission
@@ -73,7 +73,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
+  }, [currentBranch]);
 
   // --- FUNCIÓN PRINCIPAL DE SUSCRIPCIÓN ---
   const requestPermission = async () => {
@@ -87,22 +87,32 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       setPermission(result);
 
       if (result === 'granted') {
-          // Suscribir al Web Push real en el servidor
-          await subscribeToPush();
+          // Suscribir al Web Push real en el servidor forzando sincronización limpia
+          await subscribeToPush(true);
       }
     } catch (e) {
       console.error("Error al pedir permisos:", e);
     }
   };
 
-  const subscribeToPush = async () => {
-    if (!('serviceWorker' in navigator)) return;
+  const subscribeToPush = async (forceRenew = false): Promise<PushSubscription | null> => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
 
     try {
         const registration = await navigator.serviceWorker.ready;
+        if (!registration) return null;
         
         // Revisar si ya existe suscripción
         let subscription = await registration.pushManager.getSubscription();
+
+        if (subscription && forceRenew) {
+            try {
+                await subscription.unsubscribe();
+                subscription = null;
+            } catch (unsubErr) {
+                console.warn("No se pudo desuscribir endpoint previo:", unsubErr);
+            }
+        }
 
         if (!subscription) {
             // Crear nueva suscripción real contra FCM / Web Push Service
@@ -116,15 +126,19 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (subscription) {
             localStorage.setItem('ara_push_endpoint', subscription.endpoint);
             const subJson = subscription.toJSON();
+            const branchId = currentBranch?.id || 1;
             await api.saveSubscription({
                 ...subJson,
                 endpoint: subscription.endpoint,
+                branchId: branchId,
             });
-            console.log("Suscripción Web Push vinculada en el servidor ARA V 2.0");
+            console.log("Suscripción Web Push vinculada en el servidor ARA V 2.0 (Sede: " + branchId + ")");
         }
 
+        return subscription;
     } catch (error) {
         console.error("Error al suscribirse al PushManager:", error);
+        return null;
     }
   };
 
@@ -157,7 +171,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   return (
     <NotificationContext.Provider value={{
       notifications, addNotification, removeNotification,
-      permission, requestPermission,
+      permission, requestPermission, subscribeToPush,
       deferredPrompt, isIOS, isStandalone, installApp,
       showInstallModal, setShowInstallModal
     }}>

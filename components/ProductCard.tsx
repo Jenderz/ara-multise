@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { Card, Badge, LazyImage } from './UIComponents';
-import { ShoppingBag, Eye, Heart, ListPlus, Share2, Globe } from 'lucide-react';
+import { ShoppingBag, Eye, Heart, ListPlus, Share2, Globe, Plus } from 'lucide-react';
 import { Product } from '../types';
 import { DEFAULT_IMAGE } from '../config';
 import { generateProductSlug } from '../utils/slugify';
@@ -142,27 +142,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
                 </div>
 
-                <div className="mt-auto grid grid-cols-2 gap-2">
-                    <button onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-medium py-2.5 px-2 rounded-xl transition-colors text-xs">
+                <div className="mt-auto flex items-center gap-2">
+                    <button 
+                        onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} 
+                        className="flex-1 flex items-center justify-center gap-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-medium py-2.5 px-3 rounded-xl transition-colors text-xs"
+                    >
                         <Eye size={14} /> Ver
                     </button>
                     <button
                         onClick={handleQuickAdd}
                         disabled={!canBuy}
-                        className={`flex items-center justify-center gap-2 font-medium py-2.5 px-2 rounded-xl transition-colors text-xs 
+                        aria-label={!canBuy ? 'Agotado' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
+                        title={!canBuy ? 'Agotado' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
+                        className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl transition-all active:scale-95 
                             ${!canBuy
                                 ? 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-600 cursor-not-allowed border dark:border-white/5'
-                                : isRemoteStock
-                                    ? 'bg-ios-blue text-white hover:brightness-110 shadow-lg' // Igualamos estilo
-                                    : 'bg-ios-blue text-white hover:brightness-110 shadow-lg shadow-black/10'
+                                : 'bg-ios-blue text-white hover:brightness-110 shadow-lg shadow-ios-blue/20'
                             }`
                         }
                     >
-                        {showOptions
-                            ? <ListPlus size={14} />
-                            : <ShoppingBag size={14} /> // Icono uniforme
-                        }
-                        {canBuy ? (showOptions ? 'Opciones' : 'Añadir') : 'Agotado'}
+                        {showOptions ? <ListPlus size={18} /> : <Plus size={18} />}
                     </button>
                 </div>
             </div>
@@ -183,9 +182,9 @@ export const ProductCardSkeleton: React.FC = () => (
         <div className="p-5 flex-1 flex flex-col gap-3">
             <div className="h-5 bg-gray-100 dark:bg-zinc-800 rounded-xl w-3/4" />
             <div className="h-4 bg-gray-100 dark:bg-zinc-800 rounded-xl w-1/2" />
-            <div className="mt-auto grid grid-cols-2 gap-2 pt-2">
-                <div className="h-10 bg-gray-100 dark:bg-zinc-800 rounded-xl" />
-                <div className="h-10 bg-gray-200 dark:bg-zinc-700 rounded-xl" />
+            <div className="mt-auto flex items-center gap-2 pt-2">
+                <div className="h-10 flex-1 bg-gray-100 dark:bg-zinc-800 rounded-xl" />
+                <div className="h-10 w-10 bg-gray-200 dark:bg-zinc-700 rounded-xl shrink-0" />
             </div>
         </div>
     </div>

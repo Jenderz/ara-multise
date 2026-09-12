@@ -34,7 +34,7 @@ const DEFAULT_AUTO_TEMPLATES = {
 };
 
 export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon, settings, updateSettings }: any) => {
-    const { addNotification } = useNotification();
+    const { addNotification, permission, requestPermission, subscribeToPush } = useNotification();
     
     // Pestaña activa: 'coupons' | 'push' | 'templates'
     const [activeTab, setActiveTab] = useState<'coupons' | 'push' | 'templates'>('coupons');
@@ -221,15 +221,62 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
     const handleSendTestPush = async () => {
         setIsTestingPush(true);
         try {
-            const myEndpoint = localStorage.getItem('ara_push_endpoint');
-            await api.testPush(myEndpoint || undefined);
-            addNotification({
-                title: 'Push de Prueba Enviado',
-                body: 'La notificación fue despachada. Revisa la bandeja de tu dispositivo.',
-                type: 'success'
-            });
+            if (!('Notification' in window)) {
+                alert('Tu navegador actual no soporta notificaciones Web Push.');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                alert('Las notificaciones están bloqueadas en este navegador. Por favor actívalas en la configuración de permisos del sitio en tu navegador.');
+                return;
+            }
+
+            if (Notification.permission !== 'granted') {
+                const perm = await Notification.requestPermission();
+                if (perm !== 'granted') {
+                    alert('Debes conceder permiso de notificaciones para que este dispositivo pueda recibir alertas.');
+                    return;
+                }
+            }
+
+            // Asegurar que la suscripción esté creada y guardada en el servidor
+            let endpoint = localStorage.getItem('ara_push_endpoint');
+            if (!endpoint && subscribeToPush) {
+                const sub = await subscribeToPush(true);
+                endpoint = sub?.endpoint || null;
+            }
+
+            try {
+                const res: any = await api.testPush(endpoint || undefined);
+                if (res?.result && res.result.success === false) {
+                    throw new Error(res.result.error || 'El servicio Push rechazó la entrega.');
+                }
+                addNotification({
+                    title: 'Push de Prueba Enviado',
+                    body: 'Notificación despachada con éxito. Revisa la bandeja de este dispositivo.',
+                    type: 'success'
+                });
+            } catch (apiErr: any) {
+                // Si el backend indica que el endpoint no existe o expiró, forzar renovación y reintentar una vez
+                if (subscribeToPush && (apiErr?.message?.includes('no registrado') || apiErr?.message?.includes('expirada') || apiErr?.message?.includes('410'))) {
+                    const freshSub = await subscribeToPush(true);
+                    if (freshSub?.endpoint) {
+                        const retryRes: any = await api.testPush(freshSub.endpoint);
+                        if (retryRes?.result && retryRes.result.success === false) {
+                            throw new Error(retryRes.result.error);
+                        }
+                        addNotification({
+                            title: 'Suscripción Renovada',
+                            body: 'Push de prueba reenviado tras renovar la suscripción en el servidor.',
+                            type: 'success'
+                        });
+                        return;
+                    }
+                }
+                throw apiErr;
+            }
         } catch (e: any) {
-            alert('Error al enviar push de prueba: ' + (e?.message || 'Verifica los permisos de notificación'));
+            alert('Error al enviar push de prueba: ' + (e?.message || 'Verifica la conexión y permisos'));
         } finally {
             setIsTestingPush(false);
         }
@@ -349,11 +396,11 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 animate-fade-in pb-16">
+        <div className="max-w-5xl mx-auto space-y-6 animate-fade-in pb-28 sm:pb-16">
             {/* Header del Módulo */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black dark:text-white flex items-center gap-2">
+                    <h2 className="text-xl sm:text-2xl font-black dark:text-white flex items-center gap-2">
                         <Sparkles className="text-ios-blue" size={24} /> Marketing & Fidelización
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -362,10 +409,10 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
                 </div>
 
                 {/* Selector de Pestañas */}
-                <div className="flex items-center p-1 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-200/60 dark:border-white/10 shrink-0">
+                <div className="flex items-center p-1 bg-gray-100 dark:bg-white/5 rounded-2xl border border-gray-200/60 dark:border-white/10 w-full sm:w-auto overflow-x-auto no-scrollbar scrollbar-none shrink-0 gap-1">
                     <button
                         onClick={() => setActiveTab('coupons')}
-                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                        className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                             activeTab === 'coupons'
                                 ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -376,7 +423,7 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
                     </button>
                     <button
                         onClick={() => setActiveTab('push')}
-                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                        className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                             activeTab === 'push'
                                 ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -392,7 +439,7 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
                     </button>
                     <button
                         onClick={() => setActiveTab('templates')}
-                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                        className={`shrink-0 whitespace-nowrap flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                             activeTab === 'templates'
                                 ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
@@ -564,6 +611,25 @@ export const MarketingModule = ({ coupons, addCoupon, toggleCoupon, deleteCoupon
                                     <span>{lastSendReport}</span>
                                 </div>
                             )}
+
+                            {/* Estado del Navegador Actual */}
+                            <div className="flex items-center justify-between px-1 py-1 text-xs">
+                                <div className="flex items-center gap-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${permission === 'granted' ? 'bg-green-500 animate-pulse' : permission === 'denied' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                                    <span className="text-gray-500 dark:text-gray-400 font-medium text-[11px]">
+                                        {permission === 'granted' ? 'Notificaciones activas en este navegador' : permission === 'denied' ? 'Notificaciones bloqueadas en este navegador' : 'Permiso pendiente de activación'}
+                                    </span>
+                                </div>
+                                {permission !== 'granted' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => requestPermission()}
+                                        className="text-[11px] font-bold text-ios-blue hover:underline"
+                                    >
+                                        Activar ahora
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Botones de Envío */}
                             <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">

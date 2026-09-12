@@ -46,9 +46,9 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
 
     // 1. Filtrar órdenes por sede y por estado 'completed'
     const completedOrders = useMemo(() => {
-        let result = orders.filter(o => o.status === 'completed');
+        let result = orders.filter(o => o.status?.toLowerCase() === 'completed');
         if (currentBranch && currentBranch.id > 0) {
-            result = result.filter(o => Number(o.branchId || 1) === Number(currentBranch.id));
+            result = result.filter(o => Number(o.branchId ?? 1) === Number(currentBranch.id));
         }
         return result;
     }, [orders, currentBranch]);
@@ -73,7 +73,11 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
             startTimestamp = now - (365 * msPerDay);
         }
 
-        return completedOrders.filter(o => Number(o.date) >= startTimestamp);
+        return completedOrders.filter(o => {
+            const rawDate = Number(o.date || 0);
+            const dateMs = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+            return dateMs >= startTimestamp;
+        });
     }, [completedOrders, timeRange]);
 
     // 3. Procesar datos independientes para ASESORES DE VENTA (PISO)
@@ -85,14 +89,15 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
         salesAdvisors.forEach(a => {
             const branchObj = branches.find(b => b.id === a.branchId);
             const branchName = branchObj ? branchObj.name : 'Todas las Sedes';
+            const aidStr = String(a.id);
 
-            advisorsMap.set(a.id, {
-                id: a.id,
+            advisorsMap.set(aidStr, {
+                id: aidStr,
                 name: a.name,
                 username: '',
                 role: 'Asesor',
                 assignedBranchName: branchName,
-                commissionRate: a.commissionRate || 0,
+                commissionRate: Number(a.commissionRate || 0),
                 sales: 0,
                 orderCount: 0,
                 averageTicket: 0,
@@ -110,47 +115,71 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
             const orderTotal = Number(o.total) || 0;
 
             // Identificar si la orden tiene asesor de venta asignado
-            let advisorId = o.advisorId;
-            let advisorName = o.advisorName;
+            let advisorId = o.advisorId ? String(o.advisorId).trim() : undefined;
+            let advisorName = o.advisorName ? String(o.advisorName).trim() : undefined;
 
-            // Retrocompatibilidad con órdenes donde el asesor fue guardado en sellerId
+            // Retrocompatibilidad con órdenes donde el asesor fue guardado en sellerId o sellerName
             if (!advisorId && o.sellerId) {
-                const matchedAdvisor = salesAdvisors.find(a => a.id === o.sellerId || a.name.toLowerCase() === (o.sellerName || '').toLowerCase());
+                const sIdStr = String(o.sellerId).trim();
+                const matchedAdvisor = salesAdvisors.find(a => 
+                    String(a.id) === sIdStr || 
+                    a.name.toLowerCase() === (o.sellerName || '').toLowerCase().trim()
+                );
                 if (matchedAdvisor) {
-                    advisorId = matchedAdvisor.id;
+                    advisorId = String(matchedAdvisor.id);
                     advisorName = matchedAdvisor.name;
                 }
             }
 
+            // Respaldo inteligente si advisorName existe pero advisorId no
+            if (!advisorId && advisorName && advisorName.toLowerCase() !== 'direct' && advisorName.toLowerCase() !== 'venta directa') {
+                const matchedByName = salesAdvisors.find(a => 
+                    a.name.toLowerCase().trim() === advisorName!.toLowerCase()
+                );
+                if (matchedByName) {
+                    advisorId = String(matchedByName.id);
+                    advisorName = matchedByName.name;
+                } else {
+                    advisorId = `adv_${advisorName.toLowerCase().replace(/\s+/g, '_')}`;
+                }
+            }
+
             // Si no tiene asesor asignado (venta directa en caja), no computa en asesores
-            if (!advisorId || advisorId === 'direct') {
+            if (!advisorId || advisorId === 'direct' || advisorId === 'venta directa') {
                 return;
             }
 
             let advisorPerf = advisorsMap.get(advisorId);
 
-            // Si no existe en el mapa (asesor desactivado o antiguo), crear entrada dinámica
-            if (!advisorPerf) {
-                const matchedByName = Array.from(advisorsMap.values()).find(a => a.name.toLowerCase() === (advisorName || '').toLowerCase());
+            // Si no coincide por ID, intentar buscar por coincidencia de nombre
+            if (!advisorPerf && advisorName) {
+                const matchedByName = Array.from(advisorsMap.values()).find(a => 
+                    a.name.toLowerCase().trim() === advisorName!.toLowerCase().trim()
+                );
                 if (matchedByName) {
                     advisorPerf = matchedByName;
-                } else {
-                    advisorPerf = {
-                        id: advisorId,
-                        name: advisorName || 'Asesor No Registrado',
-                        username: '',
-                        role: 'Asesor',
-                        assignedBranchName: 'General',
-                        commissionRate: o.advisorRate || o.commissionRate || 0,
-                        sales: 0,
-                        orderCount: 0,
-                        averageTicket: 0,
-                        totalCommission: 0,
-                        orders: [],
-                        percentageOfTotal: 0
-                    };
-                    advisorsMap.set(advisorId, advisorPerf);
                 }
+            }
+
+            // Si aún no existe en el mapa (asesor desactivado, temporal o antiguo), crear entrada dinámica
+            if (!advisorPerf) {
+                advisorPerf = {
+                    id: advisorId,
+                    name: advisorName || 'Asesor No Registrado',
+                    username: '',
+                    role: 'Asesor',
+                    assignedBranchName: 'General',
+                    commissionRate: Number(o.advisorRate || o.commissionRate || 0),
+                    sales: 0,
+                    orderCount: 0,
+                    averageTicket: 0,
+                    totalCommission: 0,
+                    orders: [],
+                    percentageOfTotal: 0
+                };
+                advisorsMap.set(advisorId, advisorPerf);
+            } else if (advisorName && advisorPerf.name === 'Asesor No Registrado') {
+                advisorPerf.name = advisorName;
             }
 
             advisorPerf.sales += orderTotal;
@@ -159,13 +188,13 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
 
             // Cálculo de comisión para el asesor
             let comm = 0;
-            if (o.advisorCommission !== undefined && o.advisorCommission > 0) {
+            if (o.advisorCommission !== undefined && o.advisorCommission !== null && Number(o.advisorCommission) > 0) {
                 comm = Number(o.advisorCommission);
-            } else if (o.sellerCommission !== undefined && o.sellerCommission > 0) {
+            } else if (o.sellerCommission !== undefined && o.sellerCommission !== null && Number(o.sellerCommission) > 0 && o.sellerId === advisorId) {
                 comm = Number(o.sellerCommission);
             } else {
-                const rate = o.advisorRate !== undefined && o.advisorRate > 0
-                    ? o.advisorRate
+                const rate = (o.advisorRate !== undefined && o.advisorRate !== null && Number(o.advisorRate) > 0)
+                    ? Number(o.advisorRate)
                     : (advisorPerf.commissionRate || 0);
                 comm = rate > 0 ? (orderTotal * (rate / 100)) : 0;
             }
@@ -176,8 +205,19 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
             totalAdvisorOrders += 1;
         });
 
+        // Filtrar asesores si estamos en una sede local:
+        // Mantener los que pertenecen a esta sede O que tuvieron ventas asistidas en esta sede.
+        let rawList = Array.from(advisorsMap.values());
+        if (currentBranch && currentBranch.id > 0) {
+            rawList = rawList.filter(a => {
+                const original = salesAdvisors.find(sa => String(sa.id) === String(a.id));
+                const belongsToCurrentBranch = !original || !original.branchId || original.branchId === 0 || original.branchId === currentBranch.id;
+                return belongsToCurrentBranch || a.sales > 0;
+            });
+        }
+
         // Calcular promedios y porcentajes
-        const list = Array.from(advisorsMap.values()).map(a => {
+        const list = rawList.map(a => {
             a.averageTicket = a.orderCount > 0 ? (a.sales / a.orderCount) : 0;
             a.percentageOfTotal = totalAdvisorSales > 0 ? (a.sales / totalAdvisorSales) * 100 : 0;
             return a;
@@ -195,7 +235,7 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
             totalAdvisorOrders,
             bestAdvisor
         };
-    }, [periodOrders, settings.salesAdvisors, branches]);
+    }, [periodOrders, settings.salesAdvisors, branches, currentBranch]);
 
     // 4. Procesar datos independientes para CAJAS / FACTURACIÓN (SISTEMA)
     const cashiersAnalytics = useMemo(() => {
@@ -237,9 +277,12 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
             totalGlobalSales += orderTotal;
             totalCashierOrders += 1;
 
-            const cid = o.sellerId || 'unknown';
+            const cid = String(o.sellerId || 'unknown');
             const cname = o.sellerName || 'Caja Mostrador';
-            const hasAdvisor = Boolean(o.advisorId && o.advisorId !== 'direct');
+            const hasAdvisor = Boolean(
+                (o.advisorId && o.advisorId !== 'direct' && o.advisorId !== 'venta directa') ||
+                (o.advisorName && o.advisorName.toLowerCase() !== 'direct' && o.advisorName.toLowerCase() !== 'venta directa')
+            );
 
             if (hasAdvisor) {
                 totalAssistedSales += orderTotal;

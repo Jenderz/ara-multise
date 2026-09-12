@@ -95,7 +95,10 @@ class WebPushSender
         }
 
         $audience = $parts['scheme'] . '://' . $parts['host'];
-        if (!empty($parts['port']) && !(($parts['scheme'] === 'https' && $parts['port'] == 443) || ($parts['scheme'] === 'http' && $parts['port'] == 80))) {
+        // Para endpoints heredados de Google GCM, el aud DEBE ser https://fcm.googleapis.com
+        if ($parts['host'] === 'android.googleapis.com') {
+            $audience = 'https://fcm.googleapis.com';
+        } elseif (!empty($parts['port']) && !(($parts['scheme'] === 'https' && $parts['port'] == 443) || ($parts['scheme'] === 'http' && $parts['port'] == 80))) {
             $audience .= ':' . $parts['port'];
         }
 
@@ -165,7 +168,11 @@ class WebPushSender
             return null;
         }
 
-        $localPubKey = "\x04" . $localDetails['ec']['x'] . $localDetails['ec']['y'];
+        // Normalizar coordenadas X e Y a exactamente 32 bytes cada una (relleno a la izquierda con 0x00)
+        $localX = str_pad($localDetails['ec']['x'], 32, "\x00", STR_PAD_LEFT);
+        $localY = str_pad($localDetails['ec']['y'], 32, "\x00", STR_PAD_LEFT);
+        $localPubKey = "\x04" . $localX . $localY;
+
         if (strlen($localPubKey) !== 65) {
             return null;
         }
@@ -179,6 +186,7 @@ class WebPushSender
         if (!$sharedSecret) {
             return null;
         }
+        $sharedSecret = str_pad($sharedSecret, 32, "\x00", STR_PAD_LEFT);
 
         // 4. Derivar Pseudo-Random Key (PRK) con HKDF
         $context = "WebPush: info\0" . $clientPubKey . $localPubKey;
@@ -189,7 +197,7 @@ class WebPushSender
         $cek   = hash_hkdf('sha256', $prk, 16, "Content-Encoding: aes128gcm\0", $salt);
         $nonce = hash_hkdf('sha256', $prk, 12, "Content-Encoding: nonce\0", $salt);
 
-        // 6. Cifrar con AES-128-GCM (el padding delimiter es 0x02 según RFC 8291)
+        // 6. Cifrar con AES-128-GCM (el padding delimiter es 0x02 según RFC 8291 Section 5)
         $record = $payloadJson . "\x02";
         $tag = '';
         $ciphertext = openssl_encrypt($record, 'aes-128-gcm', $cek, OPENSSL_RAW_DATA, $nonce, $tag);
@@ -219,6 +227,7 @@ class WebPushSender
 
         $headers = [
             'Authorization: vapid t=' . $jwt . ', k=' . self::getPublicKey(),
+            'Crypto-Key: p256ecdsa=' . self::getPublicKey(),
             'TTL: 86400',
             'Urgency: high'
         ];
@@ -247,8 +256,8 @@ class WebPushSender
             CURLOPT_POSTFIELDS     => $postFields,
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 8,
-            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_SSL_VERIFYPEER => true
         ]);
 

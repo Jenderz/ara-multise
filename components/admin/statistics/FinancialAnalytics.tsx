@@ -55,8 +55,16 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
 
         const previousPeriodStart = currentPeriodStart - (days * msPerDay);
         
-        const currentOrders = filteredOrders.filter(o => Number(o.date) >= currentPeriodStart && o.status === 'completed');
-        const prevOrders = filteredOrders.filter(o => Number(o.date) >= previousPeriodStart && Number(o.date) < currentPeriodStart && o.status === 'completed');
+        const currentOrders = filteredOrders.filter(o => {
+            const rawDate = Number(o.date || 0);
+            const dateMs = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+            return dateMs >= currentPeriodStart && o.status?.toLowerCase() === 'completed';
+        });
+        const prevOrders = filteredOrders.filter(o => {
+            const rawDate = Number(o.date || 0);
+            const dateMs = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+            return dateMs >= previousPeriodStart && dateMs < currentPeriodStart && o.status?.toLowerCase() === 'completed';
+        });
 
         // Helper para resolver producto (incluso si el ítem refiere a una variante o sku)
         const findProduct = (item: { productId: string, variantId?: string, variantSku?: string }) => {
@@ -279,9 +287,9 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
         };
     }, [filteredOrders, products, timeRange, branches]);
 
-    // Mejor vendedor del periodo para banner rápido
+    // Mejor vendedor / asesor del periodo para banner rápido
     const periodBestSeller = useMemo(() => {
-        const sellerMap: Record<string, { name: string, total: number, count: number }> = {};
+        const sellerMap: Record<string, { name: string, total: number, count: number, isAdvisor?: boolean }> = {};
         const msPerDay = 24 * 60 * 60 * 1000;
         let days = 30;
         if (timeRange === 'today') days = 1;
@@ -293,48 +301,77 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
             ? new Date(new Date().setHours(0, 0, 0, 0)).getTime()
             : (Date.now() - (days * msPerDay));
 
+        let assistedSalesTotal = 0;
+        let assistedCount = 0;
+
         filteredOrders.forEach(o => {
-            if (o.status === 'completed' && Number(o.date) >= start) {
-                const sid = o.sellerId || '';
-                if (sid && sid !== 'web-client' && sid !== 'online') {
-                    const sname = o.sellerName || 'Vendedor';
-                    if (!sellerMap[sid]) {
-                        sellerMap[sid] = { name: sname, total: 0, count: 0 };
+            const rawDate = Number(o.date || 0);
+            const dateMs = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+
+            if (o.status?.toLowerCase() === 'completed' && dateMs >= start) {
+                const orderTotal = Number(o.total) || 0;
+
+                const hasAdvisor = Boolean(
+                    (o.advisorId && o.advisorId !== 'direct' && o.advisorId !== 'venta directa') ||
+                    (o.advisorName && o.advisorName.toLowerCase() !== 'direct' && o.advisorName.toLowerCase() !== 'venta directa')
+                );
+
+                if (hasAdvisor) {
+                    assistedSalesTotal += orderTotal;
+                    assistedCount += 1;
+                    const advKey = o.advisorId || `adv_${o.advisorName}`;
+                    const advName = o.advisorName || 'Asesor';
+                    if (!sellerMap[advKey]) {
+                        sellerMap[advKey] = { name: `${advName} (Asesor)`, total: 0, count: 0, isAdvisor: true };
                     }
-                    sellerMap[sid].total += (Number(o.total) || 0);
-                    sellerMap[sid].count += 1;
+                    sellerMap[advKey].total += orderTotal;
+                    sellerMap[advKey].count += 1;
+                } else {
+                    const sid = o.sellerId || '';
+                    if (sid && sid !== 'web-client' && sid !== 'online') {
+                        const sname = o.sellerName || 'Caja Mostrador';
+                        if (!sellerMap[sid]) {
+                            sellerMap[sid] = { name: sname, total: 0, count: 0, isAdvisor: false };
+                        }
+                        sellerMap[sid].total += orderTotal;
+                        sellerMap[sid].count += 1;
+                    }
                 }
             }
         });
 
         const sorted = Object.values(sellerMap).sort((a, b) => b.total - a.total);
-        return sorted.length > 0 && sorted[0].total > 0 ? sorted[0] : null;
+        return {
+            bestSeller: sorted.length > 0 && sorted[0].total > 0 ? sorted[0] : null,
+            assistedSalesTotal,
+            assistedCount
+        };
     }, [filteredOrders, timeRange]);
 
     return (
         <div className="space-y-8 animate-fade-in">
-            <div className="flex justify-end gap-3 flex-wrap">
-                {userRole === 'admin' && (
-                    <div className="relative">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                {userRole === 'admin' ? (
+                    <div className="relative w-full sm:w-auto">
                         <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
-                        <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="appearance-none pl-9 pr-8 py-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/10 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-ios-blue/20 shadow-sm">
+                        <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="w-full sm:w-auto appearance-none pl-9 pr-8 py-2.5 sm:py-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-white/10 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-ios-blue/20 shadow-sm">
                             <option value="all">Todo el Equipo</option>
                             <option value="web">Ventas Web</option>
                             {settings.users?.map((u: UserAccount) => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
                     </div>
-                )}
-                <div className="flex bg-white dark:bg-zinc-900 p-1 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm">
+                ) : <div />}
+                <div className="grid grid-cols-5 sm:flex bg-white dark:bg-zinc-900 p-1 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm w-full sm:w-auto">
                     {(['today', '7d', '30d', '90d', 'year'] as const).map(range => (
-                        <button key={range} onClick={() => setTimeRange(range)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-wider ${timeRange === range ? 'bg-ios-blue text-white' : 'text-gray-400 hover:text-gray-600'}`}>
+                        <button key={range} onClick={() => setTimeRange(range)} className={`px-2 sm:px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-wider text-center ${timeRange === range ? 'bg-ios-blue text-white shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
                             {range === 'today' ? 'Hoy' : range === '7d' ? '7D' : range === '30d' ? 'Mes' : range === '90d' ? '3M' : 'Año'}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Banner Destacado: Mejor Vendedor */}
-            {periodBestSeller && (
+            {/* Banner Destacado: Mejor Vendedor / Asesor */}
+            {periodBestSeller.bestSeller && (
                 <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent p-4 rounded-2xl border border-amber-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
@@ -342,10 +379,13 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
                         </div>
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                                🏆 Mejor Vendedor del Periodo: <span className="text-gray-900 dark:text-white font-bold">{periodBestSeller.name}</span>
+                                🏆 Destacado del Periodo: <span className="text-gray-900 dark:text-white font-bold">{periodBestSeller.bestSeller.name}</span>
                             </p>
                             <p className="text-xs text-gray-500 font-medium">
-                                Facturó ${periodBestSeller.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} en {periodBestSeller.count} pedidos completados.
+                                Facturó ${periodBestSeller.bestSeller.total.toLocaleString('en-US', { minimumFractionDigits: 2 })} en {periodBestSeller.bestSeller.count} pedidos completados
+                                {periodBestSeller.assistedSalesTotal > 0 && (
+                                    <span> • Total Asistido en Piso: <strong className="text-ios-blue">${periodBestSeller.assistedSalesTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> ({periodBestSeller.assistedCount} tickets)</span>
+                                )}
                             </p>
                         </div>
                     </div>
@@ -354,7 +394,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
                             onClick={onNavigateToSellers}
                             className="text-xs font-bold text-ios-blue hover:underline flex items-center gap-1 shrink-0"
                         >
-                            Ver Ranking de Vendedores <ChevronRight size={14} />
+                            Ver Rendimiento de Asesores <ChevronRight size={14} />
                         </button>
                     )}
                 </div>

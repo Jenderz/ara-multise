@@ -154,14 +154,58 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', function (event) {
-  let data = { title: 'Notificación', body: 'Nuevo mensaje.', icon: '/icon.png', url: '/' };
-  if (event.data) { try { data = event.data.json(); } catch (e) { data.body = event.data.text(); } }
-  event.waitUntil(self.registration.showNotification(data.title, {
-    body: data.body, icon: data.icon, data: { url: data.url }
-  }));
+  var data = {
+    title: 'Nueva Notificación',
+    body: 'Tienes una novedad en la tienda.',
+    icon: './icon.png',
+    badge: './icon.png',
+    url: './',
+    tag: 'ara-notification'
+  };
+
+  if (event.data) {
+    try {
+      var parsed = event.data.json();
+      if (parsed && typeof parsed === 'object') {
+        data = Object.assign(data, parsed);
+      }
+    } catch (e) {
+      var text = event.data.text();
+      if (text) data.body = text;
+    }
+  }
+
+  var options = {
+    body: data.body,
+    icon: data.icon || './icon.png',
+    badge: data.badge || data.icon || './icon.png',
+    tag: data.tag || ('ara-notif-' + Date.now()),
+    renotify: true,
+    vibrate: [200, 100, 200],
+    data: { url: data.url || './' }
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url || './'));
+  var targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : './';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if ('focus' in client && client.url.indexOf(self.location.origin) !== -1) {
+          if ('navigate' in client && targetUrl !== './') {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });

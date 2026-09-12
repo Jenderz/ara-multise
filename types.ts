@@ -410,6 +410,7 @@ export interface NotificationContextType {
   removeNotification: (id: string) => void;
   permission: NotificationPermission;
   requestPermission: () => Promise<void>;
+  subscribeToPush: (forceRenew?: boolean) => Promise<PushSubscription | null>;
   deferredPrompt: any;
   isIOS: boolean;
   isStandalone: boolean;

@@ -67,14 +67,20 @@ self.addEventListener('push', (event: PushEvent) => {
     title: 'Nueva Notificación',
     body: 'Tienes una novedad en la tienda.',
     icon: './icon.png',
+    badge: './icon.png',
     url: './',
+    tag: 'ara-notification',
   };
 
   if (event.data) {
     try {
-      data = { ...data, ...event.data.json() };
+      const parsed = event.data.json();
+      if (parsed && typeof parsed === 'object') {
+        data = { ...data, ...parsed };
+      }
     } catch {
-      data.body = event.data.text();
+      const text = event.data.text();
+      if (text) data.body = text;
     }
   }
 
@@ -82,8 +88,12 @@ self.addEventListener('push', (event: PushEvent) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: data.icon || './icon.png',
+      badge: data.badge || data.icon || './icon.png',
+      tag: data.tag || `ara-notif-${Date.now()}`,
+      renotify: true,
+      vibrate: [200, 100, 200],
       data: { url: data.url || './' },
-    })
+    } as NotificationOptions)
   );
 });
 
@@ -96,6 +106,9 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if ('focus' in client && client.url.includes(self.location.origin)) {
+          if ('navigate' in client && targetUrl !== './') {
+            (client as any).navigate(targetUrl);
+          }
           return client.focus();
         }
       }

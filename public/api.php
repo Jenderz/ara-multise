@@ -403,7 +403,7 @@ try {
             if (!empty($endpoint)) {
                 $p256dh   = $keys['p256dh'] ?? '';
                 $auth     = $keys['auth'] ?? '';
-                $bId      = !empty($sub['branchId']) ? intval($sub['branchId']) : $branchId;
+                $bId      = !empty($sub['branchId']) ? intval($sub['branchId']) : 1;
                 $userName = !empty($sub['userName']) ? trim($sub['userName']) : null;
                 $cartJson = !empty($sub['cart']) ? safeJsonEncode($sub['cart']) : null;
                 $cartUpdated = $cartJson ? date('Y-m-d H:i:s') : null;
@@ -473,12 +473,26 @@ try {
                 $sub = $stmt->fetch(PDO::FETCH_ASSOC);
                 if ($sub) {
                     $res = WebPushSender::sendNotification($pdo, $endpoint, $sub['p256dh'], $sub['auth'], $testPayload);
+                    if (!$res['success']) {
+                        jsonResponse([
+                            'status' => 'error',
+                            'error'  => $res['error'] ?: ('El servicio Push rechazó la entrega (Código HTTP ' . $res['statusCode'] . ')'),
+                            'result' => $res
+                        ], 400);
+                    }
                     jsonResponse(['status' => 'success', 'result' => $res]);
                 } else {
                     jsonResponse(['error' => 'Endpoint no registrado en la base de datos'], 404);
                 }
             } else {
                 $res = WebPushSender::broadcast($pdo, $testPayload);
+                if ($res['total'] === 0) {
+                    jsonResponse([
+                        'status' => 'error',
+                        'error'  => 'No hay ningún dispositivo suscrito a notificaciones aún en la base de datos.',
+                        'broadcast_result' => $res
+                    ], 400);
+                }
                 jsonResponse(['status' => 'success', 'broadcast_result' => $res]);
             }
             break;

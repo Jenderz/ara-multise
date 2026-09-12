@@ -276,11 +276,12 @@ export const SmartAssistant = ({ activeTab }: SmartAssistantProps) => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed right-6 bottom-6 z-[60] bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-gray-200 dark:border-white/10 hover:border-ios-blue hover:text-ios-blue text-gray-700 dark:text-gray-200 p-4 rounded-full shadow-2xl transition-all hover:scale-105 active:scale-95 group flex items-center justify-center h-14 w-14"
+                    className="fixed right-4 bottom-5 sm:right-6 sm:bottom-6 z-[60] bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-gray-200 dark:border-white/10 hover:border-ios-blue hover:text-ios-blue text-gray-700 dark:text-gray-200 p-3 sm:p-4 rounded-full shadow-2xl transition-all hover:scale-105 active:scale-95 group flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14"
                 >
                     <div className="relative">
-                        <Bot size={28} />
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-zinc-800"></span>
+                        <Bot size={24} className="sm:hidden" />
+                        <Bot size={28} className="hidden sm:block" />
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white dark:border-zinc-800"></span>
                     </div>
                 </button>
             )}

@@ -7,7 +7,19 @@ import { Bell, X, Download, Share, PlusSquare, Smartphone, Check, Zap, Truck, Sh
 export const NotificationSystem = () => {
     const { notifications, removeNotification, permission, requestPermission, isIOS, isStandalone, deferredPrompt, installApp, showInstallModal, setShowInstallModal } = useNotification();
     const { settings } = useStore();
-    const [hidePermissionBanner, setHidePermissionBanner] = useState(false);
+    const [hidePermissionBanner, setHidePermissionBanner] = useState(true);
+
+    useEffect(() => {
+        // Mostrar el banner de permiso tras 3.5 segundos si está en 'default' y no ha sido descartado recientemente
+        if (permission === 'default' && typeof window !== 'undefined') {
+            const dismissedAt = localStorage.getItem('pwa_push_dismissed');
+            const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+            if (!dismissedAt || (Date.now() - parseInt(dismissedAt, 10)) > threeDaysMs) {
+                const timer = setTimeout(() => setHidePermissionBanner(false), 3500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [permission]);
 
     const getIcon = (type: string) => {
         switch (type) {
@@ -48,6 +60,41 @@ export const NotificationSystem = () => {
                     </div>
                 ))}
             </div>
+
+            {/* 2. PROMPT PERMISO NOTIFICACIONES PUSH (Amigable y elegante para clientes) */}
+            {permission === 'default' && !hidePermissionBanner && (
+                <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 z-[105] max-w-sm bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-[0_12px_40px_rgb(0,0,0,0.18)] rounded-2xl p-4 animate-slide-up">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue flex items-center justify-center shrink-0">
+                            <Bell size={20} className="animate-pulse" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-tight">¿Activar Notificaciones?</h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-snug">Entérate de ofertas relámpago, nuevos cupones y novedades de tus pedidos.</p>
+                            <div className="flex items-center gap-2 mt-3">
+                                <button
+                                    onClick={async () => {
+                                        setHidePermissionBanner(true);
+                                        await requestPermission();
+                                    }}
+                                    className="flex-1 py-2 px-3 bg-ios-blue hover:bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/25 active:scale-95 transition-all"
+                                >
+                                    Activar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setHidePermissionBanner(true);
+                                        localStorage.setItem('pwa_push_dismissed', Date.now().toString());
+                                    }}
+                                    className="py-2 px-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white font-semibold transition-colors"
+                                >
+                                    Ahora no
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* 3. INSTALL PROMPT MODAL (Smart Logic) */}
             {showInstallModal && !isStandalone && (

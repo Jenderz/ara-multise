@@ -347,40 +347,40 @@ export const UsersModule = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-16">
             {/* Header y Navegación */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold dark:text-white flex items-center gap-2">
                     <Users className="text-ios-blue"/> Equipo de Trabajo
                 </h2>
-                <div className="flex bg-gray-100 dark:bg-white/10 p-1 rounded-xl w-full sm:w-auto gap-1">
+                <div className="flex bg-gray-100 dark:bg-white/10 p-1 rounded-2xl w-full sm:w-auto gap-1.5 overflow-x-auto no-scrollbar scrollbar-none shrink-0">
                     <button 
                         onClick={() => setViewMode('users')}
-                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'users' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                        className={`shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'users' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
-                        <ShieldCheck size={14}/> Cajeras / Acceso Sistema
+                        <ShieldCheck size={14} className="shrink-0"/> Cajeras / Acceso Sistema
                         {Array.isArray(settings.users) && settings.users.length > 0 && (
-                            <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-600 px-1.5 py-0.2 rounded-full font-black">
+                            <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-600 px-1.5 py-0.2 rounded-full font-black ml-0.5">
                                 {settings.users.length}
                             </span>
                         )}
                     </button>
                     <button 
                         onClick={() => setViewMode('advisors')}
-                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'advisors' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                        className={`shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'advisors' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
-                        <UserCheck size={14}/> Asesores (Sin Clave)
+                        <UserCheck size={14} className="shrink-0"/> Asesores (Sin Clave)
                         {Array.isArray(settings.salesAdvisors) && settings.salesAdvisors.length > 0 && (
-                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-black">
+                            <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.2 rounded-full font-black ml-0.5">
                                 {settings.salesAdvisors.length}
                             </span>
                         )}
                     </button>
                     <button 
                         onClick={() => { setViewMode('logs'); setLogUserFilter('all'); }}
-                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'logs' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
+                        className={`shrink-0 whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${viewMode === 'logs' ? 'bg-white dark:bg-zinc-800 shadow-sm text-ios-blue' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'}`}
                     >
-                        <History size={14}/> Actividad
+                        <History size={14} className="shrink-0"/> Actividad
                     </button>
                 </div>
             </div>
