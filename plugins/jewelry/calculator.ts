@@ -20,11 +20,12 @@ export interface JewelryPriceBreakdown {
 /**
  * Obtiene la tasa en USD por gramo del metal especificado
  */
-export function getMetalRate(metalKey?: string, rates?: Record<string, number>): number {
+export function getMetalRate(metalKey?: string, rates?: Record<string, any>): number {
   if (!metalKey) return DEFAULT_METAL_RATES.gold_18k;
   const configured = rates && rates[metalKey];
-  if (typeof configured === 'number' && configured > 0) {
-    return configured;
+  const num = Number(configured);
+  if (!isNaN(num) && num > 0) {
+    return num;
   }
   return DEFAULT_METAL_RATES[metalKey] ?? 0;
 }

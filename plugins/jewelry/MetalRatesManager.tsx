@@ -15,14 +15,15 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
   settings,
   onUpdateSettings,
 }) => {
-  const { products, updateMultipleProducts, activeExchangeRate, activeCurrencySymbol } = useStore();
+  const { products, updateMultipleProducts, activeExchangeRate, activeCurrencySymbol, updateSettings, settings: storeSettings } = useStore();
   const { addNotification } = useNotification();
 
-  // Tasas en estado local para edición
-  const [rates, setRates] = useState<Record<string, number>>(() => {
-    const initial: Record<string, number> = {};
+  // Tasas en estado local para edición (soporta number y string durante la escritura)
+  const [rates, setRates] = useState<Record<string, number | string>>(() => {
+    const initial: Record<string, number | string> = {};
+    const effectiveRates = settings?.jewelry_metal_rates || storeSettings?.jewelry_metal_rates;
     METALS_LIST.forEach((m) => {
-      initial[m.key] = getMetalRate(m.key, settings.jewelry_metal_rates);
+      initial[m.key] = getMetalRate(m.key, effectiveRates);
     });
     return initial;
   });
@@ -32,39 +33,60 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
 
   // Sincronizar con settings cuando se carguen desde el backend si el usuario no ha modificado
   React.useEffect(() => {
-    if (!hasChanges && settings.jewelry_metal_rates) {
-      const updated: Record<string, number> = {};
+    const effectiveRates = settings?.jewelry_metal_rates || storeSettings?.jewelry_metal_rates;
+    if (!hasChanges && effectiveRates) {
+      const updated: Record<string, number | string> = {};
       METALS_LIST.forEach((m) => {
-        updated[m.key] = getMetalRate(m.key, settings.jewelry_metal_rates);
+        updated[m.key] = getMetalRate(m.key, effectiveRates);
       });
       setRates(updated);
     }
-  }, [settings.jewelry_metal_rates, hasChanges]);
+  }, [settings?.jewelry_metal_rates, storeSettings?.jewelry_metal_rates, hasChanges]);
 
   // Cantidad de productos afectados
   const weightProducts = products.filter((p) => p.pricingType === 'by_weight' || (p as any).pricing_type === 'by_weight');
 
   const handleRateChange = (metalKey: string, value: string) => {
-    const num = Math.max(0, parseFloat(value) || 0);
-    setRates((prev) => ({ ...prev, [metalKey]: num }));
+    setRates((prev) => ({ ...prev, [metalKey]: value }));
     setHasChanges(true);
   };
 
   const handleApplyRates = async () => {
     setIsUpdating(true);
     try {
-      // 1. Guardar las nuevas tasas en settings
-      await onUpdateSettings({
-        jewelry_metal_rates: rates,
+      // 1. Normalizar todas las tasas a números válidos
+      const numericRates: Record<string, number> = {};
+      METALS_LIST.forEach((m) => {
+        const val = rates[m.key];
+        const parsed = typeof val === 'number' ? val : parseFloat(val as string);
+        numericRates[m.key] = (!isNaN(parsed) && parsed > 0)
+          ? parsed
+          : getMetalRate(m.key, settings?.jewelry_metal_rates || storeSettings?.jewelry_metal_rates);
       });
 
-      // 2. Si hay productos vinculados por peso, recalcular su campo price
+      // 2. Guardar persistentemente en base de datos (MySQL) y en SettingsContext global
+      await updateSettings({
+        jewelry_metal_rates: numericRates,
+      });
+
+      // 3. Notificar al estado local del SettingsModule
+      if (onUpdateSettings) {
+        onUpdateSettings({
+          jewelry_metal_rates: numericRates,
+        });
+      }
+
+      // 4. Actualizar estado local limpio y desactivar cambios pendientes
+      setRates(numericRates);
+      setHasChanges(false);
+
+      // 5. Si hay productos vinculados por peso, recalcular su campo price
       if (weightProducts.length > 0) {
         const updatedProducts = weightProducts.map((p) => {
           const newPrice = calculateJewelryPrice({
             weightGram: p.weightGram,
             metalType: p.metalType,
-            rates,
+            rates: numericRates,
             makingCost: p.makingCost,
             makingCostType: p.makingCostType,
           });
@@ -81,7 +103,7 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
                 const variantPrice = calculateJewelryPrice({
                   weightGram: v.weightGram,
                   metalType: p.metalType,
-                  rates,
+                  rates: numericRates,
                   makingCost: p.makingCost,
                   makingCostType: p.makingCostType,
                 });
@@ -97,16 +119,16 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
         await updateMultipleProducts(updatedProducts, () => {});
       }
 
-      setHasChanges(false);
       addNotification({
-        title: 'Cotización de Metales Actualizada',
-        body: `Se han actualizado las tarifas y recalculado los precios de ${weightProducts.length} productos de joyería.`,
+        title: 'Cotización de Metales Guardada',
+        body: `Se guardaron las tasas con éxito ($${numericRates.gold_18k || 0}/gr Oro 18k) y se recalculó el precio de ${weightProducts.length} productos.`,
         type: 'success',
       });
     } catch (err: any) {
+      console.error('Error al guardar tasas:', err);
       addNotification({
         title: 'Error al actualizar',
-        body: err?.message || 'No se pudieron actualizar los precios.',
+        body: err?.message || 'No se pudieron actualizar los precios en la base de datos.',
         type: 'error',
       });
     } finally {
@@ -145,8 +167,9 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
       {/* Grid de Metales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {METALS_LIST.map((metal) => {
-          const currentRate = rates[metal.key] ?? metal.defaultRate;
-          const vesRate = activeExchangeRate > 0 ? currentRate * activeExchangeRate : 0;
+          const currentVal = rates[metal.key] !== undefined ? rates[metal.key] : metal.defaultRate;
+          const numericRate = typeof currentVal === 'number' ? currentVal : (parseFloat(currentVal as string) || 0);
+          const vesRate = activeExchangeRate > 0 && numericRate > 0 ? numericRate * activeExchangeRate : 0;
 
           return (
             <div
@@ -173,9 +196,9 @@ export const MetalRatesManager: React.FC<MetalRatesManagerProps> = ({
                 <div className="relative">
                   <input
                     type="number"
-                    step="0.1"
+                    step="any"
                     min="0"
-                    value={currentRate}
+                    value={currentVal}
                     onChange={(e) => handleRateChange(metal.key, e.target.value)}
                     className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-base font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/30 outline-none transition font-mono pl-8"
                   />
