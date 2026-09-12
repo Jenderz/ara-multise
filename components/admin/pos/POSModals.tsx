@@ -137,14 +137,20 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
 
                 {/* Opciones Scrollable */}
                 <div className="space-y-5 mb-6 overflow-y-auto pr-1 custom-scrollbar">
-                    {product.variantOptions?.map(opt => (
+                    {product.variantOptions?.map(opt => {
+                        const activeValues = opt.values.filter(val =>
+                            product.variants?.some(v => v.selections && v.selections[opt.name] === val)
+                        );
+                        if (activeValues.length === 0) return null;
+
+                        return (
                         <div key={opt.name}>
                             <div className="flex justify-between mb-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{opt.name}</label>
                                 {selections[opt.name] && <span className="text-xs font-bold text-ios-blue">{selections[opt.name]}</span>}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {opt.values.map(val => {
+                                {activeValues.map(val => {
                                     const { stock } = getOptionState(opt.name, val);
                                     const isSelected = selections[opt.name] === val;
                                     const isColor = opt.type === 'color';
@@ -206,7 +212,8 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
                                 })}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Footer Status */}

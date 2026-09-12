@@ -109,10 +109,29 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             alert('Nombre y precio son obligatorios');
             return;
         }
-        // Persistir el EAN-13 calculado (ya sea el ingresado manualmente o el autogenerado).
-        // El backend recibe el objeto completo con { ...p } en api.saveProduct(),
-        // por lo que barcodeEan se serializa en el JSON y se almacena automáticamente.
-        onSave({ ...formData, barcodeEan: formData.barcodeEan?.trim() || ean13 || '' });
+
+        let cleanedVariants = formData.variants || [];
+        let cleanedOptions = formData.variantOptions || [];
+
+        // Si no quedan variantes en la tabla, vaciar completamente las opciones para no dejar variantes fantasma
+        if (cleanedVariants.length === 0) {
+            cleanedOptions = [];
+        } else {
+            // Asegurar que las opciones solo contengan valores que realmente existan en las variantes guardadas
+            cleanedOptions = cleanedOptions
+                .map(opt => ({
+                    ...opt,
+                    values: opt.values.filter(val => cleanedVariants.some(v => v.selections && v.selections[opt.name] === val))
+                }))
+                .filter(opt => opt.values.length > 0);
+        }
+
+        onSave({
+            ...formData,
+            variants: cleanedVariants,
+            variantOptions: cleanedOptions,
+            barcodeEan: formData.barcodeEan?.trim() || ean13 || ''
+        });
     };
 
 
@@ -130,9 +149,45 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
     };
 
     const removeOption = (idx: number) => {
-        const newOptions = [...formData.variantOptions];
-        newOptions.splice(idx, 1);
-        setFormData(prev => ({ ...prev, variantOptions: newOptions }));
+        const optionToRemove = formData.variantOptions[idx];
+        const newOptions = formData.variantOptions.filter((_, i) => i !== idx);
+
+        if (newOptions.length === 0) {
+            if (window.confirm('Al eliminar todas las opciones, se eliminarán todas las variantes del producto. ¿Deseas continuar?')) {
+                setFormData(prev => ({
+                    ...prev,
+                    variantOptions: [],
+                    variants: []
+                }));
+            }
+            return;
+        }
+
+        // Si quedan opciones, depurar la clave de la opción eliminada de las variantes existentes
+        const optName = optionToRemove?.name;
+        const updatedVariantsMap = new Map<string, ProductVariant>();
+
+        formData.variants.forEach(v => {
+            const newSelections = { ...v.selections };
+            if (optName && newSelections[optName] !== undefined) {
+                delete newSelections[optName];
+            }
+            const newKey = buildCombinationKey(newSelections);
+            if (!updatedVariantsMap.has(newKey)) {
+                updatedVariantsMap.set(newKey, {
+                    ...v,
+                    combinationKey: newKey,
+                    selections: newSelections,
+                    sku: `${formData.code}-${Object.values(newSelections).join('-')}`
+                });
+            }
+        });
+
+        setFormData(prev => ({
+            ...prev,
+            variantOptions: newOptions,
+            variants: Array.from(updatedVariantsMap.values())
+        }));
     };
 
     const handleGlobalSalePriceChange = (value: number) => {
@@ -228,9 +283,40 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
     const removeVariant = (idx: number) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar esta variante?')) {
+            const remainingVariants = formData.variants.filter((_, i) => i !== idx);
+
+            // Si ya no queda ninguna variante, limpiar también variantOptions para no dejar variantes fantasma
+            if (remainingVariants.length === 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    variants: [],
+                    variantOptions: []
+                }));
+                return;
+            }
+
+            // Sincronizar los valores de las opciones: solo mantener aquellos valores que sigan existiendo en las variantes restantes
+            const updatedOptions = formData.variantOptions
+                .map(opt => ({
+                    ...opt,
+                    values: opt.values.filter(val => remainingVariants.some(v => v.selections && v.selections[opt.name] === val))
+                }))
+                .filter(opt => opt.values.length > 0);
+
             setFormData(prev => ({
                 ...prev,
-                variants: prev.variants.filter((_, i) => i !== idx)
+                variants: remainingVariants,
+                variantOptions: updatedOptions
+            }));
+        }
+    };
+
+    const handleClearAllVariants = () => {
+        if (window.confirm('¿Deseas eliminar TODAS las variantes y convertir este producto en un producto simple (sin variantes)?')) {
+            setFormData(prev => ({
+                ...prev,
+                variantOptions: [],
+                variants: []
             }));
         }
     };
@@ -536,11 +622,21 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         </div>
                                     </div>
                                 ))}
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 items-center flex-wrap">
                                     <Button variant="secondary" onClick={addOption} className="text-xs h-9"><Plus size={14} /> Agregar Opción</Button>
                                     <Button onClick={generateVariants} className="text-xs h-9 bg-ios-blue text-white">
                                         {formData.variantOptions.length === 0 ? 'Limpiar Variantes' : 'Generar Combinaciones'}
                                     </Button>
+                                    {(formData.variants.length > 0 || formData.variantOptions.length > 0) && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearAllVariants}
+                                            className="text-xs h-9 px-3.5 py-1.5 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold flex items-center gap-1.5 transition ml-auto"
+                                            title="Eliminar todas las variantes y opciones"
+                                        >
+                                            <Trash2 size={13} /> Eliminar Todas las Variantes
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

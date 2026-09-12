@@ -204,7 +204,7 @@ export const POSProductGrid = () => {
     }, [hasMore, loading]);
 
     const handleProductClick = (p: Product) => {
-        const hasVariants = p.variants && p.variants.length > 0;
+        const hasVariants = Boolean(p.variants && p.variants.length > 0 && p.variantOptions && p.variantOptions.length > 0);
         const localStock = p.stock || 0;
         const globalStock = p.globalStock || 0;
 
@@ -474,7 +474,7 @@ export const POSProductGrid = () => {
                     </div>
                 ) : (
                     products.map(p => {
-                        const hasVariants = p.variantOptions && p.variantOptions.length > 0;
+                        const hasVariants = Boolean(p.variants && p.variants.length > 0 && p.variantOptions && p.variantOptions.length > 0);
                         const realStock = p.stock || 0;
                         const globalStock = p.globalStock || 0;
 

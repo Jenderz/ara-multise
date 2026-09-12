@@ -38,7 +38,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     const isOnSale = Boolean(product.salePrice && product.salePrice > 0 && product.salePrice < product.price);
     const isInWishlist = wishlist.includes(product.id);
-    const hasVariants = product.variantOptions && product.variantOptions.length > 0;
+    const hasVariants = Boolean(
+        product.variantOptions &&
+        product.variantOptions.length > 0 &&
+        product.variants &&
+        product.variants.length > 0
+    );
     const showOptions = hasVariants;
 
     const handleQuickAdd = (e: React.MouseEvent) => {

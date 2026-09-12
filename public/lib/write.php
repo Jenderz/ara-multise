@@ -29,6 +29,40 @@ function handleSaveProduct($pdo, $input, $branchId)
         }
     }
 
+    // Detectar y limpiar registros de variantes eliminadas en la base de datos
+    if (!empty($p['id'])) {
+        try {
+            $stmtPrevVar = $pdo->prepare("SELECT `variants` FROM `products` WHERE `id` = ? LIMIT 1");
+            $stmtPrevVar->execute([$p['id']]);
+            $rawPrevVar = $stmtPrevVar->fetchColumn();
+            if ($rawPrevVar) {
+                $prevList = safeJsonDecode($rawPrevVar);
+                if (is_array($prevList) && !empty($prevList)) {
+                    $prevIds = [];
+                    foreach ($prevList as $pv) {
+                        if (!empty($pv['id'])) $prevIds[] = (string)$pv['id'];
+                    }
+                    $currentIds = [];
+                    if (!empty($p['variants']) && is_array($p['variants'])) {
+                        foreach ($p['variants'] as $cv) {
+                            if (!empty($cv['id'])) $currentIds[] = (string)$cv['id'];
+                        }
+                    }
+                    $deletedIds = array_diff($prevIds, $currentIds);
+                    if (!empty($deletedIds)) {
+                        $inQ = implode(',', array_fill(0, count($deletedIds), '?'));
+                        $pdo->prepare("DELETE FROM `inventory` WHERE `product_id` IN ($inQ)")->execute(array_values($deletedIds));
+                        $pdo->prepare("DELETE FROM `product_movements` WHERE `product_id` IN ($inQ)")->execute(array_values($deletedIds));
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    // Sanitizar coherencia: si no hay variantes activas, variant_options debe ser []
+    $cleanVariants = (!empty($p['variants']) && is_array($p['variants'])) ? array_values($p['variants']) : [];
+    $cleanVariantOptions = (!empty($cleanVariants) && !empty($p['variantOptions']) && is_array($p['variantOptions'])) ? array_values($p['variantOptions']) : [];
+
     // 1. Guardar Datos Maestros del Producto (JSON variants se guarda como referencia estructural)
     $stmt = $pdo->prepare("INSERT INTO `products` 
         (id, code, title, description, cost, price, sale_price, images, category, extra_categories, is_visible, is_featured, variant_options, variants, created_at, track_stock, min_stock, barcode_ean, pricing_type, metal_type, weight_gram, making_cost, making_cost_type) 
@@ -58,8 +92,8 @@ function handleSaveProduct($pdo, $input, $branchId)
         ),
         ':is_visible'       => ($p['isVisible'] ?? true) ? 1 : 0,
         ':is_featured'      => ($p['isFeatured'] ?? false) ? 1 : 0,
-        ':variant_options'  => safeJsonEncode($p['variantOptions'] ?? []),
-        ':variants'         => safeJsonEncode($p['variants'] ?? []),
+        ':variant_options'  => safeJsonEncode($cleanVariantOptions),
+        ':variants'         => safeJsonEncode($cleanVariants),
         ':created_at'       => time() * 1000, // FORCE SERVER TIME
         ':track_stock'      => ($p['trackStock'] ?? true) ? 1 : 0,
         ':min_stock'        => intval($p['minStock'] ?? 5),
@@ -73,13 +107,13 @@ function handleSaveProduct($pdo, $input, $branchId)
 
     // 2. Gestión de Inventario MULTISEDE (PADRE y VARIANTES)
     $effectiveBranchId = $branchId > 0 ? $branchId : 1;
-    $hasVariants = !empty($p['variants']) && is_array($p['variants']);
+    $hasVariants = !empty($cleanVariants);
     $invStmt = $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE stock = VALUES(stock), updated_at = VALUES(updated_at)");
 
     if ($hasVariants) {
         $parentBranchSums = [];
 
-        foreach ($p['variants'] as $variant) {
+        foreach ($cleanVariants as $variant) {
             if (empty($variant['id'])) continue;
             $vId = $variant['id'];
 

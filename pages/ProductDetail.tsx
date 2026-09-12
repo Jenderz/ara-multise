@@ -129,7 +129,12 @@ export const ProductDetail = () => {
 
     if (!product) return <div className="p-10 text-center dark:text-white font-serif">Producto no encontrado</div>;
 
-    const hasVariants = product.variantOptions && product.variantOptions.length > 0;
+    const hasVariants = Boolean(
+        product.variantOptions &&
+        product.variantOptions.length > 0 &&
+        product.variants &&
+        product.variants.length > 0
+    );
 
     // Función para compartir el producto por WhatsApp
     const handleShare = () => {
@@ -271,14 +276,20 @@ export const ProductDetail = () => {
                     {/* Selector de Variantes (Tonos y Tallas) */}
                     {hasVariants && (
                         <div className="space-y-8 mb-12">
-                            {(product.variantOptions || []).map(option => (
+                            {(product.variantOptions || []).map(option => {
+                                const activeValues = option.values.filter(val =>
+                                    product.variants?.some(v => v.selections && v.selections[option.name] === val)
+                                );
+                                if (activeValues.length === 0) return null;
+
+                                return (
                                 <div key={option.name} className="animate-fade-in">
                                     <div className="flex justify-between items-center mb-4">
                                         <label className="text-[10px] font-black text-ios-text dark:text-white uppercase tracking-[0.15em] opacity-40">{option.name}</label>
                                         <span className="text-xs font-bold text-ios-blue">{selections[option.name]}</span>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
-                                        {option.values.map(val => {
+                                        {activeValues.map(val => {
                                             const isColor = option.type === 'color';
                                             const colorHex = option.colorValues?.[val] || '#ccc';
                                             const isSelected = selections[option.name] === val;
@@ -321,7 +332,8 @@ export const ProductDetail = () => {
                                         })}
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
