@@ -73,8 +73,8 @@ const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 const DEFAULT_SYSTEM: SystemConfig = {
-    seoTitle: 'Tienda Virtual | E-commerce Profesional',
-    seoDescription: 'Bienvenido a nuestra tienda online.',
+    seoTitle: '',
+    seoDescription: '',
     enableAbandonedCart: true,
     enableOrderUpdates: true,
     priceDisplayMode: 'both',
@@ -284,67 +284,19 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
         appleTitle.content = shortName;
 
-        // Inyección dinámica del Manifest PWA para diálogo de instalación nativo
+        // Enlace HTTP oficial para el Manifest PWA (Chromium exige scheme HTTP/S; rechaza blob: para la instalación)
         try {
-            const dynamicManifest = {
-                id: "/?source=pwa",
-                name: appTitle,
-                short_name: shortName,
-                start_url: "/",
-                scope: "/",
-                display: "standalone",
-                display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
-                background_color: "#F2F2F7",
-                theme_color: themeColor,
-                orientation: "portrait-primary",
-                launch_handler: { client_mode: "focus-existing" },
-                handle_links: "preferred",
-                categories: ["shopping", "lifestyle", "productivity"],
-                description: settings.seoDescription || `Tienda oficial de ${appTitle}. Realiza tus pedidos con la mejor experiencia online.`,
-                icons: [
-                    {
-                        src: appIcon,
-                        sizes: "192x192",
-                        type: "image/png",
-                        purpose: "any maskable"
-                    },
-                    {
-                        src: appIcon,
-                        sizes: "512x512",
-                        type: "image/png",
-                        purpose: "any maskable"
-                    }
-                ],
-                shortcuts: [
-                    {
-                        name: "Ver Carrito",
-                        short_name: "Carrito",
-                        description: "Revisar mi bolsa de compras",
-                        url: "/?action=cart",
-                        icons: [{ src: "https://cdn-icons-png.flaticon.com/512/1170/1170678.png", sizes: "192x192" }]
-                    },
-                    {
-                        name: "Explorar",
-                        short_name: "Tienda",
-                        description: "Buscar productos",
-                        url: "/#/shop",
-                        icons: [{ src: "https://cdn-icons-png.flaticon.com/512/2832/2832495.png", sizes: "192x192" }]
-                    }
-                ]
-            };
-
-            const blob = new Blob([JSON.stringify(dynamicManifest)], { type: 'application/manifest+json' });
-            const blobUrl = URL.createObjectURL(blob);
-
             let manifestEl = document.querySelector("link[rel='manifest']") as HTMLLinkElement;
             if (!manifestEl) {
                 manifestEl = document.createElement('link');
                 manifestEl.rel = 'manifest';
                 document.getElementsByTagName('head')[0].appendChild(manifestEl);
             }
-            manifestEl.href = blobUrl;
+            if (!manifestEl.getAttribute('href')?.includes('/manifest.json')) {
+                manifestEl.href = '/manifest.json';
+            }
         } catch (manifestErr) {
-            console.debug('No se pudo regenerar el manifest dinámicamente en el cliente:', manifestErr);
+            console.debug('Error sincronizando el manifest en el cliente:', manifestErr);
         }
 
     }, [settings, localDarkMode]);

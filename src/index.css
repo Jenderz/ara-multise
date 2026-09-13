@@ -55,6 +55,10 @@ input, textarea, .prose {
 .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 .animate-pulse-slow { animation: pulseSlow 10s infinite alternate; }
 .animate-scan-line { animation: scanLine 2s linear infinite; }
+.animate-heart-burst { animation: heartBurst 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.animate-spring-scale { animation: springScale 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.animate-island-drop { animation: toastSubtle 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-toast-subtle { animation: toastSubtle 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -66,6 +70,26 @@ input, textarea, .prose {
   10% { opacity: 1; }
   90% { opacity: 1; }
   100% { transform: translateY(50px); opacity: 0; }
+}
+@keyframes heartBurst {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.75); }
+  50% { transform: scale(1.35); }
+  75% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+@keyframes springScale {
+  0% { transform: scale(0.92); opacity: 0.8; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes toastSubtle {
+  0% { transform: translateY(-8px) scale(0.97); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes islandDrop {
+  0% { transform: translateY(-8px) scale(0.97); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* iOS PWA Safe Area Insets (Notch, Dynamic Island y Home Bar) */

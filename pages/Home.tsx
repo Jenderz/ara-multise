@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { HeroSlide } from '../types';
+import { DynamicPillDock } from '../components/DynamicPillDock';
 
 // ------- HOOK: Vistos Recientemente -------
 const RECENTLY_VIEWED_KEY = 'recently_viewed_products';
@@ -228,7 +229,7 @@ export const Home = () => {
             />
 
             {/* --- HERO SECTION CAROUSEL --- */}
-            <section className={`relative w-full rounded-[2.5rem] overflow-hidden ${getHeroHeight()} mb-16 shadow-2xl group bg-black`}>
+            <section className={`relative w-full rounded-[2.5rem] overflow-hidden ${getHeroHeight()} mb-6 sm:mb-8 shadow-2xl group bg-black`}>
 
                 {/* Slides */}
                 {slides.map((slide, index) => (
@@ -340,6 +341,17 @@ export const Home = () => {
                     </>
                 )}
             </section>
+
+            {/* --- DYNAMIC GLASS PILL DOCK (ACCESO RÁPIDO ULTRARRÁPIDO) --- */}
+            <div className="mb-12 sm:mb-16 relative z-30">
+                <DynamicPillDock
+                    selectedCategory="Todos"
+                    onSelectCategory={(cat) => {
+                        navigate(cat === 'Todos' ? '/shop' : `/shop?category=${encodeURIComponent(cat)}`);
+                    }}
+                    onSelectOffers={() => navigate('/shop?filter=offers')}
+                />
+            </div>
 
             {/* --- BEST SELLERS --- */}
             {settings.showBestSellers !== false && (

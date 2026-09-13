@@ -4,6 +4,7 @@ import { useStore } from '../context/StoreContext';
 import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
+import { WishlistToast } from './WishlistToast';
 
 export const Navbar = () => {
   const { cart, setIsCartOpen, setIsSearchOpen, settings, updateSettings, localDarkMode, toggleLocalDarkMode } = useStore();
@@ -520,7 +521,8 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-ios-bg dark:bg-black select-none">
+    <div className="min-h-screen flex flex-col bg-ios-bg dark:bg-black select-none overflow-x-hidden">
+      <WishlistToast />
       <AnnouncementBar />
       <Navbar />
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 pt-4 pb-20 md:pb-12">

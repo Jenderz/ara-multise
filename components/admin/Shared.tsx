@@ -35,7 +35,7 @@ export const NavButton: React.FC<NavButtonProps> = ({ active, onClick, icon, lab
             } ${
                 active 
                     ? 'bg-ios-blue text-white shadow-md shadow-blue-500/25 font-bold' 
-                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100/80 hover:text-gray-900 hover:shadow-xs dark:hover:bg-white/10 dark:hover:text-white'
             }`}
         >
             <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 min-w-0'}`}>

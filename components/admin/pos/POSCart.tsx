@@ -550,7 +550,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                         )}
                     </div>
 
-                    <div className="p-3.5 sm:p-4 pb-safe bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-2 rounded-t-2xl z-10">
+                    <div className="p-4 sm:p-5 pb-5 sm:pb-6 bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-3 rounded-t-2xl z-10">
                         {/* --- DATOS DEL CLIENTE (COMPACTO Y COLAPSABLE) --- */}
                         <div className="space-y-1.5">
                             <div className="relative flex items-center">
@@ -704,20 +704,20 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                         </div>
 
                         {/* --- TOTAL Y BOTONES --- */}
-                        <div className="pt-2 border-t border-gray-100 dark:border-white/5">
-                            <div className="mb-2">
+                        <div className="pt-2.5 border-t border-gray-100 dark:border-white/5 space-y-2.5">
+                            <div>
                                 {!showDiscountInput ? (
                                     <button
                                         onClick={() => setShowDiscountInput(true)}
-                                        className="text-[10px] font-bold text-ios-blue hover:underline flex items-center gap-1 w-full justify-end"
+                                        className="text-[10px] font-bold text-ios-blue hover:underline flex items-center gap-1 w-full justify-end transition-colors"
                                     >
                                         <Tag size={12} /> Agregar Descuento
                                     </button>
                                 ) : (
-                                    <div className="flex gap-2 items-center bg-gray-50 dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10">
+                                    <div className="flex gap-2 items-center bg-gray-50 dark:bg-white/5 p-1.5 rounded-xl border border-gray-200 dark:border-white/10">
                                         <button
                                             onClick={() => setDiscountType(discountType === 'fixed' ? 'percent' : 'fixed')}
-                                            className="p-1.5 bg-white dark:bg-black/20 rounded-md shadow-sm text-gray-500 text-xs font-bold min-w-[30px] flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                                            className="p-1.5 bg-white dark:bg-black/20 rounded-lg shadow-xs text-gray-600 dark:text-gray-300 text-xs font-bold min-w-[30px] flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                                         >
                                             {discountType === 'fixed' ? <DollarSign size={12} /> : <Percent size={12} />}
                                         </button>
@@ -729,17 +729,17 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                             onChange={e => setDiscountValue(e.target.value)}
                                             autoFocus
                                         />
-                                        <button onClick={() => { setShowDiscountInput(false); setDiscountValue(''); }} className="p-1 text-red-400 hover:text-red-500">
+                                        <button onClick={() => { setShowDiscountInput(false); setDiscountValue(''); }} className="p-1 text-red-400 hover:text-red-500 rounded-lg">
                                             <X size={12} />
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex justify-between items-end mb-1">
+                            <div className="flex justify-between items-end pb-0.5">
                                 <div className="flex flex-col">
-                                    <span className="text-gray-400 font-bold text-[10px] uppercase">Total</span>
-                                    <span className="text-xs font-bold text-gray-500">
+                                    <span className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">Total</span>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-0.5">
                                         Ref ({settings.currencyRateMode === 'paralelo' ? 'P' : settings.currencyRateMode === 'euro_bcv' ? 'EUR' : 'BCV'}): {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs
                                     </span>
                                 </div>
@@ -753,16 +753,25 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2">
-                                <Button variant="secondary" onClick={() => { clearCart(); setSelectedAdvisorId(''); setApplyCommission(false); setCustomCommissionRate('0'); }} disabled={cart.length === 0} className="col-span-1 bg-red-50 text-red-500 hover:bg-red-100 border-transparent dark:bg-red-900/10 dark:text-red-400 h-10 rounded-xl">
-                                    <Trash2 size={20} />
+                            {/* Botones de acción principales con márgenes ergonómicos */}
+                            <div className="flex items-center gap-2.5 pt-1">
+                                <Button 
+                                    variant="secondary" 
+                                    onClick={() => { clearCart(); setSelectedAdvisorId(''); setApplyCommission(false); setCustomCommissionRate('0'); }} 
+                                    disabled={cart.length === 0} 
+                                    title="Vaciar Carrito"
+                                    aria-label="Vaciar Carrito"
+                                    className="w-12 h-12 p-0 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 shrink-0 flex items-center justify-center transition-all shadow-xs"
+                                >
+                                    <Trash2 size={19} />
                                 </Button>
                                 <Button
                                     onClick={handleCheckoutClick}
                                     disabled={cart.length === 0 || (isMixedPayment && Math.abs(remaining) > 0.01)}
-                                    className="col-span-2 h-10 shadow-lg shadow-green-500/30 text-base font-black uppercase tracking-wider bg-green-500 hover:bg-green-600 rounded-xl flex items-center justify-center gap-2"
+                                    className="flex-1 h-12 shadow-lg shadow-emerald-500/25 text-base font-black uppercase tracking-wider bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 transition-all"
                                 >
-                                    <CheckCircle2 size={20} strokeWidth={3} /> Cobrar
+                                    <CheckCircle2 size={20} strokeWidth={2.5} /> 
+                                    <span>Cobrar</span>
                                 </Button>
                             </div>
                         </div>

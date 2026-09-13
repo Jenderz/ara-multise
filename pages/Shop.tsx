@@ -4,8 +4,9 @@ import { useStore } from '../context/StoreContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShopLayout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
-import { Search, X, ArrowDown, Filter, Zap } from 'lucide-react';
+import { Search, X, ArrowDown, Filter, Zap, LayoutGrid, Square, Sparkles } from 'lucide-react';
 import { SEO } from '../components/SEO';
+import { DynamicPillDock } from '../components/DynamicPillDock';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -28,6 +29,13 @@ export const Shop = () => {
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isSearchExpanded && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [isSearchExpanded]);
 
     // --- RESTAURACIÓN DE ESTADO Y SCROLL ---
     // Inicializamos visibleCount leyendo de sessionStorage si existe
@@ -196,6 +204,7 @@ export const Shop = () => {
     }, [products, selectedCategory, searchTerm, showOffersOnly, settings.hideOutOfStock]);
 
     const visibleProducts = filteredProducts.slice(0, visibleCount);
+    const [mobileColumns, setMobileColumns] = useState<1 | 2>(2);
     const hasMore = visibleCount < filteredProducts.length;
 
     // Manejador Inteligente de Categorías: Actualiza la URL para persistencia
@@ -206,8 +215,16 @@ export const Shop = () => {
         } else {
             params.set('category', cat);
         }
+        navigate({ pathname: '/shop', search: params.toString() }, { replace: true });
+    };
 
-        // Usamos 'replace' para que el botón "Atrás" del navegador no te haga pasar por cada categoría que clickeaste
+    const handleToggleOffers = () => {
+        const params = new URLSearchParams(location.search);
+        if (showOffersOnly) {
+            params.delete('filter');
+        } else {
+            params.set('filter', 'offers');
+        }
         navigate({ pathname: '/shop', search: params.toString() }, { replace: true });
     };
 
@@ -223,121 +240,168 @@ export const Shop = () => {
                 description={`Explora nuestra colección de ${selectedCategory === 'Todos' ? 'todos los productos' : selectedCategory}. Encuentra las mejores ofertas y calidad garantizada.`}
             />
             <div className="mb-20">
+                {/* Cabecera del Catálogo */}
                 <div className="flex justify-between items-end mb-6 px-2">
                     <div>
-                        <h1 className="text-4xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-3">
+                        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-3">
                             {showOffersOnly ? (
                                 <>
                                     <span className="text-red-500">Ofertas</span>
-                                    <Zap className="fill-red-500 text-red-500" size={32} />
+                                    <Zap className="fill-red-500 text-red-500" size={30} />
                                 </>
-                            ) : 'Explorar'}
+                            ) : (
+                                selectedCategory === 'Todos' ? 'Explorar' : selectedCategory
+                            )}
                         </h1>
-                        <p className="text-[10px] text-ios-subtext dark:text-gray-500 uppercase tracking-widest font-black mt-1">{filteredProducts.length} Artículos</p>
+                        <p className="text-[10px] text-ios-subtext dark:text-gray-500 uppercase tracking-widest font-black mt-1">
+                            {filteredProducts.length} Artículos Disponibles
+                        </p>
                     </div>
 
-                    {(showOffersOnly || searchTerm || selectedCategory !== 'Todos') && (
-                        <button onClick={handleClearFilters} className="text-xs font-bold text-ios-blue hover:underline">
-                            Limpiar Filtros
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Botón de Búsqueda Compacto en Catálogo */}
+                        <button
+                            onClick={() => setIsSearchExpanded(prev => !prev)}
+                            className={`p-2 sm:px-3 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-semibold shadow-xs active:scale-95 ${
+                                isSearchExpanded || searchTerm
+                                    ? 'bg-ios-blue text-white border-ios-blue shadow-ios-blue/20'
+                                    : 'bg-white/80 dark:bg-zinc-900/80 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-ios-blue hover:border-ios-blue/40'
+                            }`}
+                            aria-label="Buscar productos en catálogo"
+                            title="Buscar productos"
+                        >
+                            <Search size={16} />
+                            <span className="hidden sm:inline">{searchTerm ? 'Filtrando' : 'Buscar'}</span>
                         </button>
-                    )}
+
+                        {/* Selector de Cuadrícula en Móvil (1 Columna Grande vs 2 Columnas) */}
+                        <div className="flex md:hidden items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl p-1 shadow-sm">
+                            <button
+                                onClick={() => setMobileColumns(1)}
+                                className={`p-2 rounded-xl transition-all ${mobileColumns === 1 ? 'bg-ios-blue text-white shadow-sm scale-105' : 'text-gray-400'}`}
+                                aria-label="Vista 1 columna grande"
+                            >
+                                <Square size={16} />
+                            </button>
+                            <button
+                                onClick={() => setMobileColumns(2)}
+                                className={`p-2 rounded-xl transition-all ${mobileColumns === 2 ? 'bg-ios-blue text-white shadow-sm scale-105' : 'text-gray-400'}`}
+                                aria-label="Vista 2 columnas"
+                            >
+                                <LayoutGrid size={16} />
+                            </button>
+                        </div>
+
+                        {(showOffersOnly || searchTerm || selectedCategory !== 'Todos') && (
+                            <button onClick={handleClearFilters} className="text-xs font-bold text-ios-blue hover:underline hidden sm:block">
+                                Limpiar Filtros
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                <div className={`sticky top-20 z-30 mb-8 transition-all duration-500 ease-ios ${isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
-                    <div className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-2xl p-1.5 rounded-[2rem] border border-white/40 dark:border-white/5 shadow-glass flex items-center gap-1.5">
-
-                        <div className={`relative flex items-center transition-all duration-500 ease-ios ${isSearchExpanded ? 'flex-1' : 'w-11'}`}>
-                            <button
-                                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                                className={`absolute left-0 w-11 h-11 flex items-center justify-center rounded-full z-10 transition-colors ${isSearchExpanded ? 'text-ios-blue' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'}`}
-                            >
-                                <Search size={18} />
-                            </button>
+                {/* Buscador Desplegable Compacto (Solo visible cuando se pulsa Buscar o hay término activo) */}
+                {(isSearchExpanded || searchTerm) && (
+                    <div className="mb-4 animate-fade-in">
+                        <div className="relative flex items-center bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-sm px-3.5 py-1">
+                            <Search className="text-gray-400 shrink-0 mr-2.5" size={16} />
                             <input
+                                ref={searchInputRef}
                                 type="text"
-                                placeholder="Buscar..."
+                                placeholder="Buscar por nombre, categoría, variante o código..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className={`w-full h-11 bg-gray-100/50 dark:bg-black/40 rounded-full pl-11 pr-10 outline-none text-xs font-medium transition-all duration-500 ${isSearchExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                                className="w-full bg-transparent outline-none text-xs font-medium text-ios-text dark:text-white placeholder-gray-400 py-1.5"
                             />
-                            {searchTerm && isSearchExpanded && (
-                                <button onClick={() => setSearchTerm('')} className="absolute right-3 text-gray-400 hover:text-red-500">
+                            {searchTerm ? (
+                                <button 
+                                    onClick={() => setSearchTerm('')} 
+                                    className="p-1 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+                                    aria-label="Limpiar texto"
+                                >
                                     <X size={14} />
                                 </button>
-                            )}
-                        </div>
-
-                        {!isSearchExpanded && (
-                            <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-1 py-1">
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => handleCategoryChange(cat)}
-                                        className={`whitespace-nowrap px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === cat
-                                            ? 'bg-ios-blue text-white shadow-sm'
-                                            : 'text-gray-400 hover:text-ios-blue'
-                                            }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        <button
-                            onClick={() => setIsFilterOpen(!isFilterOpen)}
-                            className="w-11 h-11 flex items-center justify-center rounded-full bg-ios-blue/5 text-ios-blue hover:bg-ios-blue/10 transition-colors shrink-0"
-                        >
-                            <Filter size={18} />
-                        </button>
-                    </div>
-                </div>
-
-                {isFilterOpen && (
-                    <div className="mb-8 p-6 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl rounded-[2.5rem] shadow-xl border border-white/20 dark:border-white/10 animate-fade-in">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-black text-[10px] text-ios-text dark:text-white uppercase tracking-[0.2em] opacity-40">Filtrar Colección</h3>
-                            <button onClick={() => setIsFilterOpen(false)} className="text-[10px] font-black text-red-500 uppercase tracking-widest">Cerrar</button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => { handleCategoryChange(cat); setIsFilterOpen(false); }}
-                                    className={`px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedCategory === cat ? 'bg-ios-blue text-white border-ios-blue' : 'bg-gray-50 dark:bg-white/5 text-gray-400 border-transparent hover:border-ios-blue/30'}`}
+                            ) : (
+                                <button 
+                                    onClick={() => setIsSearchExpanded(false)} 
+                                    className="text-[11px] font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-1 px-1.5 py-0.5"
                                 >
-                                    {cat}
+                                    Cerrar
                                 </button>
-                            ))}
+                            )}
                         </div>
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+                {/* DYNAMIC GLASS PILL DOCK (Flujo natural sin sticky invasivo que tape productos) */}
+                <div className="mb-4 sm:mb-5">
+                    <DynamicPillDock
+                        selectedCategory={selectedCategory}
+                        onSelectCategory={handleCategoryChange}
+                        showOffersOnly={showOffersOnly}
+                        onSelectOffers={handleToggleOffers}
+                    />
+                </div>
+
+                {/* PÍLDORAS DE FILTROS ACTIVOS DESMAYABLES */}
+                {(showOffersOnly || searchTerm || selectedCategory !== 'Todos') && (
+                    <div className="flex items-center gap-2 flex-wrap mb-6 px-1 animate-fade-in">
+                        {selectedCategory !== 'Todos' && (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-ios-blue text-white shadow-sm">
+                                <span>{selectedCategory}</span>
+                                <button onClick={() => handleCategoryChange('Todos')} className="hover:opacity-75">
+                                    <X size={13} />
+                                </button>
+                            </span>
+                        )}
+                        {showOffersOnly && (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-red-500 text-white shadow-sm">
+                                <span>Solo Ofertas</span>
+                                <button onClick={handleToggleOffers} className="hover:opacity-75">
+                                    <X size={13} />
+                                </button>
+                            </span>
+                        )}
+                        {searchTerm && (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-200 dark:bg-zinc-800 text-ios-text dark:text-white">
+                                <span>"{searchTerm}"</span>
+                                <button onClick={() => setSearchTerm('')} className="hover:text-red-500">
+                                    <X size={13} />
+                                </button>
+                            </span>
+                        )}
+                        <button onClick={handleClearFilters} className="text-xs font-bold text-gray-400 hover:text-red-500 underline ml-1">
+                            Limpiar todo
+                        </button>
+                    </div>
+                )}
+
+                {/* Cuadrícula de Productos Adaptable */}
+                <div className={`grid ${mobileColumns === 1 ? 'grid-cols-1 max-w-lg mx-auto' : 'grid-cols-2'} lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 transition-all duration-300`}>
                     {visibleProducts.map(product => (
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
 
                 {hasMore && (
-                    <div className="py-20 flex justify-center">
+                    <div className="py-16 flex justify-center">
                         <button
                             onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
                             className="group flex flex-col items-center gap-2 text-gray-400 hover:text-ios-blue transition-all"
                         >
-                            <div className="w-11 h-11 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center group-hover:bg-ios-blue/5 group-hover:border-ios-blue/30 transition-all">
+                            <div className="w-12 h-12 rounded-full border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-xl flex items-center justify-center group-hover:bg-ios-blue/10 group-hover:border-ios-blue/30 group-hover:scale-110 transition-all shadow-sm">
                                 <ArrowDown size={18} />
                             </div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em]">Cargar más</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Cargar más</span>
                         </button>
                     </div>
                 )}
 
                 {filteredProducts.length === 0 && (
-                    <div className="text-center py-24 px-6 bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10">
-                        <p className="text-ios-subtext font-medium italic mb-4">No se encontraron productos.</p>
-                        <button onClick={handleClearFilters} className="text-ios-blue font-black text-[10px] uppercase tracking-widest underline decoration-2 underline-offset-4">
-                            Limpiar Filtros
+                    <div className="text-center py-24 px-6 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10">
+                        <p className="text-ios-subtext font-medium italic mb-4">No se encontraron productos con estos filtros.</p>
+                        <button onClick={handleClearFilters} className="text-ios-blue font-black text-xs uppercase tracking-widest underline decoration-2 underline-offset-4">
+                            Restablecer todos los filtros
                         </button>
                     </div>
                 )}

@@ -141,7 +141,7 @@ export const ProductDetail = () => {
         const slug = generateProductSlug(product.title, product.id);
         const productUrl = `${window.location.origin}/product/${slug}`;
         const message = `\uD83D\uDED2 *${product.title}*\n${productUrl}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
     };
 
     // Validar si el usuario ya completó todas las selecciones requeridas

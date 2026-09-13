@@ -36,13 +36,21 @@
 
   # ─────────────────────────────────────────────────────────────────────────
   # 2. SEO BOT PRE-RENDERER — Detecta bots de redes sociales (WhatsApp,
-  #    Facebook, Telegram, etc.) en URLs de producto y los envía a
-  #    seo-proxy.php para que reciban los Open Graph tags correctos.
-  #    Los usuarios normales no son afectados por esta regla.
+  #    Facebook, Telegram, etc.) en URLs de producto y raíz para que reciban
+  #    los Open Graph tags correctos. Los usuarios normales van a index.html.
   # ─────────────────────────────────────────────────────────────────────────
   RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|Slackbot-LinkExpanding|TelegramBot|LinkedInBot|Discordbot|Pinterestbot|Googlebot|bingbot|Applebot|Embedly|vkShare|outbrain) [NC]
   RewriteCond %{REQUEST_URI} ^/product/(.+)$ [NC]
   RewriteRule ^ /seo-proxy.php?slug=%1 [L,QSA]
+
+  # 2.1 SEO BOT PRE-RENDERER PARA RAÍZ / WISHLIST / CATÁLOGO
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|Slackbot-LinkExpanding|TelegramBot|LinkedInBot|Discordbot|Pinterestbot|Googlebot|bingbot|Applebot|Embedly|vkShare|outbrain) [NC]
+  RewriteCond %{REQUEST_URI} !^/(assets|uploads|lib|api\.php|sw\.js|manifest) [NC]
+  RewriteCond %{REQUEST_URI} !^/product/ [NC]
+  RewriteRule ^ /seo-proxy.php?mode=store [L,QSA]
+
+  # 2.5 MANIFEST DINÁMICO PWA (Nombre e icono dinámicos según configuración en BD)
+  RewriteRule ^manifest\.json$ manifest.json.php [L,QSA]
 
   # 3. Excluir archivos y carpetas reales
   RewriteCond %{REQUEST_FILENAME} -f [OR]

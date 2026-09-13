@@ -81,13 +81,25 @@ $manifest = [
             'src' => $iconUrl,
             'sizes' => '192x192',
             'type' => 'image/png',
-            'purpose' => 'any maskable'
+            'purpose' => 'any'
+        ],
+        [
+            'src' => $iconUrl,
+            'sizes' => '192x192',
+            'type' => 'image/png',
+            'purpose' => 'maskable'
         ],
         [
             'src' => $iconUrl,
             'sizes' => '512x512',
             'type' => 'image/png',
-            'purpose' => 'any maskable'
+            'purpose' => 'any'
+        ],
+        [
+            'src' => $iconUrl,
+            'sizes' => '512x512',
+            'type' => 'image/png',
+            'purpose' => 'maskable'
         ]
     ],
     'shortcuts' => [
@@ -115,8 +127,12 @@ $manifest = [
                 ]
             ]
         ]
-    ],
-    'screenshots' => [
+    ]
+];
+
+// Solo incluir capturas si los archivos existen físicamente para evitar errores 404 en Chromium
+if (file_exists(__DIR__ . '/screenshots/desktop.jpg') && file_exists(__DIR__ . '/screenshots/mobile.jpg')) {
+    $manifest['screenshots'] = [
         [
             'src' => '/screenshots/desktop.jpg',
             'sizes' => '1920x1080',
@@ -131,7 +147,7 @@ $manifest = [
             'form_factor' => 'narrow',
             'label' => 'Móvil: Compra rápida'
         ]
-    ]
-];
+    ];
+}
 
 echo json_encode($manifest, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);

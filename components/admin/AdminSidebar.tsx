@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, ShoppingCart, Users, Megaphone, Settings,
     LogOut, Store, Calculator, UserCog, Box, Wallet, ChevronDown, Check, X,
-    ChevronRight, ChevronLeft, BarChart3
+    ChevronRight, ChevronLeft, BarChart3, Sparkles
 } from 'lucide-react';
 import { NavButton } from './Shared';
+import { CURRENT_SYSTEM_VERSION } from '../../data/versionUpdates';
 
 interface AdminSidebarProps {
     activeTab: string;
@@ -21,6 +22,7 @@ interface AdminSidebarProps {
     logout: () => void;
     isMobileOpen: boolean;
     setIsMobileOpen: (open: boolean) => void;
+    onOpenVersionUpdates?: () => void;
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -36,7 +38,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     switchBranch,
     logout,
     isMobileOpen,
-    setIsMobileOpen
+    setIsMobileOpen,
+    onOpenVersionUpdates
 }) => {
     const navigate = useNavigate();
 
@@ -60,6 +63,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         setIsPinned(prev => {
             const next = !prev;
             localStorage.setItem('ara_admin_sidebar_pinned', String(next));
+            if (!next) {
+                // Al pasar a modo dinámico, colapsar inmediatamente para feedback instantáneo
+                setIsHovered(false);
+            }
             return next;
         });
     };
@@ -79,7 +86,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 />
             )}
 
-            {/* Contenedor del Sidebar */}
+            {/* Contenedor del Sidebar Flotante */}
             <aside
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => {
@@ -87,11 +94,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     setIsBranchMenuOpen(false);
                 }}
                 className={`
-                    fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-zinc-900 
+                    fixed inset-y-0 left-0 z-50 flex flex-col shrink-0
+                    bg-white dark:bg-zinc-900/95 backdrop-blur-2xl
                     border-r lg:border border-gray-200/80 dark:border-white/10
+                    ring-1 ring-black/[0.04] dark:ring-white/5
                     transition-all duration-300 ease-in-out
                     sidebar-safe-top sidebar-safe-bottom
-                    shadow-2xl lg:shadow-xl
+                    shadow-2xl lg:shadow-[0_12px_40px_rgba(0,0,0,0.06),0_2px_12px_rgba(0,0,0,0.02)]
                     ${isMobileOpen ? 'translate-x-0 w-72 sm:w-80' : '-translate-x-full lg:translate-x-0'}
                     lg:static lg:my-3 lg:ml-3 lg:rounded-3xl
                     ${isDesktopExpanded ? 'lg:w-64' : 'lg:w-[74px]'}
@@ -135,16 +144,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     <button
                         type="button"
                         onClick={togglePin}
-                        aria-label={isPinned ? "Colapsar menú lateral" : "Fijar menú lateral expandido"}
-                        title={isPinned ? "Desfijar (modo dinámico)" : "Fijar menú expandido"}
+                        aria-label={isPinned ? "Desfijar menú (activar modo dinámico)" : "Fijar menú lateral"}
+                        title={isPinned ? "Menú fijado (clic para modo dinámico al pasar el cursor)" : "Modo dinámico activo (clic para fijar abierto)"}
                         className={`
                             hidden lg:flex items-center justify-center
-                            w-7 h-7 rounded-full bg-ios-blue text-white shadow-md shadow-blue-500/25
-                            hover:scale-110 active:scale-95 transition-all
+                            w-7 h-7 rounded-full shadow-md transition-all active:scale-95
+                            ${isPinned
+                                ? 'bg-ios-blue text-white shadow-blue-500/25 hover:brightness-110'
+                                : 'bg-white/90 dark:bg-white/15 text-gray-700 dark:text-gray-300 hover:bg-ios-blue hover:text-white border border-black/[0.06]'
+                            }
                             ${!isDesktopExpanded ? 'lg:mt-1' : ''}
                         `}
                     >
-                        {isDesktopExpanded ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+                        {isPinned ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
                     </button>
 
                     {/* Botón de cierre visible en móvil */}
@@ -165,7 +177,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         onClick={() => isMultiBranch && setIsBranchMenuOpen(!isBranchMenuOpen)}
                         title={!isDesktopExpanded ? `Sede Activa: ${currentBranch?.name || 'Sede'}` : undefined}
                         className={`
-                            w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 
+                            w-full bg-gray-50/90 dark:bg-zinc-800/90 shadow-xs border border-gray-200/70 dark:border-white/10 
                             ${isMultiBranch ? 'hover:border-ios-blue/50 cursor-pointer' : 'cursor-default'} 
                             p-2 rounded-xl flex items-center transition-all
                             ${isNavExpanded ? 'justify-between' : 'lg:justify-center'}
@@ -232,9 +244,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {/* PRINCIPAL */}
                     <div className="space-y-1">
                         {isNavExpanded ? (
-                            <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Principal</p>
+                            <p className="px-3 pt-2 text-[10px] font-black text-gray-500/90 dark:text-gray-400 uppercase tracking-widest">Principal</p>
                         ) : (
-                            <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
+                            <div className="h-px bg-black/[0.07] dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
                         )}
                         {hasPermission('dashboard') && (
                             <NavButton
@@ -260,9 +272,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {hasPermission('inventory') && (
                         <div className="space-y-1">
                             {isNavExpanded ? (
-                                <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Catálogo</p>
+                                <p className="px-3 pt-2 text-[10px] font-black text-gray-500/90 dark:text-gray-400 uppercase tracking-widest">Catálogo</p>
                             ) : (
-                                <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
+                                <div className="h-px bg-black/[0.07] dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
                             )}
                             <NavButton
                                 active={activeTab === 'inventory'}
@@ -278,9 +290,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {(hasPermission('orders') || hasPermission('transactions')) && (
                         <div className="space-y-1">
                             {isNavExpanded ? (
-                                <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ventas y Finanzas</p>
+                                <p className="px-3 pt-2 text-[10px] font-black text-gray-500/90 dark:text-gray-400 uppercase tracking-widest">Ventas y Finanzas</p>
                             ) : (
-                                <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
+                                <div className="h-px bg-black/[0.07] dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
                             )}
                             {hasPermission('orders') && (
                                 <NavButton
@@ -308,9 +320,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {(hasPermission('customers') || (userRole === 'admin')) && (
                         <div className="space-y-1">
                             {isNavExpanded ? (
-                                <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Crecimiento</p>
+                                <p className="px-3 pt-2 text-[10px] font-black text-gray-500/90 dark:text-gray-400 uppercase tracking-widest">Crecimiento</p>
                             ) : (
-                                <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
+                                <div className="h-px bg-black/[0.07] dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
                             )}
                             {hasPermission('customers') && (
                                 <NavButton
@@ -337,9 +349,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {(hasPermission('statistics') || userRole === 'admin') && (
                         <div className="space-y-1">
                             {isNavExpanded ? (
-                                <p className="px-3 pt-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sistema</p>
+                                <p className="px-3 pt-2 text-[10px] font-black text-gray-500/90 dark:text-gray-400 uppercase tracking-widest">Sistema</p>
                             ) : (
-                                <div className="h-px bg-gray-100 dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
+                                <div className="h-px bg-black/[0.07] dark:bg-white/5 my-1.5 mx-2 hidden lg:block" />
                             )}
                             {hasPermission('statistics') && (
                                 <NavButton
@@ -381,12 +393,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         title={!isNavExpanded ? "Ver Tienda" : undefined}
                         className={`
                             w-full flex items-center rounded-xl transition-all 
-                            text-gray-500 hover:text-ios-blue hover:bg-gray-50 dark:hover:bg-white/5
+                            text-gray-600 dark:text-gray-300 hover:text-ios-blue hover:bg-gray-100/80 hover:shadow-xs dark:hover:bg-white/10
                             ${isNavExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
                         `}
                     >
                         <Store size={18} className="shrink-0" />
-                        {isNavExpanded && <span className="font-medium text-xs truncate">Ver Tienda</span>}
+                        {isNavExpanded && <span className="font-semibold text-xs truncate">Ver Tienda</span>}
                     </button>
 
                     {/* Botón Cerrar Sesión */}
@@ -396,27 +408,44 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                         title={!isNavExpanded ? "Cerrar Sesión" : undefined}
                         className={`
                             w-full flex items-center rounded-xl transition-all 
-                            text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10
+                            text-red-500 hover:bg-red-500/10 hover:shadow-xs dark:hover:bg-red-900/20
                             ${isNavExpanded ? 'gap-3 px-3.5 py-2' : 'lg:justify-center p-2.5'}
                         `}
                     >
                         <LogOut size={18} className="shrink-0" />
-                        {isNavExpanded && <span className="font-medium text-xs truncate">Cerrar Sesión</span>}
+                        {isNavExpanded && <span className="font-semibold text-xs truncate">Cerrar Sesión</span>}
                     </button>
 
-                    {/* Versión */}
+                    {/* Versión con disparador para ver novedades */}
                     <div className={`pt-1 px-1 flex items-center text-[10px] text-gray-400 ${isNavExpanded ? 'justify-between' : 'lg:justify-center'}`}>
                         {isNavExpanded ? (
                             <>
-                                <span className="font-bold tracking-wide">ARA</span>
-                                <span className="font-mono bg-ios-blue/10 text-ios-blue px-2 py-0.5 rounded-full font-bold">
-                                    V 2.0
-                                </span>
+                                <span className="font-bold tracking-wider text-[11px] text-gray-600 dark:text-gray-400">ARA</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsMobileOpen(false);
+                                        onOpenVersionUpdates?.();
+                                    }}
+                                    title={`Ver novedades y actualizaciones (v${CURRENT_SYSTEM_VERSION})`}
+                                    className="group font-mono bg-gray-50 dark:bg-zinc-800 hover:bg-ios-blue hover:text-white text-ios-blue px-2.5 py-0.5 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-xs border border-gray-200/80 dark:border-white/10"
+                                >
+                                    <span>v{CURRENT_SYSTEM_VERSION}</span>
+                                    <Sparkles size={11} className="text-amber-500 group-hover:text-amber-200 animate-pulse" />
+                                </button>
                             </>
                         ) : (
-                            <span className="font-mono text-[9px] bg-ios-blue/10 text-ios-blue px-1 py-0.5 rounded font-bold">
-                                V 2.0
-                            </span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMobileOpen(false);
+                                    onOpenVersionUpdates?.();
+                                }}
+                                title={`Ver novedades v${CURRENT_SYSTEM_VERSION}`}
+                                className="font-mono text-[9px] bg-gray-50 dark:bg-zinc-800 hover:bg-ios-blue hover:text-white text-ios-blue px-1.5 py-0.5 rounded font-bold transition-all cursor-pointer active:scale-95 shadow-xs border border-gray-200/80 dark:border-white/10"
+                            >
+                                v{CURRENT_SYSTEM_VERSION}
+                            </button>
                         )}
                     </div>
                 </div>

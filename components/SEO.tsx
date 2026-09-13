@@ -24,9 +24,28 @@ export const SEO: React.FC<SEOProps> = ({
 }) => {
   const { settings } = useStore();
   
-  const siteTitle = title ? `${title} | ${settings.storeName}` : settings.seoTitle || settings.storeName;
-  const metaDescription = description || settings.seoDescription || "La mejor tienda online para tus compras.";
-  const metaImage = image || settings.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
+  // Asegurar que el nombre de la tienda aparezca siempre y descartar títulos genéricos
+  const isGenericSeoTitle = !settings.seoTitle 
+    || settings.seoTitle.includes('Tienda Virtual | E-commerce') 
+    || settings.seoTitle.includes('Tienda Virtual');
+  const cleanSeoTitle = isGenericSeoTitle ? '' : settings.seoTitle;
+
+  const siteTitle = title 
+    ? `${title} | ${settings.storeName}` 
+    : (cleanSeoTitle 
+        ? (cleanSeoTitle.includes(settings.storeName) ? cleanSeoTitle : `${settings.storeName} | ${cleanSeoTitle}`)
+        : `${settings.storeName} | Catálogo Online Oficial`);
+
+  const isGenericSeoDesc = !settings.seoDescription 
+    || settings.seoDescription.includes('Bienvenido a nuestra tienda online.')
+    || settings.seoDescription.includes('Bienvenido a nuestra tienda online');
+  const metaDescription = description 
+    || (!isGenericSeoDesc 
+        ? (settings.seoDescription.includes(settings.storeName) ? settings.seoDescription : `${settings.storeName} — ${settings.seoDescription}`) 
+        : `Bienvenido a ${settings.storeName}. Explora nuestro catálogo completo de productos, novedades y ofertas.`);
+
+  // El usuario solicita que la imagen para compartir sea el icono PWA (cuadrado 1:1) en vez del logo rectangular
+  const metaImage = image || settings.appIconUrl || settings.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
   const currentUrl = window.location.href;
 
   // Estructura de datos JSON-LD para Google (Rich Snippets)

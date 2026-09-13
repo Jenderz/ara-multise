@@ -158,11 +158,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const installApp = async () => {
       if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
+          try {
+              deferredPrompt.prompt();
+              const { outcome } = await deferredPrompt.userChoice;
+              if (outcome === 'accepted') {
+                  setShowInstallModal(false);
+              }
+          } catch (err) {
+              console.debug('Error en install prompt:', err);
+          } finally {
               setDeferredPrompt(null);
-              setShowInstallModal(false);
           }
       }
   };

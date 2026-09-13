@@ -17,7 +17,16 @@
     <!-- Manifest absoluto para evitar que el bundler lo reubique en /assets/ -->
     <link rel="manifest" href="/manifest.json" id="app-manifest">
     
-    <title>Tienda Virtual</title>
+    <!-- Open Graph Fallbacks (WhatsApp, Facebook, Twitter) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tienda Oficial" id="og-site-name" />
+    <meta property="og:title" content="Catálogo Online Oficial" id="og-title" />
+    <meta property="og:description" content="Explora nuestro catálogo de productos, novedades y ofertas exclusivas." id="og-desc" />
+    <meta property="og:image" content="/icon.png" id="og-image" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+
+    <title>Tienda Oficial</title>
     <script>
       (function() {
         try {
@@ -26,16 +35,29 @@
             var data = JSON.parse(raw);
             var s = data && data.settings;
             if (s) {
-              var title = (s.storeName || s.seoTitle || '').trim();
-              if (title) {
-                document.title = title;
-                var metaTitle = document.getElementById('app-title-meta');
-                if (metaTitle) metaTitle.setAttribute('content', s.storeName ? (s.storeName.length > 12 ? s.storeName.slice(0, 12) : s.storeName) : title);
+              var storeName = (s.storeName || '').trim();
+              var seoTitle = (s.seoTitle || '').trim();
+              if (seoTitle.indexOf('Tienda Virtual | E-commerce') !== -1 || seoTitle.indexOf('Tienda Virtual') !== -1) {
+                seoTitle = '';
               }
-              var icon = s.appIconUrl || s.logoUrl;
+              var finalTitle = storeName ? (seoTitle ? storeName + ' | ' + seoTitle : storeName + ' | Catálogo Online Oficial') : (seoTitle || 'Tienda Oficial');
+
+              document.title = finalTitle;
+              var metaTitle = document.getElementById('app-title-meta');
+              if (metaTitle) metaTitle.setAttribute('content', storeName ? (storeName.length > 12 ? storeName.slice(0, 12) : storeName) : finalTitle);
+
+              var ogTitle = document.getElementById('og-title');
+              if (ogTitle) ogTitle.setAttribute('content', finalTitle);
+
+              var ogSiteName = document.getElementById('og-site-name');
+              if (ogSiteName && storeName) ogSiteName.setAttribute('content', storeName);
+
+              var icon = s.appIconUrl || s.logoUrl || '/icon.png';
               if (icon) {
                 var touchIcon = document.getElementById('app-touch-icon');
                 if (touchIcon) touchIcon.setAttribute('href', icon);
+                var ogImage = document.getElementById('og-image');
+                if (ogImage) ogImage.setAttribute('content', icon);
               }
             }
           }

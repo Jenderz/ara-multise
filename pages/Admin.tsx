@@ -15,6 +15,8 @@ import { POSModule } from '../components/admin/POSModule';
 import { TransactionsModule } from '../components/admin/TransactionsModule';
 import { SEO } from '../components/SEO';
 import { SmartAssistant } from '../components/admin/SmartAssistant';
+import { VersionUpdatesModal } from '../components/admin/VersionUpdatesModal';
+import { CURRENT_SYSTEM_VERSION } from '../data/versionUpdates';
 
 import {
     Menu, Home, Store, UserCog, Settings, ChevronDown
@@ -40,7 +42,25 @@ export const Admin = () => {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isBranchMenuOpen, setIsBranchMenuOpen] = useState(false);
+    const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
     const navigate = useNavigate();
+
+    // Comprobar automáticamente si el usuario ve por primera vez la versión actual
+    useEffect(() => {
+        if (userRole) {
+            const lastSeen = localStorage.getItem('ara_admin_seen_version');
+            if (lastSeen !== CURRENT_SYSTEM_VERSION) {
+                setIsVersionModalOpen(true);
+            }
+        }
+    }, [userRole]);
+
+    const handleCloseVersionModal = (dontShowAgain: boolean) => {
+        if (dontShowAgain) {
+            localStorage.setItem('ara_admin_seen_version', CURRENT_SYSTEM_VERSION);
+        }
+        setIsVersionModalOpen(false);
+    };
 
     // Verificar si es multi-sede
     const isMultiBranch = settings.planTier !== 'single';
@@ -133,7 +153,7 @@ export const Admin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col lg:flex-row relative">
+        <div className="min-h-screen bg-[#F2F2F7] dark:bg-black flex flex-col lg:flex-row relative">
             <SEO title={`Panel ${userRole === 'admin' ? 'Administrador' : 'Vendedor'}`} description="Gestión interna de la tienda." />
 
             {/* Mobile Header con soporte para Notch / Dynamic Island de iPhone */}
@@ -198,6 +218,7 @@ export const Admin = () => {
                 logout={logout}
                 isMobileOpen={isSidebarOpen}
                 setIsMobileOpen={setIsSidebarOpen}
+                onOpenVersionUpdates={() => setIsVersionModalOpen(true)}
             />
 
             <main className="flex-1 overflow-y-auto h-[calc(100dvh-70px)] lg:h-screen p-3 sm:p-4 lg:p-8 w-full bg-ios-bg dark:bg-black pb-28 lg:pb-8 min-w-0 transition-all duration-300">
@@ -228,6 +249,12 @@ export const Admin = () => {
             </main>
 
             {userRole === 'admin' && activeTab !== 'pos' && <SmartAssistant activeTab={activeTab} />}
+
+            {/* Popup modal de novedades de la versión */}
+            <VersionUpdatesModal
+                isOpen={isVersionModalOpen}
+                onClose={handleCloseVersionModal}
+            />
         </div>
     );
 };

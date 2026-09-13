@@ -511,11 +511,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
                                     <div className="grid grid-cols-3 gap-4">
                                         <Input
-                                            label={formData.pricingType === 'by_weight' ? "Precio Venta ($) [Auto x Peso]" : "Precio Venta ($)"}
+                                            label={isJewelryPluginEnabled && formData.pricingType === 'by_weight' ? "Precio Venta ($) [Auto x Peso]" : "Precio Venta ($)"}
                                             type="number"
                                             value={formData.price}
                                             onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                                            disabled={formData.pricingType === 'by_weight'}
+                                            disabled={isJewelryPluginEnabled && formData.pricingType === 'by_weight'}
                                         />
                                         <Input label="Costo ($)" type="number" value={formData.cost} onChange={e => setFormData({ ...formData, cost: parseFloat(e.target.value) })} />
                                         <Input label="Oferta ($)" type="number" value={formData.salePrice || ''} onChange={e => handleGlobalSalePriceChange(parseFloat(e.target.value))} placeholder="Opcional" />

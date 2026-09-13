@@ -5,8 +5,10 @@ import {
     DollarSign, Clock, AlertTriangle, Landmark, TrendingUp, TrendingDown,
     ShoppingBag, Store, ArrowUpRight, CheckCircle2, ChevronRight, Zap,
     Package, Sparkles, Filter, RefreshCw, Layers, ShieldCheck, ArrowRight,
-    Smartphone, Globe, BarChart3, HelpCircle, User, CreditCard, ExternalLink
+    Smartphone, Globe, BarChart3, HelpCircle, User, CreditCard, ExternalLink,
+    Monitor
 } from 'lucide-react';
+import { useNotification } from '../../context/NotificationContext';
 import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell
 } from 'recharts';
@@ -49,6 +51,21 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
     const [productTab, setProductTab] = useState<'restock' | 'top_sellers'>('restock');
 
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const { deferredPrompt, isStandalone, installApp, isIOS, setShowInstallModal } = useNotification();
+
+    const handleInstallDesktop = async () => {
+        if (deferredPrompt) {
+            try {
+                await installApp();
+            } catch (err) {
+                console.debug('Error en prompt de instalación:', err);
+            }
+        } else if (isIOS) {
+            setShowInstallModal(true);
+        } else {
+            alert('Para instalar ARA en tu computadora:\nHaz clic en el icono de instalación (🖥️ o 📥) que aparece a la derecha en la barra de direcciones de tu navegador (Chrome o Edge).');
+        }
+    };
 
     // Color primario configurado en la tienda
     const primaryColor = settings?.primaryColor || '#007AFF';
@@ -339,10 +356,18 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
                                 {currentBranch?.id === 0 ? 'Vista Global (Todas las Sedes)' : `Sede: ${currentBranch?.name}`}
                             </span>
 
-                            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                                En línea
-                            </span>
+                            {/* Píldora sutil e integrada para instalar como app de escritorio */}
+                            {!isStandalone && (
+                                <button
+                                    type="button"
+                                    onClick={handleInstallDesktop}
+                                    title="Instalar ARA en tu computadora (App de Escritorio)"
+                                    className="text-[11px] font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white bg-gray-100 hover:bg-gray-200/70 dark:bg-white/5 dark:hover:bg-white/10 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-white/10 active:scale-95"
+                                >
+                                    <Monitor size={12} className="text-gray-400" />
+                                    <span>Instalar App</span>
+                                </button>
+                            )}
                         </div>
 
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
