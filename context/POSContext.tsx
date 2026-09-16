@@ -190,10 +190,12 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                         return item;
                     }
                 }
-                return { ...item, quantity: Math.max(1, item.quantity + delta) };
+                const newQty = item.quantity + delta;
+                if (newQty <= 0) return null;
+                return { ...item, quantity: newQty };
             }
             return item;
-        }));
+        }).filter(Boolean) as any);
     };
 
     const updateItemDiscount = (cartId: string, discountType: 'percent' | 'fixed', value: number) => {

@@ -505,10 +505,40 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                                 <Tag size={12} />
                                             </button>
                                             <div className="flex items-center gap-1 bg-gray-100 dark:bg-black/20 rounded-lg p-0.5 shadow-inner">
-                                                <button onClick={() => updateQuantity(item.cartId, -1)} className="p-0.5 hover:bg-white dark:hover:bg-white/10 rounded transition w-5 h-5 flex items-center justify-center"><Minus size={12} /></button>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (item.quantity <= 1) {
+                                                            removeFromCart(item.cartId);
+                                                        } else {
+                                                            updateQuantity(item.cartId, -1);
+                                                        }
+                                                    }} 
+                                                    className={`p-0.5 hover:bg-white dark:hover:bg-white/10 rounded transition w-5 h-5 flex items-center justify-center ${item.quantity === 1 ? 'hover:bg-red-50 text-red-500' : ''}`}
+                                                    title={item.quantity === 1 ? "Eliminar del carrito" : "Disminuir cantidad"}
+                                                >
+                                                    {item.quantity === 1 ? <Trash2 size={11} className="text-red-500" /> : <Minus size={12} />}
+                                                </button>
                                                 <span className="text-xs font-bold w-5 text-center dark:text-white">{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item.cartId, 1)} className="p-0.5 hover:bg-white dark:hover:bg-white/10 rounded transition w-5 h-5 flex items-center justify-center"><Plus size={12} /></button>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => updateQuantity(item.cartId, 1)} 
+                                                    className="p-0.5 hover:bg-white dark:hover:bg-white/10 rounded transition w-5 h-5 flex items-center justify-center"
+                                                    title="Aumentar cantidad"
+                                                >
+                                                    <Plus size={12} />
+                                                </button>
                                             </div>
+                                            {/* Botón visible de eliminar ítem en móvil y desktop */}
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeFromCart(item.cartId)} 
+                                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors flex items-center justify-center shrink-0 active:scale-90"
+                                                title="Eliminar producto"
+                                                aria-label="Eliminar producto"
+                                            >
+                                                <Trash2 size={13} className="text-red-500/80 hover:text-red-600 dark:text-red-400" />
+                                            </button>
                                         </div>
                                         
                                         {activeItemDiscount === item.cartId && (
@@ -542,8 +572,14 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                             </div>
                                         )}
                                     </div>
-                                    <button onClick={() => removeFromCart(item.cartId)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
-                                        <Trash2 size={12} />
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeFromCart(item.cartId)} 
+                                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:scale-110 active:scale-95"
+                                        title="Eliminar producto"
+                                        aria-label="Eliminar producto"
+                                    >
+                                        <Trash2 size={11} />
                                     </button>
                                 </div>
                             ))
@@ -755,24 +791,25 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
 
                             {/* Botones de acción principales con márgenes ergonómicos */}
                             <div className="flex items-center gap-2.5 pt-1">
-                                <Button 
-                                    variant="secondary" 
+                                <button 
+                                    type="button"
                                     onClick={() => { clearCart(); setSelectedAdvisorId(''); setApplyCommission(false); setCustomCommissionRate('0'); }} 
                                     disabled={cart.length === 0} 
                                     title="Vaciar Carrito"
                                     aria-label="Vaciar Carrito"
-                                    className="w-12 h-12 p-0 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 shrink-0 flex items-center justify-center transition-all shadow-xs"
+                                    className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 border border-red-200/50 dark:border-red-900/30 shrink-0 flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                                 >
-                                    <Trash2 size={19} />
-                                </Button>
-                                <Button
+                                    <Trash2 size={20} className="shrink-0 text-red-600 dark:text-red-400" />
+                                </button>
+                                <button
+                                    type="button"
                                     onClick={handleCheckoutClick}
                                     disabled={cart.length === 0 || (isMixedPayment && Math.abs(remaining) > 0.01)}
-                                    className="flex-1 h-12 shadow-lg shadow-emerald-500/25 text-base font-black uppercase tracking-wider bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 transition-all"
+                                    className="flex-1 h-12 shadow-lg shadow-ios-blue/25 text-base font-black uppercase tracking-wider bg-ios-blue hover:brightness-110 active:scale-[0.98] text-white rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 >
-                                    <CheckCircle2 size={20} strokeWidth={2.5} /> 
+                                    <CheckCircle2 size={20} strokeWidth={2.5} className="shrink-0" /> 
                                     <span>Cobrar</span>
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     </div>

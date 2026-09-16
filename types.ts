@@ -23,11 +23,17 @@ export interface SystemConfig {
 
 export interface AnnouncementBarConfig {
   announcementBarEnabled?: boolean;
+  announcementType?: 'bar' | 'popup';
+  announcementTitle?: string;
   announcementBarText?: string;
+  announcementCouponCode?: string;
+  announcementButtonText?: string;
   announcementBarBgColor?: string;
   announcementBarTextColor?: string;
   announcementBarLink?: string;
   announcementBarDismissible?: boolean;
+  announcementPopupDelay?: number;
+  announcementPopupImage?: string;
 }
 
 export interface StoreSettings extends GeneralConfig, ThemeConfig, HeroConfig, PromoConfig, GiftBannerConfig, SystemConfig, AnnouncementBarConfig { }

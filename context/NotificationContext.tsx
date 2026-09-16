@@ -52,25 +52,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     setIsStandalone(isStandaloneMode);
 
-    // 4. Install Prompt Logic
-    const hasSeenPrompt = localStorage.getItem('pwa_prompt_seen');
-
-    // A) Android / Chrome (Event Based)
+    // 4. Install Prompt Logic (Se delega al banner no intrusivo PWAInstallPrompt)
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!hasSeenPrompt && !isStandaloneMode) {
-         setTimeout(() => setShowInstallModal(true), 5000);
-      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // B) iOS (Manual Trigger) - iOS no dispara evento, lo forzamos si no está instalada
-    if (isIosDevice && !isStandaloneMode && !hasSeenPrompt) {
-        // Esperamos un poco más para que el usuario interactúe primero
-        setTimeout(() => setShowInstallModal(true), 8000);
-    }
 
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, [currentBranch]);

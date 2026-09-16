@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X } from 'lucide-react';
+import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X, Tag, Sparkles, Copy } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { WishlistToast } from './WishlistToast';
@@ -95,29 +95,224 @@ export const Navbar = () => {
 };
 
 // =====================================================
-// ANNOUNCEMENT BAR
+// ANNOUNCEMENT (BAR & POPUP DE DESCUENTO)
 // =====================================================
 export const AnnouncementBar = () => {
   const { settings } = useStore();
   const [dismissed, setDismissed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Revisar si ya fue cerrada en esta sesión
+  // Identificador único de este anuncio para registrar si fue cerrado
+  const identifier = useMemo(() => {
+    return (
+      (settings.announcementCouponCode || '') +
+      '_' +
+      (settings.announcementBarText || '') +
+      '_' +
+      (settings.announcementTitle || '')
+    );
+  }, [settings.announcementCouponCode, settings.announcementBarText, settings.announcementTitle]);
+
+  // Revisar si ya fue cerrado en esta sesión
   useEffect(() => {
-    const key = `ann_dismissed_${settings.announcementBarText}`;
-    if (sessionStorage.getItem(key)) setDismissed(true);
-  }, [settings.announcementBarText]);
+    const key = `ann_dismissed_${identifier}`;
+    if (sessionStorage.getItem(key)) {
+      setDismissed(true);
+    } else {
+      setDismissed(false);
+    }
+  }, [identifier]);
+
+  // Si es popup, manejar el temporizador de retraso para apertura suave
+  useEffect(() => {
+    if (settings.announcementType === 'popup' && settings.announcementBarEnabled && !dismissed) {
+      const delaySec = typeof settings.announcementPopupDelay === 'number' ? settings.announcementPopupDelay : 1;
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, delaySec * 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [settings.announcementType, settings.announcementBarEnabled, settings.announcementPopupDelay, dismissed]);
+
+  // Cerrar con Escape en modo Popup
+  useEffect(() => {
+    if (settings.announcementType === 'popup' && isOpen && settings.announcementBarDismissible !== false) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') handleDismiss();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [settings.announcementType, isOpen, settings.announcementBarDismissible]);
 
   const handleDismiss = () => {
     setDismissed(true);
-    const key = `ann_dismissed_${settings.announcementBarText}`;
+    setIsOpen(false);
+    const key = `ann_dismissed_${identifier}`;
     sessionStorage.setItem(key, '1');
   };
 
-  if (!settings.announcementBarEnabled || !settings.announcementBarText || dismissed) return null;
+  const handleCopyCoupon = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!settings.announcementCouponCode) return;
+    try {
+      navigator.clipboard.writeText(settings.announcementCouponCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      console.error('Error al copiar cupón:', err);
+    }
+  };
 
-  const bg = settings.announcementBarBgColor || '#0071E3';
+  if (!settings.announcementBarEnabled || dismissed) return null;
+  if (!settings.announcementBarText && !settings.announcementTitle) return null;
+
+  const bg = settings.announcementBarBgColor || (settings.announcementType === 'popup' ? '#111827' : '#0071E3');
   const color = settings.announcementBarTextColor || '#ffffff';
 
+  // --------------------------------------------------
+  // MODO 1: POPUP DE DESCUENTO / OFERTA
+  // --------------------------------------------------
+  if (settings.announcementType === 'popup') {
+    if (!isOpen) return null;
+
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+        onClick={() => {
+          if (settings.announcementBarDismissible !== false) handleDismiss();
+        }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          className="relative w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden transform transition-all animate-scale-up text-center space-y-4"
+          style={{ backgroundColor: bg, color }}
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Destellos sutiles de iluminación estética */}
+          <div className="absolute -right-16 -top-16 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="absolute -left-16 -bottom-16 w-44 h-44 rounded-full bg-black/25 blur-2xl pointer-events-none" />
+
+          {/* Botón Cerrar (X) */}
+          {settings.announcementBarDismissible !== false && (
+            <button
+              onClick={handleDismiss}
+              className="absolute right-4 top-4 w-8 h-8 rounded-full flex items-center justify-center bg-black/15 hover:bg-black/30 dark:bg-white/15 dark:hover:bg-white/30 transition-all opacity-80 hover:opacity-100"
+              style={{ color }}
+              aria-label="Cerrar modal"
+            >
+              <X size={16} />
+            </button>
+          )}
+
+          {/* Badge o Etiqueta Superior */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-black tracking-wider uppercase backdrop-blur-md">
+            <Sparkles size={13} />
+            <span>Oferta Especial</span>
+          </div>
+
+          {/* Título Principal */}
+          <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-snug">
+            {settings.announcementTitle || '¡Descuento Especial! 🎉'}
+          </h3>
+
+          {/* Descripción o Mensaje */}
+          {settings.announcementBarText && (
+            <p className="text-sm opacity-90 leading-relaxed font-medium">
+              {settings.announcementBarText}
+            </p>
+          )}
+
+          {/* Caja Interactiva de Cupón */}
+          {settings.announcementCouponCode && (
+            <div className="pt-1">
+              <div className="bg-black/25 dark:bg-white/10 border-2 border-dashed border-white/35 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-inner">
+                <div className="text-left pl-1">
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-75 block">
+                    Código de Cupón
+                  </span>
+                  <span className="font-mono font-black text-base sm:text-lg tracking-wider">
+                    {settings.announcementCouponCode}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyCoupon}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                    copied
+                      ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                      : 'bg-white text-gray-900 hover:bg-gray-100'
+                  }`}
+                  title="Copiar código al portapapeles"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={14} className="stroke-[3]" />
+                      <span>¡Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Botones de Acción (CTA) */}
+          <div className="pt-2 flex flex-col gap-2">
+            {settings.announcementBarLink ? (
+              <a
+                href={settings.announcementBarLink}
+                onClick={() => {
+                  if (settings.announcementBarDismissible !== false) handleDismiss();
+                }}
+                className="w-full py-3.5 px-6 rounded-2xl text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: color,
+                  color: bg
+                }}
+              >
+                <span>{settings.announcementButtonText || 'Aprovechar Descuento'}</span>
+                <ArrowRight size={16} />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="w-full py-3.5 px-6 rounded-2xl text-sm font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                style={{
+                  backgroundColor: color,
+                  color: bg
+                }}
+              >
+                <span>{settings.announcementButtonText || '¡Entendido, gracias!'}</span>
+              </button>
+            )}
+
+            {settings.announcementBarDismissible !== false && settings.announcementBarLink && (
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="text-xs opacity-65 hover:opacity-100 transition-opacity py-1 font-medium underline underline-offset-4"
+              >
+                Quizás más tarde
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --------------------------------------------------
+  // MODO 2: BARRA SUPERIOR (CINTILLO CLÁSICO)
+  // --------------------------------------------------
   const content = (
     <span className="text-xs font-semibold tracking-wide" style={{ color }}>
       {settings.announcementBarText}

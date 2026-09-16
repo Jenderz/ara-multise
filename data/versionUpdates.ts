@@ -24,7 +24,7 @@ export const LATEST_RELEASE: VersionRelease = {
     releaseDate: 'Septiembre 2026',
     title: '¡Te damos la bienvenida a ARA v2.0!',
     welcomeMessage: '¡Bienvenido! 👋 Te resumimos las principales novedades para agilizar tu gestión y cautivar a tus clientes:',
-    subtitle: 'Diseño Lyberate flagship, herramientas de venta inteligente y optimizaciones de alto rendimiento.',
+    subtitle: 'Diseño ARA flagship, herramientas de venta inteligente y optimizaciones de alto rendimiento.',
     features: [
         {
             id: 'dynamic-pill-dock',

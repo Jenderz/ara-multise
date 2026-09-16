@@ -32,6 +32,15 @@ export const CartDrawer = () => {
         }
     }, [branches, deliveryMethod]);
 
+    // Cerrar bolsa al presionar tecla Escape
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsCartOpen(false);
+        };
+        if (isCartOpen) window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isCartOpen, setIsCartOpen]);
+
     // --- Calculations ---
     const subtotal = (cart || []).reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
 
@@ -203,13 +212,19 @@ export const CartDrawer = () => {
             <div className="relative w-full max-w-md bg-ios-bg dark:bg-zinc-900 shadow-2xl h-full flex flex-col animate-slide-in-right">
 
                 {/* Header */}
-                <div className="p-6 flex items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl z-10">
+                <div className="px-6 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] flex items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl z-20 sticky top-0 shrink-0">
                     <h2 className="text-xl font-bold text-ios-text dark:text-white">
                         {step === 'cart' ? 'Tu Bolsa' : step === 'details' ? 'Tus Datos' : step === 'summary' ? 'Confirmar' : 'Pedido Generado'}
                     </h2>
                     {step !== 'processing' && (
-                        <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition dark:text-white">
-                            <X size={24} />
+                        <button 
+                            type="button"
+                            onClick={() => setIsCartOpen(false)} 
+                            className="w-11 h-11 -mr-2 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 rounded-full transition-all text-ios-text dark:text-white cursor-pointer"
+                            aria-label="Cerrar bolsa"
+                            title="Cerrar"
+                        >
+                            <X size={24} strokeWidth={2} />
                         </button>
                     )}
                 </div>
@@ -241,12 +256,42 @@ export const CartDrawer = () => {
                                                 {showUsd && <p className="font-bold text-ios-text dark:text-white">{activeCurrencySymbol}{(item.price || 0).toFixed(2)}</p>}
                                                 {showVes && <p className="text-[10px] font-medium text-gray-500">{formatVes(item.price || 0)}</p>}
                                             </div>
-                                            <div className="flex items-center gap-2 bg-gray-100 dark:bg-white/10 rounded-lg p-0.5">
-                                                <button onClick={() => updateCartQuantity(item.cartId, -1)} className="p-1 hover:bg-white dark:hover:bg-black/20 rounded-md transition"><Minus size={12} /></button>
-                                                <span className="text-xs font-medium w-4 text-center dark:text-white">{item.quantity}</span>
-                                                <button onClick={() => updateCartQuantity(item.cartId, 1)} className="p-1 hover:bg-white dark:hover:bg-black/20 rounded-md transition"><Plus size={12} /></button>
+                                            <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-white/10 rounded-lg p-0.5">
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (item.quantity <= 1) {
+                                                            removeFromCart(item.cartId);
+                                                        } else {
+                                                            updateCartQuantity(item.cartId, -1);
+                                                        }
+                                                    }} 
+                                                    className={`p-1.5 hover:bg-white dark:hover:bg-black/20 rounded-md transition active:scale-90 ${item.quantity === 1 ? 'hover:bg-red-50 text-red-500' : 'text-gray-600 dark:text-gray-300'}`}
+                                                    title={item.quantity === 1 ? "Eliminar de la bolsa" : "Disminuir cantidad"}
+                                                    aria-label={item.quantity === 1 ? "Eliminar producto" : "Disminuir cantidad"}
+                                                >
+                                                    {item.quantity === 1 ? <Trash2 size={12} className="text-red-500" /> : <Minus size={12} />}
+                                                </button>
+                                                <span className="text-xs font-semibold w-5 text-center dark:text-white">{item.quantity}</span>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => updateCartQuantity(item.cartId, 1)} 
+                                                    className="p-1.5 hover:bg-white dark:hover:bg-black/20 rounded-md transition active:scale-90 text-gray-600 dark:text-gray-300"
+                                                    title="Aumentar cantidad"
+                                                    aria-label="Aumentar cantidad"
+                                                >
+                                                    <Plus size={12} />
+                                                </button>
                                             </div>
-                                            <button onClick={() => removeFromCart(item.cartId)} className="text-red-400 p-1"><Trash2 size={16} /></button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeFromCart(item.cartId)} 
+                                                className="text-red-400 hover:text-red-600 dark:text-red-400 p-2 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors active:scale-90 shrink-0"
+                                                title="Eliminar producto"
+                                                aria-label="Eliminar producto de la bolsa"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -447,7 +492,7 @@ export const CartDrawer = () => {
 
                 {/* Footer Actions */}
                 {step !== 'processing' && (cart || []).length > 0 && (
-                    <div className="p-6 border-t border-gray-100 dark:border-white/10 bg-white/80 dark:bg-zinc-900/80 backdrop-blur pb-safe z-10">
+                    <div className="px-6 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] border-t border-gray-100 dark:border-white/10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl z-10 shrink-0">
                         {step === 'cart' ? (
                             <Button className="w-full text-lg h-14 gap-2" onClick={() => setStep('details')}>
                                 Comprar Ahora <ChevronRight size={20} />

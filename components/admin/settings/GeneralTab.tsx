@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Input, ImageUploader } from '../../UIComponents';
-import { LayoutTemplate, Smartphone, MapPin, Mail, Instagram, Facebook, Twitter, Globe, X, MessageCircle, Clock } from 'lucide-react';
+import { LayoutTemplate, Smartphone, MapPin, Mail, Instagram, Facebook, Twitter, Globe, X, MessageCircle, Clock, Megaphone, Tag, Sparkles, Copy, Check, ExternalLink, Layers, Timer } from 'lucide-react';
 import { StoreSettings } from '../../../types';
 
 interface GeneralTabProps {
@@ -10,6 +10,7 @@ interface GeneralTabProps {
 }
 
 export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, onUpdate }) => {
+    const [copiedPreview, setCopiedPreview] = useState(false);
     return (
         <div className="space-y-6 animate-fade-in">
             <Card className="p-6 space-y-6">
@@ -79,95 +80,362 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ settings, onUpdate }) =>
                 </div>
             </Card>
 
-            {/* BARRA DE ANUNCIO */}
+            {/* ANUNCIO (BARRA O POPUP DE DESCUENTO) */}
             <Card className="p-6 space-y-5">
                 <div className="flex items-center justify-between">
-                    <h3 className="font-bold flex items-center gap-2 dark:text-white">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-500"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 14 19.79 19.79 0 01.22 5.26 2 2 0 012.2 3h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 10.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 17z"/></svg>
-                        Barra de Anuncio Superior
-                    </h3>
+                    <div>
+                        <h3 className="font-bold text-lg flex items-center gap-2 dark:text-white">
+                            <Megaphone size={20} className="text-amber-500" />
+                            Anuncio
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            Configura un aviso en barra superior o un popup emergente para destacar promociones y descuentos.
+                        </p>
+                    </div>
                     <button
                         onClick={() => onUpdate({ announcementBarEnabled: !settings.announcementBarEnabled })}
-                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarEnabled ? 'bg-yellow-400 shadow-lg shadow-yellow-400/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarEnabled ? 'bg-amber-500 shadow-lg shadow-amber-500/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                        title={settings.announcementBarEnabled ? 'Desactivar anuncio' : 'Activar anuncio'}
                     >
                         <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.announcementBarEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
                 </div>
 
-                {/* Preview en vivo */}
-                {settings.announcementBarEnabled && settings.announcementBarText && (
-                    <div
-                        className="w-full py-2.5 px-10 rounded-2xl text-center text-xs font-semibold relative overflow-hidden"
-                        style={{ backgroundColor: settings.announcementBarBgColor || '#0071E3', color: settings.announcementBarTextColor || '#ffffff' }}
-                    >
-                        {settings.announcementBarText}
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 text-[10px]">✕</span>
+                {settings.announcementBarEnabled && (
+                    <div className="space-y-5 pt-2">
+                        {/* Selector de Formato: Barra vs Popup */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 flex items-center gap-1.5">
+                                <Layers size={14} /> Formato de Presentación
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => onUpdate({ announcementType: 'bar' })}
+                                    className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 ${
+                                        settings.announcementType !== 'popup'
+                                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-900 dark:text-amber-200 shadow-sm ring-1 ring-amber-500/30'
+                                            : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                                    }`}
+                                >
+                                    <div className={`p-2 rounded-xl shrink-0 ${settings.announcementType !== 'popup' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
+                                        <Megaphone size={18} />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-sm flex items-center gap-2">
+                                            Barra Superior
+                                            {settings.announcementType !== 'popup' && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">Activa</span>}
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                                            Cintillo continuo en la parte superior de la página web. Ideal para avisos rápidos o envío gratis.
+                                        </p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => onUpdate({ announcementType: 'popup' })}
+                                    className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 ${
+                                        settings.announcementType === 'popup'
+                                            ? 'bg-amber-500/10 border-amber-500/40 text-amber-900 dark:text-amber-200 shadow-sm ring-1 ring-amber-500/30'
+                                            : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                                    }`}
+                                >
+                                    <div className={`p-2 rounded-xl shrink-0 ${settings.announcementType === 'popup' ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
+                                        <Tag size={18} />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-sm flex items-center gap-2">
+                                            Popup de Descuento
+                                            {settings.announcementType === 'popup' && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">Activo</span>}
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                                            Ventana emergente flotante con cupón copiable, botón de compra y mayor impacto visual.
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Previsualización en Vivo */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between px-1">
+                                <label className="text-xs font-semibold text-ios-subtext uppercase flex items-center gap-1.5">
+                                    <Sparkles size={13} className="text-amber-500" />
+                                    Vista Previa en Tiempo Real
+                                </label>
+                                <span className="text-[11px] text-gray-400">
+                                    {settings.announcementType === 'popup' ? 'Simulación de modal emergente' : 'Simulación de barra'}
+                                </span>
+                            </div>
+
+                            <div className="bg-gray-100 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl p-4 flex items-center justify-center min-h-[120px] overflow-hidden">
+                                {settings.announcementType === 'popup' ? (
+                                    /* Preview de Popup de Descuento */
+                                    <div
+                                        className="max-w-sm w-full rounded-2xl p-5 shadow-xl relative border transition-all text-center space-y-3"
+                                        style={{
+                                            backgroundColor: settings.announcementBarBgColor || '#111827',
+                                            color: settings.announcementBarTextColor || '#ffffff',
+                                            borderColor: 'rgba(255,255,255,0.15)'
+                                        }}
+                                    >
+                                        <span className="absolute right-3 top-3 opacity-60 text-xs">✕</span>
+
+                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold tracking-wide uppercase backdrop-blur-sm">
+                                            <Sparkles size={10} /> OFERTA ESPECIAL
+                                        </div>
+
+                                        <h4 className="font-black text-base leading-tight">
+                                            {settings.announcementTitle || '¡Descuento Especial! 🎉'}
+                                        </h4>
+
+                                        <p className="text-xs opacity-90 leading-relaxed">
+                                            {settings.announcementBarText || 'Obten un descuento especial usando la palabra SAMARA 😍'}
+                                        </p>
+
+                                        {settings.announcementCouponCode && (
+                                            <div className="bg-black/25 dark:bg-white/10 border border-dashed border-white/40 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                                                <div className="text-left">
+                                                    <span className="text-[9px] uppercase tracking-wider block opacity-70">Código de Descuento</span>
+                                                    <span className="font-mono font-bold text-sm tracking-wider">{settings.announcementCouponCode}</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCopiedPreview(true);
+                                                        setTimeout(() => setCopiedPreview(false), 2000);
+                                                    }}
+                                                    className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-gray-900 flex items-center gap-1 hover:bg-gray-100 active:scale-95"
+                                                >
+                                                    {copiedPreview ? (
+                                                        <>
+                                                            <Check size={12} className="text-emerald-600" />
+                                                            <span className="text-emerald-700">¡Copiado!</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy size={12} />
+                                                            <span>Copiar</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <div className="pt-1">
+                                            <button
+                                                type="button"
+                                                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold shadow-md transition-all brightness-105 active:scale-95 flex items-center justify-center gap-1.5"
+                                                style={{
+                                                    backgroundColor: settings.announcementBarTextColor || '#ffffff',
+                                                    color: settings.announcementBarBgColor || '#111827'
+                                                }}
+                                            >
+                                                {settings.announcementButtonText || 'Aprovechar Descuento'}
+                                                <ExternalLink size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Preview de Barra Superior */
+                                    <div
+                                        className="w-full py-2.5 px-10 rounded-xl text-center text-xs font-semibold relative overflow-hidden shadow-sm"
+                                        style={{
+                                            backgroundColor: settings.announcementBarBgColor || '#0071E3',
+                                            color: settings.announcementBarTextColor || '#ffffff'
+                                        }}
+                                    >
+                                        {settings.announcementBarText || '🚚 Envío gratis en compras mayores a $50'}
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 text-[10px]">✕</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Campos de Configuración */}
+                        <div className="space-y-4">
+                            {/* Campos específicos para Popup */}
+                            {settings.announcementType === 'popup' && (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Título del Descuento / Popup</label>
+                                    <input
+                                        type="text"
+                                        className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-amber-500/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
+                                        value={settings.announcementTitle || ''}
+                                        onChange={e => onUpdate({ announcementTitle: e.target.value })}
+                                        placeholder="Ej: ¡Descuento Especial! 🎉 o ¡15% OFF en tu compra!"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Texto principal / mensaje */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">
+                                    {settings.announcementType === 'popup' ? 'Mensaje o Descripción de la Oferta' : 'Texto del Anuncio'}
+                                </label>
+                                <textarea
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-amber-500/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white min-h-[75px] resize-y"
+                                    value={settings.announcementBarText || ''}
+                                    onChange={e => onUpdate({ announcementBarText: e.target.value })}
+                                    placeholder={settings.announcementType === 'popup' ? "Ej: Obten un descuento especial usando la palabra SAMARA 😍" : "Ej: 🚚 Envío gratis en pedidos mayores a $50"}
+                                />
+                            </div>
+
+                            {/* Campos avanzados exclusivos del Popup */}
+                            {settings.announcementType === 'popup' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 flex items-center gap-1">
+                                            <Tag size={13} className="text-amber-500" />
+                                            Código de Cupón (Opcional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-amber-500/50 rounded-2xl px-4 py-3 outline-none text-sm font-mono uppercase dark:text-white font-bold"
+                                            value={settings.announcementCouponCode || ''}
+                                            onChange={e => onUpdate({ announcementCouponCode: e.target.value.toUpperCase().trim() })}
+                                            placeholder="Ej: SAMARA o PROMO10"
+                                        />
+                                        <p className="text-[11px] text-gray-500 ml-1">Se mostrará una caja estilizada para copiarlo con un clic.</p>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Texto del Botón (CTA)</label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-amber-500/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
+                                            value={settings.announcementButtonText || ''}
+                                            onChange={e => onUpdate({ announcementButtonText: e.target.value })}
+                                            placeholder="Ej: Aprovechar Descuento o Comprar Ahora"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5 md:col-span-2">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1 flex items-center gap-1">
+                                            <Timer size={13} className="text-amber-500" />
+                                            Tiempo de Espera para Aparecer
+                                        </label>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {[
+                                                { label: 'Inmediato (0s)', value: 0 },
+                                                { label: '1 segundo', value: 1 },
+                                                { label: '2 segundos', value: 2 },
+                                                { label: '4 segundos', value: 4 },
+                                            ].map(opt => {
+                                                const currentDelay = settings.announcementPopupDelay ?? 1;
+                                                const isSelected = currentDelay === opt.value;
+                                                return (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => onUpdate({ announcementPopupDelay: opt.value })}
+                                                        className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
+                                                            isSelected
+                                                                ? 'bg-amber-500 text-white border-amber-500 font-bold shadow-sm'
+                                                                : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                                                        }`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Enlace de destino */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Enlace al hacer clic (opcional)</label>
+                                <input
+                                    type="url"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-amber-500/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
+                                    value={settings.announcementBarLink || ''}
+                                    onChange={e => onUpdate({ announcementBarLink: e.target.value })}
+                                    placeholder="https://... o /shop"
+                                />
+                            </div>
+
+                            {/* Colores */}
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Fondo</label>
+                                        <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
+                                            <input
+                                                type="color"
+                                                className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
+                                                value={settings.announcementBarBgColor || (settings.announcementType === 'popup' ? '#111827' : '#0071E3')}
+                                                onChange={e => onUpdate({ announcementBarBgColor: e.target.value })}
+                                            />
+                                            <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">
+                                                {settings.announcementBarBgColor || (settings.announcementType === 'popup' ? '#111827' : '#0071E3')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Texto</label>
+                                        <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
+                                            <input
+                                                type="color"
+                                                className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
+                                                value={settings.announcementBarTextColor || '#ffffff'}
+                                                onChange={e => onUpdate({ announcementBarTextColor: e.target.value })}
+                                            />
+                                            <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">{settings.announcementBarTextColor || '#ffffff'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Presets Rápidos de Paleta */}
+                                <div className="flex items-center gap-2 pt-1 overflow-x-auto pb-1">
+                                    <span className="text-[11px] text-gray-400 shrink-0 font-medium">Paletas sugeridas:</span>
+                                    {[
+                                        { bg: '#111827', text: '#ffffff', label: 'Dark Sleek' },
+                                        { bg: '#0071E3', text: '#ffffff', label: 'Azul Apple' },
+                                        { bg: '#D97706', text: '#ffffff', label: 'Dorado Promo' },
+                                        { bg: '#7C3AED', text: '#ffffff', label: 'Púrpura Oferta' },
+                                        { bg: '#DC2626', text: '#ffffff', label: 'Rojo Urgente' },
+                                        { bg: '#059669', text: '#ffffff', label: 'Verde Éxito' }
+                                    ].map((preset, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => onUpdate({
+                                                announcementBarBgColor: preset.bg,
+                                                announcementBarTextColor: preset.text
+                                            })}
+                                            className="px-2.5 py-1 rounded-full text-[11px] border border-gray-200 dark:border-white/10 flex items-center gap-1.5 hover:scale-105 transition-all bg-white dark:bg-white/5"
+                                        >
+                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: preset.bg }} />
+                                            <span className="text-gray-600 dark:text-gray-300">{preset.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Opciones de cierre */}
+                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-800 dark:text-white">
+                                        Permitir cerrar el {settings.announcementType === 'popup' ? 'popup' : 'anuncio'}
+                                    </h4>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                        El usuario puede cerrarlo con la "✕". Se recuerda por sesión para no interrumpir su navegación.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => onUpdate({ announcementBarDismissible: !settings.announcementBarDismissible })}
+                                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarDismissible !== false ? 'bg-amber-500 shadow-lg shadow-amber-500/30' : 'bg-gray-200 dark:bg-white/10'}`}
+                                >
+                                    <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.announcementBarDismissible !== false ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
-
-                <div className="space-y-4">
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Texto del Anuncio</label>
-                        <input
-                            type="text"
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
-                            value={settings.announcementBarText || ''}
-                            onChange={e => onUpdate({ announcementBarText: e.target.value })}
-                            placeholder="🚚 Envío gratis en pedidos mayores a $50"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Fondo</label>
-                            <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
-                                <input
-                                    type="color"
-                                    className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
-                                    value={settings.announcementBarBgColor || '#0071E3'}
-                                    onChange={e => onUpdate({ announcementBarBgColor: e.target.value })}
-                                />
-                                <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">{settings.announcementBarBgColor || '#0071E3'}</span>
-                            </div>
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Color de Texto</label>
-                            <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-2xl px-4 py-2">
-                                <input
-                                    type="color"
-                                    className="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent"
-                                    value={settings.announcementBarTextColor || '#ffffff'}
-                                    onChange={e => onUpdate({ announcementBarTextColor: e.target.value })}
-                                />
-                                <span className="text-sm text-gray-500 dark:text-gray-300 font-mono">{settings.announcementBarTextColor || '#ffffff'}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-ios-subtext uppercase ml-1">Enlace al hacer clic (opcional)</label>
-                        <input
-                            type="url"
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-3 outline-none text-sm dark:text-white"
-                            value={settings.announcementBarLink || ''}
-                            onChange={e => onUpdate({ announcementBarLink: e.target.value })}
-                            placeholder="https://... o /shop"
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
-                        <div>
-                            <h4 className="text-sm font-bold text-gray-800 dark:text-white">Permitir cerrar la barra</h4>
-                            <p className="text-xs text-gray-500 mt-0.5">El usuario puede cerrarla con la "✕". Se recuerda por sesión.</p>
-                        </div>
-                        <button
-                            onClick={() => onUpdate({ announcementBarDismissible: !settings.announcementBarDismissible })}
-                            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${settings.announcementBarDismissible !== false ? 'bg-ios-blue shadow-lg shadow-ios-blue/30' : 'bg-gray-200 dark:bg-white/10'}`}
-                        >
-                            <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-300 ease-in-out ${settings.announcementBarDismissible !== false ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </button>
-                    </div>
-                </div>
             </Card>
 
             <Card className="p-6 space-y-6">

@@ -13,7 +13,7 @@ export const StatisticsModule = ({ orders, products, customers, categories }: { 
     const isGlobalView = currentBranch?.id === 0;
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-16">
+        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-28 sm:pb-16 w-full max-w-full min-w-0">
             {/* Header con Indicador de Sede */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white dark:bg-zinc-900 p-4 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                 <div>

@@ -1,12 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNotification } from '../context/NotificationContext';
-import { useStore } from '../context/StoreContext';
-import { Bell, X, Download, Share, PlusSquare, Smartphone, Check, Zap, Truck, ShoppingBag, Upload, ArrowDown } from 'lucide-react';
+import { Bell, X, Check, Zap, Truck, ShoppingBag } from 'lucide-react';
 
 export const NotificationSystem = () => {
-    const { notifications, removeNotification, permission, requestPermission, isIOS, isStandalone, deferredPrompt, installApp, showInstallModal, setShowInstallModal } = useNotification();
-    const { settings } = useStore();
+    const { notifications, removeNotification, permission, requestPermission } = useNotification();
     const [hidePermissionBanner, setHidePermissionBanner] = useState(true);
 
     useEffect(() => {
@@ -29,11 +27,6 @@ export const NotificationSystem = () => {
             case 'info': return <Truck size={18} className="text-blue-500" />;
             default: return <Bell size={18} className="text-ios-blue" />;
         }
-    };
-
-    const handleCloseInstall = () => {
-        setShowInstallModal(false);
-        localStorage.setItem('pwa_prompt_seen', 'true');
     };
 
     return (
@@ -92,83 +85,6 @@ export const NotificationSystem = () => {
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* 3. INSTALL PROMPT MODAL (Smart Logic) */}
-            {showInstallModal && !isStandalone && (
-                <div className="fixed inset-0 z-[120] flex items-end md:items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={handleCloseInstall}></div>
-                    
-                    <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl p-6 md:p-8 animate-slide-up border-t border-white/20">
-                         <div className="absolute top-4 right-4">
-                            <button onClick={handleCloseInstall} className="p-2 bg-gray-100 dark:bg-white/10 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
-                                <X size={20} />
-                            </button>
-                         </div>
-
-                         <div className="text-center mb-6 pt-2">
-                             <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-[1.35rem] mx-auto mb-3 flex items-center justify-center shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden p-1">
-                                 <img 
-                                     src={settings.appIconUrl || settings.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png"} 
-                                     alt={settings.storeName || 'Icono de la App'} 
-                                     className="w-full h-full object-cover rounded-[1.15rem]" 
-                                     onError={(e) => {
-                                         if (settings.logoUrl && e.currentTarget.src !== settings.logoUrl) {
-                                             e.currentTarget.src = settings.logoUrl;
-                                         }
-                                     }}
-                                 />
-                             </div>
-                             <h3 className="text-2xl font-black text-ios-text dark:text-white mb-1">Instalar {settings.storeName || 'App'}</h3>
-                             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Añade el acceso directo a la pantalla de inicio de tu teléfono.</p>
-                         </div>
-
-                         {isIOS ? (
-                             // iOS Instructions (High Fidelity)
-                             <div className="space-y-4">
-                                 <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-1 overflow-hidden border border-gray-100 dark:border-white/5">
-                                     <div className="flex items-center gap-4 p-4 border-b border-gray-100 dark:border-white/5">
-                                         <div className="text-ios-blue animate-pulse">
-                                             <Upload size={24} /> 
-                                         </div>
-                                         <div className="text-left">
-                                             <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Paso 1</p>
-                                             <p className="text-sm font-medium dark:text-gray-200">Toca el botón <span className="font-bold">Compartir</span> en la barra.</p>
-                                         </div>
-                                     </div>
-                                     <div className="flex items-center gap-4 p-4">
-                                         <div className="text-gray-500 dark:text-gray-300">
-                                             <PlusSquare size={24} />
-                                         </div>
-                                         <div className="text-left">
-                                             <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Paso 2</p>
-                                             <p className="text-sm font-medium dark:text-gray-200">Selecciona <span className="font-bold">Agregar a Inicio</span>.</p>
-                                         </div>
-                                     </div>
-                                 </div>
-                                 
-                                 {/* Animated Arrow Pointing Down */}
-                                 <div className="flex flex-col items-center justify-center text-ios-blue animate-bounce pt-2">
-                                     <span className="text-[10px] font-bold uppercase tracking-widest mb-1">Empieza aquí</span>
-                                     <ArrowDown size={24} />
-                                 </div>
-                             </div>
-                         ) : (
-                             // Android / Desktop Button
-                             <button 
-                                onClick={installApp}
-                                className="w-full bg-ios-blue hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-all"
-                             >
-                                <Download size={22} /> Instalar Ahora
-                             </button>
-                         )}
-                         
-                         <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-gray-400 font-medium">
-                             <Zap size={12} className="text-yellow-500 fill-yellow-500"/>
-                             <span>Tecnología Ultra Rápida (PWA)</span>
-                         </div>
                     </div>
                 </div>
             )}
