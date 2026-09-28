@@ -88,6 +88,10 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
         if (parseFailed) {
             console.error("Respuesta no válida del servidor (RAW):", text);
             if (!response.ok) throw new Error(`Server Error ${response.status}`);
+            const isHtml = text.trim().toLowerCase().startsWith('<!doctype') || text.trim().toLowerCase().startsWith('<html');
+            if (isHtml) {
+                throw new Error("El servidor devolvió una página HTML en lugar de JSON. Verifique que Nginx tenga configurado correctamente el bloque FastCGI / PHP-FPM y que 'api.php' y 'lib/' existan en la raíz web.");
+            }
             throw new Error("El servidor devolvió datos inválidos.");
         }
 

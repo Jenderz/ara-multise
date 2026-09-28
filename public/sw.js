@@ -1,10 +1,9 @@
 // [BUILD] Service Worker Updated: 2026-09-11T13:08:00.000Z
 
-// IMPORTANTE: Versión incrementada para forzar actualización de caché tras build (v0.3.4)
-const CACHE_STATIC = 'tienda-static-v155';
-const CACHE_DYNAMIC = 'tienda-dynamic-v139';
-const CACHE_IMAGES = 'tienda-images-v134';
-const CACHE_API = 'tienda-api-v134';
+// IMPORTANTE: Versión incrementada para forzar actualización de caché tras build (v156)
+const CACHE_STATIC = 'tienda-static-v156';
+const CACHE_DYNAMIC = 'tienda-dynamic-v140';
+const CACHE_IMAGES = 'tienda-images-v135';
 
 // Recursos críticos (Rutas relativas para soportar subcarpetas)
 const ASSETS_TO_CACHE = [
@@ -36,11 +35,11 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Limpia automáticamente cachés obsoletas, incluyendo cualquier CACHE_API antigua
           if (
             cacheName !== CACHE_STATIC &&
             cacheName !== CACHE_DYNAMIC &&
-            cacheName !== CACHE_IMAGES &&
-            cacheName !== CACHE_API
+            cacheName !== CACHE_IMAGES
           ) {
             console.log('Limpiando caché obsoleta:', cacheName);
             return caches.delete(cacheName);
@@ -67,31 +66,17 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!isSelf && !isExternalAllowed) return;
 
-  // API y endpoints dinámicos del servidor: Network First
+  // REGLA DE ORO: Las llamadas a la API y endpoints PHP nunca deben ser interceptadas ni cacheadas por el SW.
+  // Pasan directo a la red (Network Only) para garantizar stock en tiempo real y evitar que errores o HTML queden cacheados.
   if (
     url.pathname.includes('/api/') ||
     url.pathname.includes('api.php') ||
     url.pathname.includes('rates.php') ||
+    url.pathname.includes('seo-proxy.php') ||
+    url.pathname.includes('cron_notifications.php') ||
     url.search.includes('action=')
   ) {
-    event.respondWith(
-      fetch(event.request)
-        .then(async (networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const cache = await caches.open(CACHE_API);
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        })
-        .catch(async () => {
-          const cachedResponse = await caches.match(event.request);
-          if (cachedResponse) return cachedResponse;
-          return new Response(JSON.stringify({ error: 'offline', offline: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        })
-    );
-    return;
+    return; // Permite la petición nativa directa al servidor Nginx
   }
 
   // Imágenes: Cache First

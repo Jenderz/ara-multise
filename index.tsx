@@ -119,10 +119,10 @@ window.addEventListener('vite:preloadError', (event) => {
 // --- GESTIÓN AVANZADA DE SERVICE WORKER (PWA UPDATE) ---
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Versión del Service Worker sincronizada con la caché del sistema (v155).
-    // Usamos './sw.js?v=...' para forzar a Cloudflare, CDNs intermedias y navegadores
-    // a descargar la versión válida sin quedar atrapados en cachés corruptas de borde entre distintos dominios marca blanca.
-    const SW_VERSION = 'v155';
+    // Versión del Service Worker sincronizada con la caché del sistema (v156).
+    // Usamos './sw.js?v=...' para forzar a Nginx, proxies y navegadores
+    // a descargar la versión válida sin quedar atrapados en cachés corruptas de borde.
+    const SW_VERSION = 'v156';
     navigator.serviceWorker.register(`./sw.js?v=${SW_VERSION}`).then(registration => {
       console.log('PWA ServiceWorker registered with scope: ', registration.scope);
 
