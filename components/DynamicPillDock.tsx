@@ -100,24 +100,24 @@ export const DynamicPillDock: React.FC<DynamicPillDockProps> = ({
     };
 
     return (
-        <div className={`w-full relative -mx-4 px-4 sm:mx-0 sm:px-0 ${className}`}>
+        <div className={`w-full relative px-1 sm:px-2 ${className}`}>
             <div className="relative max-w-full">
-                {/* 1. Máscara de Desvanecimiento Izquierda (Desvanece elementos al deslizar, evitando cortes rectos) */}
+                {/* 1. Máscara de Desvanecimiento Izquierda */}
                 <div
                     aria-hidden="true"
                     className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-r from-ios-bg dark:from-black via-ios-bg/80 dark:via-black/80 to-transparent z-20 transition-opacity duration-300 ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}
                 />
 
-                {/* 2. Máscara de Desvanecimiento Derecha (Indica visualmente continuidad) */}
+                {/* 2. Máscara de Desvanecimiento Derecha */}
                 <div
                     aria-hidden="true"
                     className={`pointer-events-none absolute right-0 top-0 bottom-0 w-10 sm:w-14 bg-gradient-to-l from-ios-bg dark:from-black via-ios-bg/80 dark:via-black/80 to-transparent z-20 transition-opacity duration-300 ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}
                 />
 
-                {/* 3. Contenedor de Cápsulas con Desplazamiento Fluido Táctil */}
+                {/* 3. Contenedor de Cápsulas con Desplazamiento Fluido Táctil y Margen Amplio */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 px-4 sm:px-1 scroll-smooth overscroll-x-contain touch-pan-x"
+                    className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto no-scrollbar py-2 px-2 sm:px-3 scroll-smooth overscroll-x-contain touch-pan-x"
                     style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                     {/* PÍLDORA: TODOS */}
@@ -126,16 +126,16 @@ export const DynamicPillDock: React.FC<DynamicPillDockProps> = ({
                             if (showOffersOnly && onSelectOffers) onSelectOffers();
                             onSelectCategory('Todos');
                         })}
-                        className={`group relative shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
+                        className={`group relative shrink-0 flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
                             ${selectedCategory === 'Todos' && !showOffersOnly
-                                ? 'bg-ios-blue text-white shadow-[0_3px_12px_rgba(0,122,255,0.3)] scale-[1.02]'
+                                ? 'bg-ios-blue text-white shadow-[0_4px_16px_rgba(0,122,255,0.35)] scale-[1.02]'
                                 : 'bg-white/85 dark:bg-zinc-900/85 hover:bg-white dark:hover:bg-zinc-800 text-ios-text dark:text-zinc-300 border border-black/[0.06] dark:border-white/10 backdrop-blur-xl shadow-xs'
                             }
                         `}
                     >
-                        <Sparkles size={13} className={selectedCategory === 'Todos' && !showOffersOnly ? 'text-white' : 'text-ios-blue'} />
+                        <Sparkles size={14} className={selectedCategory === 'Todos' && !showOffersOnly ? 'text-white' : 'text-ios-blue'} />
                         <span className="whitespace-nowrap">Todo</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                        <span className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-black ${
                             selectedCategory === 'Todos' && !showOffersOnly
                                 ? 'bg-white/20 text-white'
                                 : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
@@ -154,9 +154,9 @@ export const DynamicPillDock: React.FC<DynamicPillDockProps> = ({
                                     onSelectCategory('Ofertas');
                                 }
                             })}
-                            className={`group relative shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
+                            className={`group relative shrink-0 flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
                                 ${showOffersOnly
-                                    ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-[0_3px_12px_rgba(239,68,68,0.3)] scale-[1.02]'
+                                    ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-[0_4px_16px_rgba(239,68,68,0.35)] scale-[1.02]'
                                     : 'bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 backdrop-blur-xl shadow-xs'
                                 }
                             `}
@@ -165,9 +165,9 @@ export const DynamicPillDock: React.FC<DynamicPillDockProps> = ({
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                             </span>
-                            <Zap size={13} className={showOffersOnly ? 'fill-white text-white' : 'fill-red-500 text-red-500'} />
+                            <Zap size={14} className={showOffersOnly ? 'fill-white text-white' : 'fill-red-500 text-red-500'} />
                             <span className="whitespace-nowrap">Ofertas</span>
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                            <span className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-black ${
                                 showOffersOnly
                                     ? 'bg-white/20 text-white'
                                     : 'bg-red-500/20 text-red-600 dark:text-red-300'
@@ -191,21 +191,21 @@ export const DynamicPillDock: React.FC<DynamicPillDockProps> = ({
                                     if (showOffersOnly && onSelectOffers) onSelectOffers();
                                     onSelectCategory(cat.name);
                                 })}
-                                className={`group relative shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
+                                className={`group relative shrink-0 flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 select-none cursor-pointer active:scale-95
                                     ${isSelected
-                                        ? 'bg-ios-blue text-white shadow-[0_3px_12px_rgba(0,122,255,0.3)] scale-[1.02]'
+                                        ? 'bg-ios-blue text-white shadow-[0_4px_16px_rgba(0,122,255,0.35)] scale-[1.02]'
                                         : 'bg-white/85 dark:bg-zinc-900/85 hover:bg-white dark:hover:bg-zinc-800 text-ios-text dark:text-zinc-300 border border-black/[0.06] dark:border-white/10 backdrop-blur-xl shadow-xs'
                                     }
                                 `}
                             >
                                 {cat.image && (
-                                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-white/20">
+                                    <div className="w-5 h-5 rounded-full overflow-hidden shrink-0 border border-white/20">
                                         <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
                                     </div>
                                 )}
                                 <span className="whitespace-nowrap">{cat.name}</span>
                                 {count > 0 && (
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                    <span className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-black ${
                                         isSelected
                                             ? 'bg-white/20 text-white'
                                             : 'bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500'

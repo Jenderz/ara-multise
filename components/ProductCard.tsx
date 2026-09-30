@@ -116,8 +116,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const secondaryImage = product.images && product.images.length > 1 ? product.images[1] : null;
 
     return (
-        <Card className="h-full hover:shadow-2xl dark:hover:shadow-white/5 transition-all duration-500 group flex flex-col relative overflow-hidden bg-white dark:bg-zinc-900 border border-black/5 dark:border-white/5 rounded-3xl">
-            <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block relative cursor-pointer overflow-hidden rounded-t-3xl">
+        <Card className="h-full hover:shadow-2xl dark:hover:shadow-white/5 transition-all duration-500 group flex flex-col relative overflow-hidden bg-white dark:bg-zinc-900 border border-black/5 dark:border-white/5 rounded-2xl sm:rounded-3xl">
+            <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block relative cursor-pointer overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
                 {/* Imagen Principal */}
                 <LazyImage
                     src={displayImage}
@@ -137,31 +137,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 )}
 
                 {/* Botones Flotantes Superiores */}
-                <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-20 flex flex-col gap-1 sm:gap-1.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
                     <button
                         onClick={handleToggleWishlist}
-                        className="p-2.5 bg-white/80 dark:bg-black/70 backdrop-blur-xl rounded-full shadow-md hover:scale-110 active:scale-90 transition-all border border-white/20 dark:border-white/10"
+                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white/85 dark:bg-black/70 backdrop-blur-md rounded-full shadow-xs hover:scale-110 active:scale-90 transition-all border border-white/20 dark:border-white/10"
                         title={isInWishlist ? "Eliminar de favoritos" : "Guardar en favoritos"}
                     >
                         <Heart
-                            size={17}
-                            className={`transition-colors ${isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400 dark:text-gray-300"} ${isHeartAnimating ? "animate-heart-burst" : ""}`}
+                            size={14}
+                            className={`transition-colors sm:w-4 sm:h-4 ${isInWishlist ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300"} ${isHeartAnimating ? "animate-heart-burst" : ""}`}
                         />
                     </button>
                     <button
                         onClick={handleShare}
-                        className="p-2.5 bg-white/80 dark:bg-black/70 backdrop-blur-xl rounded-full shadow-md hover:scale-110 active:scale-90 transition-all text-ios-blue border border-white/20 dark:border-white/10"
+                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-white/85 dark:bg-black/70 backdrop-blur-md rounded-full shadow-xs hover:scale-110 active:scale-90 transition-all text-ios-blue border border-white/20 dark:border-white/10"
                         title="Compartir por WhatsApp"
                     >
-                        <Share2 size={17} />
+                        <Share2 size={13} className="sm:w-3.5 sm:h-3.5" />
                     </button>
                 </div>
 
                 {/* Badges Inteligentes */}
-                <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap max-w-[80%] z-20">
+                <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex gap-1 sm:gap-1.5 flex-wrap max-w-[70%] sm:max-w-[85%] z-20">
                     {isOutOfStock && <Badge color="red">AGOTADO</Badge>}
                     {isOnSale && !isOutOfStock && (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-500 text-white shadow-md shadow-red-500/30 animate-pulse-slow">
+                        <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-[9.5px] font-black uppercase tracking-wider bg-red-500 text-white shadow-xs animate-pulse-slow">
                             {discountPercent > 0 ? `-${discountPercent}%` : 'OFERTA'}
                         </span>
                     )}
@@ -169,49 +169,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </div>
             </Link>
 
-            <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block group-hover:text-ios-blue transition-colors">
-                    <div className="flex justify-between items-start mb-1.5">
-                        <h3 className="text-base sm:text-lg font-bold text-ios-text dark:text-white leading-tight line-clamp-2">{product.title}</h3>
-                    </div>
+            <div className="p-2.5 sm:p-4 md:p-5 flex-1 flex flex-col">
+                <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block group-hover:text-ios-blue transition-colors mb-1">
+                    <h3 className="text-xs sm:text-sm md:text-base font-semibold sm:font-bold text-ios-text dark:text-white leading-snug sm:leading-tight line-clamp-2 min-h-[2.4em]">{product.title}</h3>
                 </Link>
 
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-1">
-                    <span className="text-[11px] text-ios-subtext dark:text-gray-400 uppercase tracking-wider font-semibold">{product.category}</span>
-                    <div className="text-right">
+                <div className="flex items-center justify-between mb-2.5 sm:mb-3 flex-wrap gap-1">
+                    <span className="text-[9.5px] sm:text-[11px] text-ios-subtext dark:text-gray-400 uppercase tracking-wider font-semibold truncate max-w-[75px] sm:max-w-none">{product.category}</span>
+                    <div className="text-right ml-auto">
                         {isOnSale ? (
                             <div className="flex flex-col items-end">
-                                <div className="flex items-baseline gap-1.5 flex-wrap justify-end">
-                                    {showUsd && <span className="text-base sm:text-lg font-bold text-red-500">{activeCurrencySymbol}{finalSalePrice.toFixed(2)}</span>}
-                                    {showVes && <span className="text-xs sm:text-sm font-bold text-red-500/90">{formatVes(finalSalePrice)}</span>}
+                                <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap justify-end">
+                                    {showUsd && <span className="text-xs sm:text-sm md:text-base font-bold text-red-500">{activeCurrencySymbol}{finalSalePrice.toFixed(2)}</span>}
+                                    {showVes && <span className="text-[9px] sm:text-xs md:text-sm font-bold text-red-500/90">{formatVes(finalSalePrice)}</span>}
                                 </div>
-                                <div className="flex flex-col items-end text-[11px] text-gray-400 line-through opacity-60">
+                                <div className="flex items-center gap-1 text-[8.5px] sm:text-[10px] text-gray-400 line-through opacity-60">
                                     {showUsd && <span>{activeCurrencySymbol}{finalPrice.toFixed(2)}</span>}
                                     {showVes && <span>{formatVes(finalPrice)}</span>}
                                 </div>
                             </div>
                         ) : (
                             <div className="flex flex-col items-end">
-                                {showUsd && <span className="text-base sm:text-lg font-semibold text-ios-text dark:text-white">{activeCurrencySymbol}{finalPrice.toFixed(2)}</span>}
-                                {showVes && <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">{formatVes(finalPrice)}</span>}
+                                {showUsd && <span className="text-xs sm:text-sm md:text-base font-bold text-ios-text dark:text-white">{activeCurrencySymbol}{finalPrice.toFixed(2)}</span>}
+                                {showVes && <span className="text-[9px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">{formatVes(finalPrice)}</span>}
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="mt-auto flex items-center gap-2">
+                <div className="mt-auto flex items-center gap-1.5 sm:gap-2">
                     <button 
                         onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} 
-                        className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-semibold py-2.5 px-3 rounded-2xl transition-all active:scale-95 text-xs"
+                        className="flex-1 flex items-center justify-center gap-1 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-semibold h-8 sm:h-9 md:h-10 px-2 sm:px-3 rounded-xl sm:rounded-2xl transition-all active:scale-95 text-[11px] sm:text-xs"
                     >
-                        <Eye size={14} /> Ver
+                        <Eye size={13} className="sm:w-[14px] sm:h-[14px]" /> Ver
                     </button>
                     <button
                         onClick={handleQuickAdd}
                         disabled={!canBuy}
                         aria-label={!canBuy ? 'Agotado' : isQuickAdded ? 'Añadido' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
                         title={!canBuy ? 'Agotado' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
-                        className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-2xl transition-all active:scale-90 shadow-md 
+                        className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all active:scale-90 shadow-2xs sm:shadow-md 
                             ${!canBuy
                                 ? 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-600 cursor-not-allowed border dark:border-white/5'
                                 : isQuickAdded
@@ -221,11 +219,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                         }
                     >
                         {isQuickAdded ? (
-                            <Check size={18} className="animate-spring-scale text-white stroke-[3]" />
+                            <Check size={15} className="animate-spring-scale text-white stroke-[3] sm:w-[17px] sm:h-[17px]" />
                         ) : showOptions ? (
-                            <ListPlus size={18} />
+                            <ListPlus size={14} className="sm:w-4 sm:h-4" />
                         ) : (
-                            <Plus size={18} />
+                            <Plus size={15} className="sm:w-4 sm:h-4" />
                         )}
                     </button>
                 </div>

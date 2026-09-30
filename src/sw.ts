@@ -20,13 +20,17 @@ precacheAndRoute(self.__WB_MANIFEST);
  * eliminando el riesgo de 'Stock Fantasma' o pedidos con existencias desfasadas.
  */
 
-// 1. Imágenes locales y remotas: Cache First con retención de 30 días
+// 1. Imágenes locales y remotas: Cache First con retención de 30 días (Favicons dinámicos van por red)
 registerRoute(
   ({ request, url }) =>
-    request.destination === 'image' ||
-    Boolean(url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i)) ||
-    url.hostname.includes('cdn-icons-png.flaticon.com') ||
-    url.hostname.includes('images.unsplash.com'),
+    !url.pathname.includes('favicon') &&
+    !url.pathname.includes('robots') &&
+    !url.pathname.includes('sitemap') &&
+    (
+      request.destination === 'image' ||
+      Boolean(url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i)) ||
+      url.hostname.includes('images.unsplash.com')
+    ),
   new CacheFirst({
     cacheName: 'ara-images-cache',
     plugins: [

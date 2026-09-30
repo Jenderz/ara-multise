@@ -179,37 +179,49 @@ export const ProductDetail = () => {
         <ShopLayout>
             <SEO title={product.title} description={product.description.substring(0, 160)} image={product.images[0] || DEFAULT_IMAGE} type="product" price={displaySalePrice || displayPrice} availability={canBuy} />
 
-            <button onClick={handleBack} className="mb-6 flex items-center text-ios-subtext dark:text-gray-400 hover:text-ios-text dark:hover:text-white transition gap-1 font-medium">
-                <ChevronLeft size={18} /> Volver al catálogo
+            <button onClick={handleBack} className="mb-3 sm:mb-5 inline-flex items-center text-xs sm:text-sm font-semibold text-ios-subtext dark:text-gray-400 hover:text-ios-text dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 py-1 px-2.5 -ml-1 rounded-full transition-all active:scale-95 gap-1">
+                <ChevronLeft size={16} /> Volver al catálogo
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 lg:gap-12 mb-8 sm:mb-12">
                 {/* Galería de Imágenes */}
-                <div className="space-y-6">
+                <div className="space-y-3 sm:space-y-5">
                     <div
-                        className="aspect-square rounded-[3rem] overflow-hidden bg-white dark:bg-zinc-900 shadow-2xl border border-white/50 dark:border-white/5 relative group cursor-zoom-in"
+                        className="aspect-square rounded-2xl sm:rounded-3xl lg:rounded-[2.5rem] overflow-hidden bg-white dark:bg-zinc-900 shadow-lg sm:shadow-2xl border border-white/50 dark:border-white/5 relative group cursor-zoom-in"
                         onClick={() => setIsLightboxOpen(true)}
                     >
                         <img key={currentImage} src={currentImage} alt={product.title} className="w-full h-full object-cover animate-fade-in transition-all duration-500" />
-                        {displaySalePrice && <div className="absolute top-6 left-6 bg-red-500 text-white font-black text-[10px] uppercase tracking-tighter px-4 py-1.5 rounded-full shadow-lg z-10">Especial</div>}
+                        {displaySalePrice && (
+                            <div className="absolute top-3 left-3 sm:top-5 sm:left-5 bg-red-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-md z-10">
+                                Especial
+                            </div>
+                        )}
                         {/* Botones flotantes: Favorito + Compartir por WhatsApp */}
-                        <div className="absolute top-6 right-6 flex flex-col gap-3 z-10">
-                            <button onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }} className="p-4 bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition border border-white/20 dark:border-white/10">
-                                <Heart size={24} className={isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"} />
+                        <div className="absolute top-3 right-3 sm:top-5 sm:right-5 flex flex-col gap-2 sm:gap-2.5 z-10">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
+                                className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-md sm:shadow-xl hover:scale-105 active:scale-90 transition border border-white/30 dark:border-white/10"
+                                title={isInWishlist ? "Eliminar de favoritos" : "Guardar en favoritos"}
+                            >
+                                <Heart size={18} className={`sm:w-5 sm:h-5 transition-colors ${isInWishlist ? "fill-red-500 text-red-500" : "text-gray-500 dark:text-gray-300"}`} />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); handleShare(); }} title="Compartir por WhatsApp" className="p-4 bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition border border-white/20 dark:border-white/10 text-[#25D366]">
-                                <Share2 size={24} />
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleShare(); }}
+                                title="Compartir por WhatsApp"
+                                className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-white/90 dark:bg-black/60 backdrop-blur-xl rounded-full shadow-md sm:shadow-xl hover:scale-105 active:scale-90 transition border border-white/30 dark:border-white/10 text-[#25D366]"
+                            >
+                                <Share2 size={18} className="sm:w-5 sm:h-5" />
                             </button>
                         </div>
                     </div>
                     {/* Miniaturas */}
                     {product.images.length > 1 && (
-                        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
+                        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 no-scrollbar px-1">
                             {product.images.map((img, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => { setSelectedImageIdx(idx); setCurrentImage(img); }}
-                                    className={`w-20 h-20 rounded-[1.5rem] overflow-hidden border-2 transition-all shrink-0 shadow-sm ${currentImage === img ? 'border-ios-blue scale-95 ring-4 ring-ios-blue/10' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    className={`w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all shrink-0 shadow-xs ${currentImage === img ? 'border-ios-blue scale-95 ring-2 sm:ring-4 ring-ios-blue/15' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                 >
                                     <img src={img} alt="" className="w-full h-full object-cover" />
                                 </button>
@@ -219,33 +231,42 @@ export const ProductDetail = () => {
                 </div>
 
                 {/* Detalles del Producto */}
-                <div className="flex flex-col pt-4">
-                    <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <span className="text-ios-blue font-black uppercase tracking-[0.2em] text-[10px] bg-ios-blue/10 px-3 py-1 rounded-full">{product.category}</span>
+                <div className="flex flex-col pt-1 sm:pt-4">
+                    <div className="flex justify-between items-center mb-2.5 sm:mb-3.5 flex-wrap gap-2">
+                        <span className="text-ios-blue font-extrabold uppercase tracking-widest text-[10px] sm:text-xs bg-ios-blue/10 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">{product.category}</span>
                         {isJewelryPluginEnabled(settings) && (product.pricingType === 'by_weight' || (product as any).pricing_type === 'by_weight') && (product.weightGram ?? (product as any).weight_gram ?? 0) > 0 && (
-                            <span className="text-amber-700 dark:text-amber-300 font-extrabold uppercase tracking-[0.1em] text-[10px] bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                            <span className="text-amber-700 dark:text-amber-300 font-extrabold uppercase tracking-[0.1em] text-[10px] bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
                                 <Scale size={12} className="text-amber-600 dark:text-amber-400" />
                                 {product.weightGram || (product as any).weight_gram}g {product.metalType || (product as any).metal_type ? `(${String(product.metalType || (product as any).metal_type).replace('gold_', 'Oro ').replace('silver_', 'Plata ')})` : ''}
                             </span>
                         )}
                     </div>
 
-                    <h1 className="text-4xl lg:text-5xl font-serif font-bold text-ios-text dark:text-white mb-4 leading-tight">{product.title}</h1>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-ios-text dark:text-white mb-2 sm:mb-3.5 leading-snug tracking-tight text-balance">{product.title}</h1>
 
-                    <div className="mb-8">
+                    <div className="mb-4 sm:mb-6">
                         {displaySalePrice ? (
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-baseline gap-3">{showUsd && <p className="text-4xl font-black text-ios-blue">{activeCurrencySymbol}{(displaySalePrice || 0).toFixed(2)}</p>}{showVes && <p className="text-2xl font-bold text-ios-blue/80">{formatVes(displaySalePrice)}</p>}</div>
-                                <div className="flex items-center gap-3 text-xl text-gray-400 line-through font-light">{showUsd && <span>{activeCurrencySymbol}{(displayPrice || 0).toFixed(2)}</span>}{showVes && <span>{formatVes(displayPrice)}</span>}</div>
+                            <div className="flex flex-col gap-0.5 sm:gap-1">
+                                <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                                    {showUsd && <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-ios-blue">{activeCurrencySymbol}{(displaySalePrice || 0).toFixed(2)}</p>}
+                                    {showVes && <p className="text-base sm:text-xl lg:text-2xl font-bold text-ios-blue/80">{formatVes(displaySalePrice)}</p>}
+                                </div>
+                                <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg text-gray-400 line-through font-light">
+                                    {showUsd && <span>{activeCurrencySymbol}{(displayPrice || 0).toFixed(2)}</span>}
+                                    {showVes && <span>{formatVes(displayPrice)}</span>}
+                                </div>
                             </div>
                         ) : (
-                            <div className="flex items-baseline gap-3 flex-wrap">{showUsd && <p className="text-4xl font-black text-ios-text dark:text-white">{activeCurrencySymbol}{(displayPrice || 0).toFixed(2)}</p>}{showVes && <p className="text-2xl font-bold text-gray-500 dark:text-gray-400">{formatVes(displayPrice)}</p>}</div>
+                            <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                                {showUsd && <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-ios-text dark:text-white">{activeCurrencySymbol}{(displayPrice || 0).toFixed(2)}</p>}
+                                {showVes && <p className="text-base sm:text-xl lg:text-2xl font-bold text-gray-500 dark:text-gray-400">{formatVes(displayPrice)}</p>}
+                            </div>
                         )}
                     </div>
 
                     {product.description && (
-                        <div className="mb-8">
-                            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg leading-relaxed font-normal whitespace-pre-line border-l-2 border-ios-blue/40 pl-5 tracking-normal">
+                        <div className="mb-5 sm:mb-7">
+                            <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base leading-relaxed font-normal whitespace-pre-line border-l-2 border-ios-blue/40 pl-3.5 sm:pl-4 tracking-normal">
                                 {product.description}
                             </p>
                         </div>
@@ -253,18 +274,18 @@ export const ProductDetail = () => {
 
                     {/* --- DISPONIBILIDAD EN SEDES (MODIFICADO: SOLO AL COMPLETAR SELECCIÓN) --- */}
                     {!loadingAvailability && branchAvailability.length > 0 && (!hasVariants || isSelectionComplete) && (
-                        <div className="mb-10 animate-fade-in">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="mb-5 sm:mb-8 animate-fade-in">
+                            <h4 className="text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5 sm:mb-3 flex items-center gap-1.5">
                                 <Store size={14} /> Disponibilidad en Tiendas
                             </h4>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5 sm:space-y-2">
                                 {branchAvailability.map(b => (
-                                    <div key={b.branchId} className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <div key={b.branchId} className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-2.5 sm:p-3 rounded-xl border border-gray-100 dark:border-white/5">
                                         <div className="flex items-center gap-2">
-                                            <MapPin size={16} className={b.stock > 0 ? "text-ios-blue" : "text-gray-400"} />
-                                            <span className="text-sm font-medium dark:text-gray-200">{b.branchName}</span>
+                                            <MapPin size={15} className={b.stock > 0 ? "text-ios-blue" : "text-gray-400"} />
+                                            <span className="text-xs sm:text-sm font-medium dark:text-gray-200">{b.branchName}</span>
                                         </div>
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${b.stock > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400'}`}>
+                                        <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-lg ${b.stock > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-200 text-gray-500 dark:bg-white/10 dark:text-gray-400'}`}>
                                             {b.stock > 0 ? 'Disponible' : 'Agotado'}
                                         </span>
                                     </div>
@@ -275,7 +296,7 @@ export const ProductDetail = () => {
 
                     {/* Selector de Variantes (Tonos y Tallas) */}
                     {hasVariants && (
-                        <div className="space-y-8 mb-12">
+                        <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
                             {(product.variantOptions || []).map(option => {
                                 const activeValues = option.values.filter(val =>
                                     product.variants?.some(v => v.selections && v.selections[option.name] === val)
@@ -284,11 +305,11 @@ export const ProductDetail = () => {
 
                                 return (
                                 <div key={option.name} className="animate-fade-in">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <label className="text-[10px] font-black text-ios-text dark:text-white uppercase tracking-[0.15em] opacity-40">{option.name}</label>
+                                    <div className="flex justify-between items-center mb-2.5 sm:mb-3">
+                                        <label className="text-[10px] font-black text-ios-text dark:text-white uppercase tracking-wider opacity-50">{option.name}</label>
                                         <span className="text-xs font-bold text-ios-blue">{selections[option.name]}</span>
                                     </div>
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex flex-wrap gap-2 sm:gap-3">
                                         {activeValues.map(val => {
                                             const isColor = option.type === 'color';
                                             const colorHex = option.colorValues?.[val] || '#ccc';
@@ -302,13 +323,13 @@ export const ProductDetail = () => {
                                                     key={val}
                                                     onClick={() => handleSelection(option.name, val)}
                                                     className={`
-                                    relative transition-all flex items-center justify-center group overflow-hidden
+                                    relative transition-all flex items-center justify-center group overflow-hidden active:scale-95
                                     ${isColor
-                                                            ? 'w-12 h-12 rounded-full border shadow-sm'
-                                                            : 'min-w-[48px] h-12 rounded-2xl border-2 px-4'
+                                                            ? 'w-10 h-10 sm:w-12 sm:h-12 rounded-full border shadow-2xs'
+                                                            : 'min-w-[42px] h-10 sm:min-w-[48px] sm:h-12 rounded-xl sm:rounded-2xl border-2 px-3 sm:px-4'
                                                         }
                                     ${isSelected
-                                                            ? 'border-ios-blue ring-4 ring-ios-blue/10 scale-110 z-10'
+                                                            ? 'border-ios-blue ring-3 sm:ring-4 ring-ios-blue/15 scale-105 z-10'
                                                             : 'border-gray-200 dark:border-white/10 hover:scale-105'
                                                         }
                                     ${!isColor && !isSelected ? 'bg-gray-50 dark:bg-white/5' : ''}
@@ -318,13 +339,13 @@ export const ProductDetail = () => {
                                                     {showImage ? (
                                                         <img src={variantImage} alt={val} className="w-full h-full object-cover" />
                                                     ) : !isColor ? (
-                                                        <span className={`text-xs font-bold ${isSelected ? 'text-ios-blue' : 'text-gray-600 dark:text-gray-300'}`}>{val}</span>
+                                                        <span className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-ios-blue' : 'text-gray-600 dark:text-gray-300'}`}>{val}</span>
                                                     ) : null}
 
                                                     {/* Indicador de Selección */}
                                                     {isSelected && isColor && (
                                                         <div className={`absolute inset-0 flex items-center justify-center ${showImage ? 'bg-black/20 backdrop-blur-[1px]' : ''}`}>
-                                                            <Check size={18} strokeWidth={3} className={!showImage && parseInt(colorHex.replace('#', ''), 16) > 0xffffff / 1.5 ? 'text-black' : 'text-white drop-shadow-md'} />
+                                                            <Check size={16} strokeWidth={3} className={!showImage && parseInt(colorHex.replace('#', ''), 16) > 0xffffff / 1.5 ? 'text-black' : 'text-white drop-shadow-md'} />
                                                         </div>
                                                     )}
                                                 </button>
@@ -337,14 +358,14 @@ export const ProductDetail = () => {
                         </div>
                     )}
 
-                    <div className="pb-16 lg:pb-0">
+                    <div className="pb-28 lg:pb-0">
                         <Button
                             onClick={() => isSelectionComplete && addToCart(product, selections, 1)}
                             disabled={!isSelectionComplete || !canBuy}
-                            className={`w-full py-5 text-lg font-black tracking-[0.2em] uppercase shadow-2xl rounded-[2rem] transition-all
+                            className={`w-full py-3.5 sm:py-4 text-sm sm:text-base font-bold sm:font-black tracking-wider sm:tracking-[0.15em] uppercase shadow-lg sm:shadow-2xl rounded-xl sm:rounded-2xl transition-all active:scale-[0.98]
                     ${!isSelectionComplete || !canBuy
                                     ? 'bg-gray-200 dark:bg-zinc-800 text-gray-400 dark:text-gray-600 shadow-none cursor-not-allowed'
-                                    : 'bg-ios-blue text-white shadow-ios-blue/30 hover:scale-[1.02]'
+                                    : 'bg-ios-blue text-white shadow-ios-blue/30 hover:brightness-105'
                                 }`}
                         >
                             {!isSelectionComplete

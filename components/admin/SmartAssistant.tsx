@@ -8,7 +8,8 @@ import {
     Mic, MicOff, Trash2, Copy, Check, ArrowRight, ExternalLink, RefreshCw,
     ShoppingBag, Clock, Coins, Layers, MapPin, Phone, Truck, ShieldCheck,
     Store, Tag, Calculator, Search, HelpCircle, CheckCircle2, Compass, Heart,
-    Trophy, Printer, Image as ImageIcon, LayoutDashboard, Bell, FileText
+    Trophy, Printer, Image as ImageIcon, LayoutDashboard, Bell, FileText, Smartphone,
+    Server
 } from 'lucide-react';
 import { queryGeminiAI, hasGeminiApiKey } from '../../services/geminiService';
 import { CURRENT_SYSTEM_VERSION, LATEST_RELEASE, VersionFeatureItem } from '../../data/versionUpdates';
@@ -75,7 +76,13 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
     // Tarjeta oficial de novedades de la versión
     const versionReleaseMessage: AssistantMessage = useMemo(() => ({
         id: 'version-release-' + CURRENT_SYSTEM_VERSION,
-        text: `🚀 **¡Nueva versión ARA v${CURRENT_SYSTEM_VERSION} disponible!**\n\n${LATEST_RELEASE.welcomeMessage}`,
+        text: `🚀 **¡Nueva versión ARA v${CURRENT_SYSTEM_VERSION} disponible!**\n\n${LATEST_RELEASE.welcomeMessage}\n\n` +
+            `🌐 **Migración a Servidor Nginx en VPS:** Máxima velocidad de carga con HTTP/2, compresión Gzip y SEO dinámico para WhatsApp y redes sociales.\n` +
+            `📱 **Fichas de Producto Mobile-First:** Títulos armoniosos, precios jerarquizados y galería adaptativa.\n` +
+            `🔍 **Catálogo & Búsqueda Mobile-First:** Prevención de auto-zoom en iOS Safari y cuadrícula fluida.\n` +
+            `⚡ **Preloader Minimalista Lyberate:** Carga instantánea a 0ms con shimmer y barra milimétrica.\n` +
+            `🧭 **Dock de Categorías Expandido:** Márgenes amplios para navegación táctil sin solapamientos.\n` +
+            `✨ **Portada Principal Depurada:** Experiencia ágil y directa hacia la conversión.`,
         sender: 'bot',
         type: 'version_release',
         data: LATEST_RELEASE,
@@ -185,6 +192,8 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
     // Renderizar iconos para las características de la versión
     const renderFeatureIcon = (iconName: string) => {
         switch (iconName) {
+            case 'Server': return <Server size={15} className="text-emerald-500" />;
+            case 'Smartphone': return <Smartphone size={15} className="text-blue-500" />;
             case 'Compass': return <Compass size={15} className="text-blue-500" />;
             case 'Heart': return <Heart size={15} className="text-rose-500 fill-rose-500/20" />;
             case 'Zap': return <Zap size={15} className="text-amber-500" />;
@@ -219,7 +228,15 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
         // 2. NOVEDADES Y ACTUALIZACIONES DE VERSIÓN (Sustituye al popup modal)
         if (q.includes('novedad') || q.includes('version') || q.includes('actualizacion') || q.includes('que hay de nuevo') || q.includes('cambios') || q.includes('changelog') || q.includes('release')) {
             return {
-                text: `🚀 **ARA Versión ${CURRENT_SYSTEM_VERSION} (${LATEST_RELEASE.releaseDate}):**\n\n${LATEST_RELEASE.subtitle}`,
+                text: `🚀 **ARA Versión ${CURRENT_SYSTEM_VERSION} (${LATEST_RELEASE.releaseDate}):**\n\n${LATEST_RELEASE.subtitle}\n\n` +
+                    `✨ **Mejoras destacadas en esta actualización:**\n` +
+                    `• **🌐 Migración a Servidor Nginx en VPS:** Carga ultrarrápida con HTTP/2, compresión Gzip y soporte SEO para WhatsApp y redes sociales.\n` +
+                    `• **📱 Fichas de Producto Mobile-First:** Títulos estilizados sin saturación, precios jerarquizados y galería táctil adaptativa.\n` +
+                    `• **🔍 Catálogo & Búsqueda Mobile-First:** Prevención de auto-zoom en Safari iOS y cuadrícula de 2 columnas balanceada.\n` +
+                    `• **⚡ Preloader Minimalista Tecnología Lyberate:** Carga instantánea a 0ms con shimmer y barra milimétrica.\n` +
+                    `• **🧭 Dock de Categorías Expandido:** Márgenes más anchos y navegación táctil cómoda.\n` +
+                    `• **✨ Portada Principal Depurada:** Foco directo en catálogo, colecciones y ventas.\n\n` +
+                    `A continuación puedes explorar el detalle interactivo de cada mejora:`,
                 type: 'version_release',
                 data: LATEST_RELEASE
             };
@@ -693,7 +710,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
                 { label: '💱 Tasa BCV & Paralelo', query: 'tasa de cambio' },
                 { label: '🏢 Cambiar Sede', query: 'cambiar sede' },
                 { label: '🏷️ Cupones Activos', query: 'cupones' },
-                { label: '🚀 Novedades v2.0', query: 'novedades de la version' },
+                { label: '🚀 Novedades v2.1', query: 'novedades de la version' },
             ];
         }
 
@@ -717,7 +734,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
 
         // General Admin / Dashboard
         return [
-            { label: '🚀 Novedades v2.0', query: 'novedades de la version' },
+            { label: '🚀 Novedades v2.1', query: 'novedades de la version' },
             { label: '⚡ Briefing Hoy', query: 'resumen de hoy' },
             { label: '📦 Pedidos Pendientes', query: 'pedidos pendientes' },
             { label: '💱 Tasas del Día', query: 'tasa de cambio' },

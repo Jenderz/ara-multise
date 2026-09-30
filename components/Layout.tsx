@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X, Tag, Sparkles, Copy } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { PWAInstallPrompt } from './PWAInstallPrompt';
 import { WishlistToast } from './WishlistToast';
 
 export const Navbar = () => {
@@ -768,9 +767,6 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
 
         </div>
       </div>
-
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
 
       {/* Estilos de animación para el botón flotante */}
       <style>{`

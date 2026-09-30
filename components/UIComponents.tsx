@@ -299,18 +299,20 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ label, value, onCh
         {value ? (
           <div className={`relative group ${aspectClass} w-full h-full`}>
             <LazyImage src={value} alt="Uploaded" className="w-full h-full object-contain relative z-10" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
+            <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 z-20">
               <button
                 onClick={() => window.open(value, '_blank')}
-                className="p-2 bg-white/20 backdrop-blur rounded-full text-white hover:bg-white/40"
+                className="p-2.5 bg-white/30 backdrop-blur rounded-full text-white hover:bg-white/50 active:scale-90 transition shadow-md"
                 type="button"
+                title="Ver imagen"
               >
                 <ImageIcon size={18} />
               </button>
               <button
                 onClick={() => onChange('')}
-                className="p-2 bg-red-500/80 backdrop-blur rounded-full text-white hover:bg-red-600"
+                className="p-2.5 bg-red-600 backdrop-blur rounded-full text-white hover:bg-red-700 active:scale-90 transition shadow-md"
                 type="button"
+                title="Eliminar imagen"
               >
                 <X size={18} />
               </button>

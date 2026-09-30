@@ -52,15 +52,25 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     setIsStandalone(isStandaloneMode);
 
-    // 4. Install Prompt Logic (Se delega al banner no intrusivo PWAInstallPrompt)
+    // 4. Install Prompt Logic (Se centraliza el evento para la app completa)
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setDeferredPrompt(null);
+      localStorage.setItem('pwa_install_dismissed', Date.now().toString());
+    };
 
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, [currentBranch]);
 
   // --- FUNCIÓN PRINCIPAL DE SUSCRIPCIÓN ---
@@ -152,6 +162,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
               if (outcome === 'accepted') {
                   setShowInstallModal(false);
               }
+              localStorage.setItem('pwa_install_dismissed', Date.now().toString());
           } catch (err) {
               console.debug('Error en install prompt:', err);
           } finally {

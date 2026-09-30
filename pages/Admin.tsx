@@ -106,7 +106,7 @@ export const Admin = () => {
     if (!userRole) {
         return (
             <div className="min-h-screen bg-ios-bg dark:bg-black flex flex-col items-center justify-center p-4">
-                <SEO title="Acceso Administrativo" description="Inicia sesión para gestionar tu tienda." />
+                <SEO title="Acceso Administrativo" description="Inicia sesión para gestionar tu tienda." noindex={true} />
                 <div className="w-full max-w-md bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-xl border border-white/50 dark:border-white/10 animate-fade-in">
                     <div className="text-center mb-8">
                         {settings.logoUrl ? <img src={settings.logoUrl} className="h-16 w-auto mx-auto object-contain mb-4" /> : <div className="w-16 h-16 bg-ios-blue rounded-2xl mx-auto mb-4" />}
@@ -136,7 +136,7 @@ export const Admin = () => {
 
     return (
         <div className="min-h-screen bg-[#F2F2F7] dark:bg-black flex flex-col lg:flex-row relative overflow-x-hidden w-full">
-            <SEO title={`Panel ${userRole === 'admin' ? 'Administrador' : 'Vendedor'}`} description="Gestión interna de la tienda." />
+            <SEO title={`Panel ${userRole === 'admin' ? 'Administrador' : 'Vendedor'}`} description="Gestión interna de la tienda." noindex={true} />
 
             {/* Mobile Header con soporte para Notch / Dynamic Island de iPhone */}
             <div className="lg:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 px-4 header-safe pb-3 flex justify-between items-center sticky top-0 z-30 shadow-sm">

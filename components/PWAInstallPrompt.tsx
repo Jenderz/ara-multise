@@ -1,78 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { useNotification } from '../context/NotificationContext';
 
-export const PWAInstallPrompt = () => {
+export const PWAInstallPrompt: React.FC = () => {
     const { settings } = useStore();
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const { deferredPrompt, isStandalone, installApp } = useNotification();
     const [isVisible, setIsVisible] = useState(false);
-    const [isInstalled, setIsInstalled] = useState(false);
 
     const appIcon = settings?.appIconUrl || settings?.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
 
     useEffect(() => {
-        // Detectar si ya está instalada
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            setIsInstalled(true);
+        // No mostrar si ya está instalada o no hay evento diferido
+        if (isStandalone || !deferredPrompt) {
+            setIsVisible(false);
+            return;
         }
 
-        const handleBeforeInstallPrompt = (e: any) => {
-            // Prevenir el mini-infobar automático de Chrome
-            e.preventDefault();
-            // Guardar el evento para dispararlo después
-            setDeferredPrompt(e);
-            // Mostrar nuestra propia UI
-            if (!localStorage.getItem('pwa_install_dismissed')) {
-                setIsVisible(true);
-            }
-        };
-
-        const handleAppInstalled = () => {
-            setIsInstalled(true);
+        // Revisar si ya fue descartado en los últimos 7 días
+        const dismissedAt = localStorage.getItem('pwa_install_dismissed');
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        if (dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < sevenDaysMs) {
             setIsVisible(false);
-            setDeferredPrompt(null);
-            console.log('PWA was installed');
-        };
+            return;
+        }
 
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        window.addEventListener('appinstalled', handleAppInstalled);
+        // Retraso no intrusivo (45 segundos): nunca aparecer de golpe al entrar a la página
+        // Permite que el usuario navegue primero con tranquilidad y no colisione con el aviso de notificaciones
+        const timer = setTimeout(() => {
+            setIsVisible(true);
+        }, 45000);
 
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-            window.removeEventListener('appinstalled', handleAppInstalled);
-        };
-    }, []);
+        return () => clearTimeout(timer);
+    }, [deferredPrompt, isStandalone]);
 
     const handleInstallClick = async () => {
-        if (!deferredPrompt) return;
-
-        deferredPrompt.prompt();
-
-        const choiceResult = await deferredPrompt.userChoice;
-
-        if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-        } else {
-            console.log('User dismissed the install prompt');
-        }
-
-        setDeferredPrompt(null);
         setIsVisible(false);
+        // Guardar para que nunca vuelva a salir de manera repetitiva
+        localStorage.setItem('pwa_install_dismissed', Date.now().toString());
+        await installApp();
     };
 
     const handleDismiss = () => {
         setIsVisible(false);
-        // No volver a mostrar en esta sesión (o usar localStorage con fecha para recordatorio en X días)
-        localStorage.setItem('pwa_install_dismissed', 'true');
+        // Descartar permanentemente por 7 días
+        localStorage.setItem('pwa_install_dismissed', Date.now().toString());
     };
 
-    // Si ya está instalada o no hay prompt diferido, no mostramos nada
-    if (isInstalled || !isVisible) return null;
+    // Si ya está instalada, no hay evento capturado o está oculta, no renderizar nada
+    if (isStandalone || !deferredPrompt || !isVisible) return null;
 
     return (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] left-4 right-4 z-50 flex justify-center animate-slide-up">
+        <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 z-[100] flex justify-center animate-slide-up pointer-events-auto">
             <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl rounded-2xl shadow-2xl p-3 sm:p-4 flex items-center justify-between gap-3 max-w-sm w-full border border-gray-100 dark:border-white/10">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                     <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-700 shadow-md border border-gray-100 dark:border-white/10 overflow-hidden p-0.5 shrink-0 flex items-center justify-center">
                         <img 
                             src={appIcon} 
@@ -85,23 +66,24 @@ export const PWAInstallPrompt = () => {
                             }}
                         />
                     </div>
-                    <div>
-                        <h4 className="font-bold text-sm dark:text-white leading-tight">Instalar {settings?.storeName || 'App'}</h4>
-                        <p className="text-[11px] text-gray-500 max-w-[170px] leading-tight mt-0.5">Acceso rápido desde tu pantalla de inicio.</p>
+                    <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-sm dark:text-white leading-tight truncate">Instalar {settings?.storeName || 'App'}</h4>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 truncate">Acceso rápido desde tu inicio</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                     <button
                         onClick={handleDismiss}
-                        aria-label="Cerrar"
-                        className="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+                        aria-label="Cerrar aviso de instalación"
+                        className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
                     >
                         <X size={18} />
                     </button>
                     <button
                         onClick={handleInstallClick}
-                        className="px-3.5 py-2 bg-ios-blue text-white text-xs font-bold rounded-xl shadow-lg shadow-ios-blue/30 hover:scale-105 active:scale-95 transition-all"
+                        className="px-3.5 py-2 bg-ios-blue text-white text-xs font-bold rounded-xl shadow-lg shadow-ios-blue/30 hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
                     >
+                        <Download size={14} />
                         Instalar
                     </button>
                 </div>

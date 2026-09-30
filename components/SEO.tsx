@@ -11,6 +11,8 @@ interface SEOProps {
   price?: number;
   currency?: string;
   availability?: boolean;
+  noindex?: boolean;
+  canonicalPath?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({ 
@@ -20,7 +22,9 @@ export const SEO: React.FC<SEOProps> = ({
   type = 'website',
   price,
   currency = 'USD',
-  availability = true
+  availability = true,
+  noindex = false,
+  canonicalPath
 }) => {
   const { settings } = useStore();
   
@@ -45,61 +49,142 @@ export const SEO: React.FC<SEOProps> = ({
         : `Bienvenido a ${settings.storeName}. Explora nuestro catálogo completo de productos, novedades y ofertas.`);
 
   // El usuario solicita que la imagen para compartir sea el icono PWA (cuadrado 1:1) en vez del logo rectangular
-  const metaImage = image || settings.appIconUrl || settings.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
-  const currentUrl = window.location.href;
+  const metaImage = image || settings.appIconUrl || settings.logoUrl || `${window.location.origin}/favicon.png`;
+
+  // URL canónica autoritativa: limpia de parámetros de tracking (?utm_*) y sin fragmentos de hash (#)
+  let canonicalUrl = `${window.location.origin}/`;
+  if (canonicalPath) {
+    canonicalUrl = `${window.location.origin}/${canonicalPath.replace(/^\/+/, '')}`;
+  } else {
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#/product/')) {
+      const prodSlug = hash.replace('#/product/', '').split('?')[0];
+      canonicalUrl = `${window.location.origin}/product/${prodSlug}`;
+    } else if (hash.startsWith('#/shop')) {
+      canonicalUrl = `${window.location.origin}/shop`;
+    } else if (hash.startsWith('#/about')) {
+      canonicalUrl = `${window.location.origin}/about`;
+    } else {
+      canonicalUrl = `${window.location.origin}/`;
+    }
+  }
 
   // Estructura de datos JSON-LD para Google (Rich Snippets)
-  let structuredData = null;
+  let structuredData: any = null;
 
   if (type === 'product') {
     structuredData = {
       "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": title,
-      "image": [metaImage],
-      "description": metaDescription,
-      "brand": {
-        "@type": "Brand",
-        "name": settings.storeName
-      },
-      "offers": {
-        "@type": "Offer",
-        "url": currentUrl,
-        "priceCurrency": currency,
-        "price": price,
-        "availability": availability ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        "seller": {
-          "@type": "Organization",
-          "name": settings.storeName
+      "@graph": [
+        {
+          "@type": "Product",
+          "name": title,
+          "image": [metaImage],
+          "description": metaDescription,
+          "brand": {
+            "@type": "Brand",
+            "name": settings.storeName
+          },
+          "offers": {
+            "@type": "Offer",
+            "url": canonicalUrl,
+            "priceCurrency": currency,
+            "price": price,
+            "availability": availability ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "itemCondition": "https://schema.org/NewCondition",
+            "seller": {
+              "@type": "Organization",
+              "name": settings.storeName
+            },
+            "hasMerchantReturnPolicy": {
+              "@type": "MerchantReturnPolicy",
+              "applicableCountry": "VE",
+              "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+              "merchantReturnDays": 7,
+              "returnMethod": "https://schema.org/ReturnInStore",
+              "returnFees": "https://schema.org/FreeReturn"
+            }
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Inicio",
+              "item": `${window.location.origin}/`
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Catálogo",
+              "item": `${window.location.origin}/shop`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": title || "Producto",
+              "item": canonicalUrl
+            }
+          ]
         }
-      }
+      ]
     };
   } else {
     structuredData = {
       "@context": "https://schema.org",
-      "@type": "Store",
-      "name": settings.storeName,
-      "url": window.location.origin,
-      "description": settings.seoDescription,
-      "image": settings.logoUrl,
-      "telephone": settings.whatsappNumber,
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": settings.contactAddress
-      }
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": `${window.location.origin}/#website`,
+          "url": `${window.location.origin}/`,
+          "name": settings.storeName,
+          "description": metaDescription,
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": `${window.location.origin}/shop?q={search_term_string}`
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": ["OnlineStore", "Organization"],
+          "@id": `${window.location.origin}/#organization`,
+          "name": settings.storeName,
+          "url": `${window.location.origin}/`,
+          "logo": {
+            "@type": "ImageObject",
+            "url": settings.logoUrl || metaImage
+          },
+          "image": metaImage,
+          "description": metaDescription,
+          "telephone": settings.whatsappNumber || undefined,
+          "address": settings.contactAddress ? {
+            "@type": "PostalAddress",
+            "streetAddress": settings.contactAddress
+          } : undefined
+        }
+      ]
     };
   }
-
-  // URL canónica limpia del producto (sin hash) para que los bots puedan rastrearla
-  // Ej: https://tienda.com/#/product/slug → https://tienda.com/product/slug
-  const canonicalUrl = currentUrl.replace('/#/product/', '/product/');
 
   return (
     <Helmet>
       {/* Etiquetas Estándar */}
       <title>{siteTitle}</title>
       <meta name="description" content={metaDescription} />
+      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
       <link rel="canonical" href={canonicalUrl} />
+
+      {/* Favicons Dinámicos Oficiales (Mismo Dominio) */}
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
       {/* Open Graph / WhatsApp / Facebook */}
       <meta property="og:type" content={type === 'product' ? 'product' : 'website'} />

@@ -110,6 +110,17 @@ root.render(
   </React.StrictMode>
 );
 
+// Desvanecer preloader HTML inicial al montar React
+const initialPreloader = document.getElementById('preloader');
+if (initialPreloader) {
+  initialPreloader.style.transition = 'opacity 0.4s ease, visibility 0.4s ease';
+  initialPreloader.style.opacity = '0';
+  initialPreloader.style.visibility = 'hidden';
+  setTimeout(() => {
+    try { initialPreloader.remove(); } catch (e) { }
+  }, 450);
+}
+
 // Detectar desajustes de chunks generados por nuevos builds (estándar oficial de Vite)
 window.addEventListener('vite:preloadError', (event) => {
   console.warn('Vite preload error (chunk no encontrado o desactualizado). Forzando recarga...', event);

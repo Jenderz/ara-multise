@@ -73,10 +73,16 @@ self.addEventListener('fetch', (event) => {
     url.pathname.includes('api.php') ||
     url.pathname.includes('rates.php') ||
     url.pathname.includes('seo-proxy.php') ||
+    url.pathname.includes('favicon.php') ||
+    url.pathname.includes('favicon.ico') ||
+    url.pathname.includes('robots.txt') ||
+    url.pathname.includes('robots.php') ||
+    url.pathname.includes('sitemap.xml') ||
+    url.pathname.includes('sitemap.php') ||
     url.pathname.includes('cron_notifications.php') ||
     url.search.includes('action=')
   ) {
-    return; // Permite la petición nativa directa al servidor Nginx
+    return; // Permite la petición nativa directa al servidor
   }
 
   // Imágenes: Cache First

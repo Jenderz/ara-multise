@@ -5,8 +5,8 @@ import { api } from '../services/api';
 
 const DEFAULT_GENERAL: GeneralConfig = {
     storeName: 'Mi Tienda Virtual',
-    logoUrl: 'https://orgemac.com/api/uploads/img_1767849584_a1254615.png',
-    appIconUrl: 'https://cdn-icons-png.flaticon.com/512/3081/3081559.png',
+    logoUrl: '/favicon.png',
+    appIconUrl: '/favicon.png',
     whatsappNumber: '',
     aboutUsText: "Somos una tienda comprometida con la calidad.",
     footerDescription: '',
@@ -252,7 +252,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const shortName = settings.storeName 
             ? (settings.storeName.length > 12 ? settings.storeName.substring(0, 12) : settings.storeName)
             : (settings.seoTitle ? (settings.seoTitle.length > 12 ? settings.seoTitle.substring(0, 12) : settings.seoTitle) : 'Tienda');
-        const appIcon = settings.appIconUrl || settings.logoUrl || 'https://cdn-icons-png.flaticon.com/512/3081/3081559.png';
+        const appIcon = settings.appIconUrl || settings.logoUrl || '/favicon.png';
         const themeColor = settings.primaryColor || '#007AFF';
 
         document.title = settings.seoTitle || settings.storeName || appTitle;

@@ -3,8 +3,17 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Favicon & Iconos Oficiales Dinámicos (Google Search & PWA) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" id="app-favicon-ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" id="app-favicon-png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" id="app-touch-icon" />
+    <!-- Manifest absoluto para evitar que el bundler lo reubique en /assets/ -->
+    <link rel="manifest" href="/manifest.json" id="app-manifest">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
@@ -13,16 +22,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tienda" id="app-title-meta">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" id="app-touch-icon">
-    <!-- Manifest absoluto para evitar que el bundler lo reubique en /assets/ -->
-    <link rel="manifest" href="/manifest.json" id="app-manifest">
     
     <!-- Open Graph Fallbacks (WhatsApp, Facebook, Twitter) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tienda Oficial" id="og-site-name" />
     <meta property="og:title" content="Catálogo Online Oficial" id="og-title" />
     <meta property="og:description" content="Explora nuestro catálogo de productos, novedades y ofertas exclusivas." id="og-desc" />
-    <meta property="og:image" content="/icon.png" id="og-image" />
+    <meta property="og:image" content="/favicon.png" id="og-image" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
 
@@ -52,10 +58,14 @@
               var ogSiteName = document.getElementById('og-site-name');
               if (ogSiteName && storeName) ogSiteName.setAttribute('content', storeName);
 
-              var icon = s.appIconUrl || s.logoUrl || '/icon.png';
+              var icon = s.appIconUrl || s.logoUrl || '/favicon.png';
               if (icon) {
                 var touchIcon = document.getElementById('app-touch-icon');
                 if (touchIcon) touchIcon.setAttribute('href', icon);
+                var favIco = document.getElementById('app-favicon-ico');
+                if (favIco) favIco.setAttribute('href', icon);
+                var favPng = document.getElementById('app-favicon-png');
+                if (favPng) favPng.setAttribute('href', icon);
                 var ogImage = document.getElementById('og-image');
                 if (ogImage) ogImage.setAttribute('content', icon);
               }
@@ -67,27 +77,27 @@
     <!-- Google Fonts Import -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&family=Outfit:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!--
     ┌─────────────────────────────────────────────────────────────────────────┐
     │  SEO PROXY REDIRECT SCRIPT                                              │
-    │  Detecta URLs limpias de producto (/product/slug) y redirige           │
-    │  al hash route (/#/product/slug) que usa React HashRouter.             │
-    │                                                                         │
-    │  Flujo:                                                                 │
-    │  1. Bot WhatsApp → .htaccess → seo-proxy.php → OG tags ✅             │
-    │  2. Humano → /product/slug → index.html → ESTE SCRIPT redirige         │
-    │     a /#/product/slug → React carga producto correcto ✅               │
+    │  Detecta URLs limpias (/product/slug, /shop, /about) y redirige         │
+    │  al hash route correspondiente que usa React HashRouter.               │
     └─────────────────────────────────────────────────────────────────────────┘
   -->
   <script>
     (function() {
       var path = window.location.pathname;
-      var match = path.match(/^\/product\/(.+)$/);
-      if (match && !window.location.hash) {
-        // Redirigir de /product/SLUG → /#/product/SLUG sin agregar al historial
-        window.location.replace('/#/product/' + match[1]);
+      if (!window.location.hash) {
+        var prodMatch = path.match(/^\/product\/(.+)$/);
+        if (prodMatch) {
+          window.location.replace('/#/product/' + prodMatch[1]);
+        } else if (path === '/shop' || path === '/shop/') {
+          window.location.replace('/#/shop');
+        } else if (path === '/about' || path === '/about/') {
+          window.location.replace('/#/about');
+        }
       }
     })();
   </script>
@@ -110,9 +120,214 @@
 }
 </script>
 
+  <style>
+    /* Preloader Minimalista - Tecnología Lyberate */
+    .preloader-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffffff;
+      z-index: 99999;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .dark .preloader-screen {
+      background-color: #000000;
+    }
+
+    .preloader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lyberate-svg {
+      width: 84px;
+      height: 84px;
+      display: block;
+      filter: drop-shadow(0 10px 18px rgba(126, 34, 206, 0.12));
+      animation: gentle-float 3.5s ease-in-out infinite alternate;
+    }
+
+    .light-sweep-group {
+      animation: shimmer-glide 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .branding {
+      margin-top: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .sub-brand {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.55em;
+      text-transform: uppercase;
+      color: #9333ea;
+      margin-bottom: 3px;
+      padding-left: 0.55em;
+      opacity: 0.85;
+    }
+
+    .main-brand {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #0f172a;
+      padding-left: 0.35em;
+    }
+
+    .dark .main-brand {
+      color: #f8fafc;
+    }
+
+    .progress-track {
+      width: 64px;
+      height: 1.5px;
+      background: #f1f5f9;
+      border-radius: 99px;
+      margin-top: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dark .progress-track {
+      background: #1e293b;
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 45%;
+      background: linear-gradient(90deg, transparent, #c084fc, #7e22ce, transparent);
+      border-radius: 99px;
+      animation: track-runner 1.6s ease-in-out infinite;
+    }
+
+    @keyframes gentle-float {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-5px); }
+    }
+
+    @keyframes shimmer-glide {
+      0% { transform: translate(-2200px, -2200px); }
+      30%, 100% { transform: translate(2200px, 2200px); }
+    }
+
+    @keyframes track-runner {
+      0% { left: -45%; }
+      100% { left: 100%; }
+    }
+  </style>
+
 </head>
   <body>
+    <div class="preloader-screen" id="preloader">
+      <div class="preloader-content">
+        <!-- SVG Original Lyberate con dimensiones compactas -->
+        <svg class="lyberate-svg" viewBox="0 0 2048 2048" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="Gradient1" x1="588.142" x2="865.275" y1="411.729" y2="110.386" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ad50ed"/>
+              <stop offset="1" stop-color="#cc68ff"/>
+            </linearGradient>
+
+            <linearGradient id="Gradient2" x1="650.756" x2="1120.67" y1="719.615" y2="601.777" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#471586"/>
+              <stop offset="1" stop-color="#7c2fc0"/>
+            </linearGradient>
+
+            <linearGradient id="Gradient3" x1="611.92" x2="1197.31" y1="1431.41" y2="920.996" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#431482"/>
+              <stop offset="1" stop-color="#963ddc"/>
+            </linearGradient>
+
+            <linearGradient id="Gradient4" x1="462.685" x2="1171.42" y1="1674.89" y2="909.2" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#6927a9"/>
+              <stop offset="1" stop-color="#b956f8"/>
+            </linearGradient>
+
+            <linearGradient id="shimmerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="48%" stop-color="#ffffff" stop-opacity="0.1"/>
+              <stop offset="50%" stop-color="#ffffff" stop-opacity="0.8"/>
+              <stop offset="52%" stop-color="#ffffff" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+            </linearGradient>
+
+            <mask id="logo-silhouette">
+              <path fill="#ffffff" d="m516.68 316.015 1.65-1.024c9.154-5.761 20.585-15.303 29.579-21.695a992 992 0 0 1 55.45-35.989 865.7 865.7 0 0 1 225.763-95.649c26.542-7.25 57.965-12.817 82.635-19.96-83.176 84.878-140.661 186.15-186.429 294.884 57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201 66.87 187.886 211.769 340.816 390.941 426.096 167.98 79.95 361.95 88.39 540.32 42.84 6.96-2.22 14.3-3.98 21.36-5.94 33.72-9.38 67.07-21.07 99.71-33.67 35.78-13.81 69.48-31.02 103.48-48.55 21.39-12.08 37.58-22.59 58.23-36.23-3.17 19.04-23.5 63.84-32.07 81.91l-9.69 18.12a972.3 972.3 0 0 1-148.87 205.01c-5.02 5.35-26.22 27.49-31.7 31.15-28.79 25.41-49.16 45.01-81.03 69.48-195.31 147.44-441.34 210.94-683.605 176.43-207.869-28.18-399.353-128.13-541.336-282.54a1112 1112 0 0 1-67.384-81.12c-133.078-175.49-191.609-396.37-162.899-614.739 24.426-183.183 95.707-352.605 220.448-489.72 30.124-33.112 62.264-66.553 97.897-93.818 1.352-2.149 20.195-17.235 22.962-18.569z"/>
+              <path fill="#ffffff" d="M725.328 436.582c57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201 66.87 187.886 211.769 340.816 390.941 426.096 167.98 79.95 361.95 88.39 540.32 42.84-3.21 8.6-10.68 5.89-14.6 12.27 4.48 4.81 43.07 14.7 45.47 17.85-16.16 7.4-36.63 16.64-53.25 23.07-82.57 28.7-150.36 49.34-236.85 65.04-209.77 39.77-411.607 17.24-605.756-70.06-187.574-84.35-329.22-209.64-438.026-384.42-29.862-47.97-59.795-100.75-79.651-154.25a793 793 0 0 1 31.419-99.384c65.778-166.643 190.093-317.189 356.754-389.449 25.481-11.071 44.604-17.348 70.871-25.825z"/>
+              <path fill="#ffffff" d="M725.328 436.582c57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201-54.316-163.548-61.951-333.038-5.497-495.931 4.205-12.131 10.396-28.067 13.139-40.291z"/>
+              <path fill="#ffffff" d="m516.68 316.015 1.65-1.024c9.154-5.761 20.585-15.303 29.579-21.695a992 992 0 0 1 55.45-35.989 865.7 865.7 0 0 1 225.763-95.649c26.542-7.25 57.965-12.817 82.635-19.96-83.176 84.878-140.661 186.15-186.429 294.884l-1.597.78c-26.267 8.477-45.39 14.754-70.871 25.825l-.067-1.629c5.895-3.277 19.536-6.724 21.661-12.043-6.17-6.092-14.742-12.191-22.919-15.047-7.13-2.49-5.786-7.854-6.703-8.255-8.489-3.706-23.658-2.143-30.531-8.34-6.269-5.651-12.339-1.76-20.418-3.172-10.289-8.211-23.356-20.554-27.579-33.376 1.738-5.508 2.144-5.586-1.371-10.186-4.321-1.928-6.659-1.2-11.532-.846l-1.857.143c-1.345-4.518-2.067-9.235-2.834-13.481-1.394-7.714-16.768-12.013-22.764-16.754-3.278-2.592-2.668-5.919-6.453-9.174l-1.811.523c-1.123 2.217-1.587 3.602-3.374 5.301l-3.279-1.924-2.564 1.781-.534-1.837c2.416-2.582 4.574-2.83 8.164-4.211 1.743-3.084 2.056-6.69 2.656-10.23l.404.956.64-1.073c-1.075-3.296-.202-1.823-3.115-4.298"/>
+            </mask>
+          </defs>
+
+          <g>
+            <path fill="url(#Gradient4)" d="m516.68 316.015 1.65-1.024c9.154-5.761 20.585-15.303 29.579-21.695a992 992 0 0 1 55.45-35.989 865.7 865.7 0 0 1 225.763-95.649c26.542-7.25 57.965-12.817 82.635-19.96-83.176 84.878-140.661 186.15-186.429 294.884 57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201 66.87 187.886 211.769 340.816 390.941 426.096 167.98 79.95 361.95 88.39 540.32 42.84 6.96-2.22 14.3-3.98 21.36-5.94 33.72-9.38 67.07-21.07 99.71-33.67 35.78-13.81 69.48-31.02 103.48-48.55 21.39-12.08 37.58-22.59 58.23-36.23-3.17 19.04-23.5 63.84-32.07 81.91l-9.69 18.12a972.3 972.3 0 0 1-148.87 205.01c-5.02 5.35-26.22 27.49-31.7 31.15-28.79 25.41-49.16 45.01-81.03 69.48-195.31 147.44-441.34 210.94-683.605 176.43-207.869-28.18-399.353-128.13-541.336-282.54a1112 1112 0 0 1-67.384-81.12c-133.078-175.49-191.609-396.37-162.899-614.739 24.426-183.183 95.707-352.605 220.448-489.72 30.124-33.112 62.264-66.553 97.897-93.818 1.352-2.149 20.195-17.235 22.962-18.569z"/>
+            <path fill="url(#Gradient3)" d="M725.328 436.582c57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201 66.87 187.886 211.769 340.816 390.941 426.096 167.98 79.95 361.95 88.39 540.32 42.84-3.21 8.6-10.68 5.89-14.6 12.27 4.48 4.81 43.07 14.7 45.47 17.85-16.16 7.4-36.63 16.64-53.25 23.07-82.57 28.7-150.36 49.34-236.85 65.04-209.77 39.77-411.607 17.24-605.756-70.06-187.574-84.35-329.22-209.64-438.026-384.42-29.862-47.97-59.795-100.75-79.651-154.25a793 793 0 0 1 31.419-99.384c65.778-166.643 190.093-317.189 356.754-389.449 25.481-11.071 44.604-17.348 70.871-25.825z"/>
+            <path fill="url(#Gradient2)" d="M725.328 436.582c57.172-13.938 80.258-17.868 139.691-17.641 72.748.277 121.115 11.052 187.811 40.963 71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-12.59 2.34-25.94 3.206-38.59 5.557-52.34 9.721-112.424 26.072-159.246 51.97-5.637 2.775-11.942 5.698-17.276 8.873-80.948 43.226-152.405 129.388-188.131 212.975-3.105 7.265-9.41 21.114-11.758 28.201-54.316-163.548-61.951-333.038-5.497-495.931 4.205-12.131 10.396-28.067 13.139-40.291z"/>
+            <path fill="#8837cb" d="M1052.83 459.904c71.62 35.157 137.21 93.145 182.47 158.516 8.98 12.982 21.74 31.585 27.01 46.301-11.11-.138-21.43-1.471-32.07-1.656-33.32-.581-65.97-.736-99.15 2.943-4.54-.654-8.33-.341-12.9-.19l-.58-.932c12.84-6.731 14.98-10.688 12.32-23.978l.05 1.53c-2.03-8.829-13.82-58.505-24.16-58.779l-1.83 2.616c-4.99-3.999-.25-14.796-3.02-21.75q-1.065.945-2.13 1.863c-1.61-4.089-5.7-15.035-7.96-18.324-3.94-5.735-13.39-14.793-16.27-21.219-3.81-8.097-5.49-18.395-9.37-26.362-4.2-8.649-9.5-12.98-12.31-22.895-1.43-5.056-9.02-6.961-7.63-14.938 3.47-2.884 2.4-1.987 7.53-2.746"/>
+            <path fill="url(#Gradient1)" d="m516.68 316.015 1.65-1.024c9.154-5.761 20.585-15.303 29.579-21.695a992 992 0 0 1 55.45-35.989 865.7 865.7 0 0 1 225.763-95.649c26.542-7.25 57.965-12.817 82.635-19.96-83.176 84.878-140.661 186.15-186.429 294.884l-1.597.78c-26.267 8.477-45.39 14.754-70.871 25.825l-.067-1.629c5.895-3.277 19.536-6.724 21.661-12.043-6.17-6.092-14.742-12.191-22.919-15.047-7.13-2.49-5.786-7.854-6.703-8.255-8.489-3.706-23.658-2.143-30.531-8.34-6.269-5.651-12.339-1.76-20.418-3.172-10.289-8.211-23.356-20.554-27.579-33.376 1.738-5.508 2.144-5.586-1.371-10.186-4.321-1.928-6.659-1.2-11.532-.846l-1.857.143c-1.345-4.518-2.067-9.235-2.834-13.481-1.394-7.714-16.768-12.013-22.764-16.754-3.278-2.592-2.668-5.919-6.453-9.174l-1.811.523c-1.123 2.217-1.587 3.602-3.374 5.301l-3.279-1.924-2.564 1.781-.534-1.837c2.416-2.582 4.574-2.83 8.164-4.211 1.743-3.084 2.056-6.69 2.656-10.23l.404.956.64-1.073c-1.075-3.296-.202-1.823-3.115-4.298"/>
+            <path fill="#b758f4" d="M1871.9 1354.36c21.39-12.08 37.58-22.59 58.23-36.23-3.17 19.04-23.5 63.84-32.07 81.91l-9.69 18.12a972.3 972.3 0 0 1-148.87 205.01c-5.02 5.35-26.22 27.49-31.7 31.15-6.53 1.35-14.59 9-18.89 14.1l-2.15-.43c-1.35-4.88 16.91-24.92-3.76-31.08l-7.32-2.16c5.79-8.87-.97-11.76-7.3-16.52-2.56 1.47-4.52 2.72-6.98 4.36-.56-5.14-1.69-9.37-4.74-13.53-3.57-1.65-11.95.28-16.67.9.1-2.31 1-15.08-1.09-16.17-2.38-1.23-9.03-2.25-11.72-1.43-2.67-4.45-3.67-13.78-6.27-18.9-7.04-13.89-15.71-14.39-14.23-31.2-3.26-4.05-5.31-1.52-6.36-2.59-3.69-3.69-9.15-8.51-12.77-12.1-5.34-5.3-11.88-1.85-15.54-6.7 3.6-12.14 48.42-15.89 52.96-25.16 16.62-6.43 37.09-15.67 53.25-23.07-2.4-3.15-40.99-13.04-45.47-17.85 3.92-6.38 11.39-3.67 14.6-12.27 6.96-2.22 14.3-3.98 21.36-5.94 33.72-9.38 67.07-21.07 99.71-33.67 35.78-13.81 69.48-31.02 103.48-48.55"/>
+            <path fill="#8837cb" d="M1647.35 1442.52c6.96-2.22 14.3-3.98 21.36-5.94 33.72-9.38 67.07-21.07 99.71-33.67 35.78-13.81 69.48-31.02 103.48-48.55.25 1.93.77 2.51-.35 3.55-6.05 5.63-15.34 11.5-21.93 16.45-44.47 33.37-92.53 62.49-142.94 85.92-4.02 1.87-24.92 11.43-28.46 12.36-2.4-3.15-40.99-13.04-45.47-17.85 3.92-6.38 11.39-3.67 14.6-12.27"/>
+            <path fill="#b758f4" d="M489.891 338.293c1.352-2.149 20.195-17.235 22.962-18.569-.848 6.492-16.038 17.327-21.798 19.457z"/>
+          </g>
+
+          <!-- Reflejo interior -->
+          <mask id="logo-silhouette-inner">
+            <use href="#logo-silhouette"/>
+          </mask>
+          <g mask="url(#logo-silhouette)">
+            <g class="light-sweep-group">
+              <rect x="-1000" y="-1000" width="4000" height="4000" fill="url(#shimmerGradient)"/>
+            </g>
+          </g>
+        </svg>
+
+        <!-- Tipografía Minimalista -->
+        <div class="branding">
+          <span class="sub-brand">TECNOLOGÍA</span>
+          <span class="main-brand">LYBERATE</span>
+        </div>
+
+        <!-- Barra de progreso tipo hairline -->
+        <div class="progress-track">
+          <div class="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+
+    <script>
+      (function() {
+        function dismissPreloader() {
+          var p = document.getElementById('preloader');
+          if (p && !p.classList.contains('dismissed')) {
+            p.classList.add('dismissed');
+            p.style.opacity = '0';
+            p.style.visibility = 'hidden';
+            setTimeout(function() {
+              if (p && p.parentNode) p.parentNode.removeChild(p);
+            }, 550);
+          }
+        }
+        window.addEventListener('load', function() {
+          setTimeout(dismissPreloader, 400);
+        });
+      })();
+    </script>
+  </body>
 </html>

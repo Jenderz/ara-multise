@@ -45,9 +45,16 @@
 
   # 2.1 SEO BOT PRE-RENDERER PARA RAÍZ / WISHLIST / CATÁLOGO
   RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|Slackbot-LinkExpanding|TelegramBot|LinkedInBot|Discordbot|Pinterestbot|Googlebot|bingbot|Applebot|Embedly|vkShare|outbrain) [NC]
-  RewriteCond %{REQUEST_URI} !^/(assets|uploads|lib|api\.php|sw\.js|manifest) [NC]
+  RewriteCond %{REQUEST_URI} !^/(assets|uploads|lib|api\.php|sw\.js|manifest|favicon|robots|sitemap) [NC]
   RewriteCond %{REQUEST_URI} !^/product/ [NC]
   RewriteRule ^ /seo-proxy.php?mode=store [L,QSA]
+
+  # 2.2 FAVICONS E ICONOS DINÁMICOS (MARCA BLANCA - GOOGLEBOT SEARCH CENTRAL)
+  RewriteRule ^(favicon\.ico|favicon\.png|apple-touch-icon\.png|apple-touch-icon-precomposed\.png)$ favicon.php?type=$1 [L,QSA]
+
+  # 2.3 ROBOTS.TXT Y SITEMAP.XML DINÁMICOS
+  RewriteRule ^robots\.txt$ robots.php [L,QSA]
+  RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
 
   # 2.5 MANIFEST DINÁMICO PWA (Nombre e icono dinámicos según configuración en BD)
   RewriteRule ^manifest\.json$ manifest.json.php [L,QSA]
@@ -69,9 +76,9 @@
     Header set Cache-Control "max-age=31536000, public, immutable"
   </FilesMatch>
 
-  # Service Worker, Manifest e Index: NUNCA CACHEAR (Debe tener máxima precedencia sobre .js y .html)
+  # Service Worker, Manifest, SEO e Index: Manejo dinámico directo
   # Se limpian cabeceras previas (unset) para evitar que Cloudflare o proxies hereden max-age de la regla anterior.
-  <FilesMatch "(sw\.js|manifest\.json|manifest\.php|manifest\.json\.php|index\.html)$">
+  <FilesMatch "(sw\.js|manifest\.json|manifest\.php|manifest\.json\.php|robots\.txt|robots\.php|sitemap\.xml|sitemap\.php|favicon\.php|index\.html)$">
     Header unset Cache-Control
     Header unset Pragma
     Header unset Expires

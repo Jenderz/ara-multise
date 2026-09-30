@@ -8,12 +8,12 @@ export const NotificationSystem = () => {
     const [hidePermissionBanner, setHidePermissionBanner] = useState(true);
 
     useEffect(() => {
-        // Mostrar el banner de permiso tras 3.5 segundos si está en 'default' y no ha sido descartado recientemente
+        // Mostrar el banner de permiso a los 25 segundos (aproximadamente entre 20 y 30 segundos) si está en 'default' y no ha sido descartado
         if (permission === 'default' && typeof window !== 'undefined') {
             const dismissedAt = localStorage.getItem('pwa_push_dismissed');
-            const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-            if (!dismissedAt || (Date.now() - parseInt(dismissedAt, 10)) > threeDaysMs) {
-                const timer = setTimeout(() => setHidePermissionBanner(false), 3500);
+            const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+            if (!dismissedAt || (Date.now() - parseInt(dismissedAt, 10)) > sevenDaysMs) {
+                const timer = setTimeout(() => setHidePermissionBanner(false), 25000);
                 return () => clearTimeout(timer);
             }
         }
@@ -56,7 +56,7 @@ export const NotificationSystem = () => {
 
             {/* 2. PROMPT PERMISO NOTIFICACIONES PUSH (Amigable y elegante para clientes) */}
             {permission === 'default' && !hidePermissionBanner && (
-                <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 z-[105] max-w-sm bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-[0_12px_40px_rgb(0,0,0,0.18)] rounded-2xl p-4 animate-slide-up">
+                <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 z-[105] max-w-sm bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-[0_12px_40px_rgb(0,0,0,0.18)] rounded-2xl p-4 animate-slide-up">
                     <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl bg-ios-blue/10 dark:bg-ios-blue/20 text-ios-blue flex items-center justify-center shrink-0">
                             <Bell size={20} className="animate-pulse" />

@@ -182,7 +182,7 @@ export const Wishlist = () => {
 
     return (
         <ShopLayout>
-            <SEO title="Lista de Deseos" description="Tus productos favoritos guardados para comprar después." />
+            <SEO title="Lista de Deseos" description="Tus productos favoritos guardados para comprar después." noindex={true} />
 
             <div className="mb-16 max-w-7xl mx-auto px-2">
                 {/* Header con botón de retorno y título */}

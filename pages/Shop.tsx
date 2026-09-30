@@ -241,28 +241,28 @@ export const Shop = () => {
             />
             <div className="mb-20">
                 {/* Cabecera del Catálogo */}
-                <div className="flex justify-between items-end mb-6 px-2">
-                    <div>
-                        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-3">
+                <div className="flex justify-between items-center sm:items-end mb-3.5 sm:mb-5 px-1 sm:px-2 gap-2 sm:gap-3">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-2 sm:gap-3 leading-tight truncate">
                             {showOffersOnly ? (
                                 <>
                                     <span className="text-red-500">Ofertas</span>
-                                    <Zap className="fill-red-500 text-red-500" size={30} />
+                                    <Zap className="fill-red-500 text-red-500 shrink-0" size={22} />
                                 </>
                             ) : (
-                                selectedCategory === 'Todos' ? 'Explorar' : selectedCategory
+                                selectedCategory === 'Todos' ? 'Catálogo' : selectedCategory
                             )}
                         </h1>
-                        <p className="text-[10px] text-ios-subtext dark:text-gray-500 uppercase tracking-widest font-black mt-1">
-                            {filteredProducts.length} Artículos Disponibles
+                        <p className="text-[10px] sm:text-xs text-ios-subtext dark:text-gray-500 uppercase tracking-wider font-bold mt-0.5 sm:mt-1">
+                            {filteredProducts.length} {filteredProducts.length === 1 ? 'Artículo Disponible' : 'Artículos Disponibles'}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                         {/* Botón de Búsqueda Compacto en Catálogo */}
                         <button
                             onClick={() => setIsSearchExpanded(prev => !prev)}
-                            className={`p-2 sm:px-3 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-semibold shadow-xs active:scale-95 ${
+                            className={`p-2 sm:px-3 rounded-xl sm:rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-semibold shadow-2xs active:scale-95 ${
                                 isSearchExpanded || searchTerm
                                     ? 'bg-ios-blue text-white border-ios-blue shadow-ios-blue/20'
                                     : 'bg-white/80 dark:bg-zinc-900/80 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-ios-blue hover:border-ios-blue/40'
@@ -275,20 +275,20 @@ export const Shop = () => {
                         </button>
 
                         {/* Selector de Cuadrícula en Móvil (1 Columna Grande vs 2 Columnas) */}
-                        <div className="flex md:hidden items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl p-1 shadow-sm">
+                        <div className="flex md:hidden items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-xl sm:rounded-2xl p-0.5 sm:p-1 shadow-2xs">
                             <button
                                 onClick={() => setMobileColumns(1)}
-                                className={`p-2 rounded-xl transition-all ${mobileColumns === 1 ? 'bg-ios-blue text-white shadow-sm scale-105' : 'text-gray-400'}`}
+                                className={`p-1.5 rounded-lg transition-all ${mobileColumns === 1 ? 'bg-ios-blue text-white shadow-xs scale-105' : 'text-gray-400'}`}
                                 aria-label="Vista 1 columna grande"
                             >
-                                <Square size={16} />
+                                <Square size={15} />
                             </button>
                             <button
                                 onClick={() => setMobileColumns(2)}
-                                className={`p-2 rounded-xl transition-all ${mobileColumns === 2 ? 'bg-ios-blue text-white shadow-sm scale-105' : 'text-gray-400'}`}
+                                className={`p-1.5 rounded-lg transition-all ${mobileColumns === 2 ? 'bg-ios-blue text-white shadow-xs scale-105' : 'text-gray-400'}`}
                                 aria-label="Vista 2 columnas"
                             >
-                                <LayoutGrid size={16} />
+                                <LayoutGrid size={15} />
                             </button>
                         </div>
 
@@ -311,7 +311,7 @@ export const Shop = () => {
                                 placeholder="Buscar por nombre, categoría, variante o código..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-transparent outline-none text-xs font-medium text-ios-text dark:text-white placeholder-gray-400 py-1.5"
+                                className="w-full bg-transparent outline-none text-sm sm:text-xs font-medium text-ios-text dark:text-white placeholder-gray-400 py-1.5"
                             />
                             {searchTerm ? (
                                 <button 
@@ -334,7 +334,7 @@ export const Shop = () => {
                 )}
 
                 {/* DYNAMIC GLASS PILL DOCK (Flujo natural sin sticky invasivo que tape productos) */}
-                <div className="mb-4 sm:mb-5">
+                <div className="mt-2 sm:mt-3 mb-5 sm:mb-7">
                     <DynamicPillDock
                         selectedCategory={selectedCategory}
                         onSelectCategory={handleCategoryChange}
@@ -345,9 +345,9 @@ export const Shop = () => {
 
                 {/* PÍLDORAS DE FILTROS ACTIVOS DESMAYABLES */}
                 {(showOffersOnly || searchTerm || selectedCategory !== 'Todos') && (
-                    <div className="flex items-center gap-2 flex-wrap mb-6 px-1 animate-fade-in">
+                    <div className="flex items-center gap-2 flex-wrap mb-4 sm:mb-6 px-1 animate-fade-in">
                         {selectedCategory !== 'Todos' && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-ios-blue text-white shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-bold bg-ios-blue text-white shadow-xs">
                                 <span>{selectedCategory}</span>
                                 <button onClick={() => handleCategoryChange('Todos')} className="hover:opacity-75">
                                     <X size={13} />
@@ -355,7 +355,7 @@ export const Shop = () => {
                             </span>
                         )}
                         {showOffersOnly && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-red-500 text-white shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-bold bg-red-500 text-white shadow-xs">
                                 <span>Solo Ofertas</span>
                                 <button onClick={handleToggleOffers} className="hover:opacity-75">
                                     <X size={13} />
@@ -363,7 +363,7 @@ export const Shop = () => {
                             </span>
                         )}
                         {searchTerm && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-gray-200 dark:bg-zinc-800 text-ios-text dark:text-white">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-bold bg-gray-200 dark:bg-zinc-800 text-ios-text dark:text-white">
                                 <span>"{searchTerm}"</span>
                                 <button onClick={() => setSearchTerm('')} className="hover:text-red-500">
                                     <X size={13} />
@@ -377,7 +377,7 @@ export const Shop = () => {
                 )}
 
                 {/* Cuadrícula de Productos Adaptable */}
-                <div className={`grid ${mobileColumns === 1 ? 'grid-cols-1 max-w-lg mx-auto' : 'grid-cols-2'} lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 transition-all duration-300`}>
+                <div className={`grid ${mobileColumns === 1 ? 'grid-cols-1 max-w-lg mx-auto' : 'grid-cols-2'} lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6 transition-all duration-300`}>
                     {visibleProducts.map(product => (
                         <ProductCard key={product.id} product={product} />
                     ))}

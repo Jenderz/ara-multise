@@ -33,13 +33,25 @@
 
   # ─────────────────────────────────────────────────────────────────────────
   # 2. SEO BOT PRE-RENDERER — Detecta bots de redes sociales (WhatsApp,
-  #    Facebook, Telegram, etc.) en URLs de producto y los envía a
-  #    seo-proxy.php para que reciban los Open Graph tags correctos.
-  #    Los usuarios normales no son afectados por esta regla.
+  #    Facebook, Telegram, etc.) en URLs de producto y raíz para que reciban
+  #    los Open Graph tags y favicons correctos. Los usuarios normales van a index.html.
   # ─────────────────────────────────────────────────────────────────────────
   RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|Slackbot-LinkExpanding|TelegramBot|LinkedInBot|Discordbot|Pinterestbot|Googlebot|bingbot|Applebot|Embedly|vkShare|outbrain) [NC]
   RewriteCond %{REQUEST_URI} ^/product/(.+)$ [NC]
   RewriteRule ^ /seo-proxy.php?slug=%1 [L,QSA]
+
+  # 2.1 SEO BOT PRE-RENDERER PARA RAÍZ / WISHLIST / CATÁLOGO
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|Slackbot-LinkExpanding|TelegramBot|LinkedInBot|Discordbot|Pinterestbot|Googlebot|bingbot|Applebot|Embedly|vkShare|outbrain) [NC]
+  RewriteCond %{REQUEST_URI} !^/(assets|uploads|lib|api\.php|sw\.js|manifest|favicon|robots|sitemap) [NC]
+  RewriteCond %{REQUEST_URI} !^/product/ [NC]
+  RewriteRule ^ /seo-proxy.php?mode=store [L,QSA]
+
+  # 2.2 FAVICONS E ICONOS DINÁMICOS (MARCA BLANCA - GOOGLEBOT SEARCH CENTRAL)
+  RewriteRule ^(favicon\.ico|favicon\.png|apple-touch-icon\.png|apple-touch-icon-precomposed\.png)$ favicon.php?type=$1 [L,QSA]
+
+  # 2.3 ROBOTS.TXT Y SITEMAP.XML DINÁMICOS
+  RewriteRule ^robots\.txt$ robots.php [L,QSA]
+  RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
 
   # 2.5 MANIFEST DINÁMICO PWA (Nombre e icono dinámicos según configuración en BD)
   RewriteRule ^manifest\.json$ manifest.json.php [L,QSA]
@@ -56,11 +68,15 @@
 
 # 5. Configuración de Caché para PWA
 <IfModule mod_headers.c>
-  # Service Worker, Manifest e Index: NO CACHEAR
-  <FilesMatch "(sw\.js|manifest\.json|index\.html)$">
-    Header set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
+  # Service Worker, Manifest, SEO e Index: Manejo dinámico directo
+  <FilesMatch "(sw\.js|manifest\.json|manifest\.php|manifest\.json\.php|robots\.txt|robots\.php|sitemap\.xml|sitemap\.php|favicon\.php|index\.html)$">
+    Header unset Cache-Control
+    Header unset Pragma
+    Header unset Expires
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+    Header always set Service-Worker-Allowed "/"
   </FilesMatch>
 
   # Archivos estáticos: Cachear por 1 año
