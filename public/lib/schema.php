@@ -27,7 +27,7 @@ function checkAndMigrateDB($pdo) {
                 `weight_gram` DECIMAL(10,3) DEFAULT 0,
                 `making_cost` DECIMAL(12,2) DEFAULT 0,
                 `making_cost_type` VARCHAR(20) DEFAULT 'fixed'
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
             
             "orders" => "CREATE TABLE IF NOT EXISTS `orders` (
                 `id` VARCHAR(255) PRIMARY KEY,
@@ -53,8 +53,9 @@ function checkAndMigrateDB($pdo) {
                 `delivery_method` VARCHAR(50) DEFAULT 'pos',
                 `pickup_branch_id` INT DEFAULT 0,
                 `stock_deducted` TINYINT(1) DEFAULT 0,
-                `coupon_code` VARCHAR(50) DEFAULT NULL
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+                `coupon_code` VARCHAR(50) DEFAULT NULL,
+                `client_date` BIGINT DEFAULT NULL
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "customers" => "CREATE TABLE IF NOT EXISTS `customers` (
                 `phone` VARCHAR(50) PRIMARY KEY,
@@ -65,19 +66,19 @@ function checkAndMigrateDB($pdo) {
                 `order_count` INT DEFAULT 0,
                 `last_order_date` BIGINT,
                 `order_ids` LONGTEXT
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "settings" => "CREATE TABLE IF NOT EXISTS `settings` (
                 `setting_key` VARCHAR(255) PRIMARY KEY,
                 `setting_value` LONGTEXT
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "branches" => "CREATE TABLE IF NOT EXISTS `branches` (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,
                 `name` VARCHAR(255) NOT NULL,
                 `address` TEXT,
                 `is_active` TINYINT(1) DEFAULT 1
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "inventory" => "CREATE TABLE IF NOT EXISTS `inventory` (
                 `product_id` VARCHAR(255) NOT NULL,
@@ -85,7 +86,7 @@ function checkAndMigrateDB($pdo) {
                 `stock` INT DEFAULT 0,
                 `updated_at` BIGINT,
                 PRIMARY KEY (`product_id`, `branch_id`)
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "product_movements" => "CREATE TABLE IF NOT EXISTS `product_movements` (
                 `id` VARCHAR(255) PRIMARY KEY,
@@ -98,20 +99,20 @@ function checkAndMigrateDB($pdo) {
                 `stock_after` INT,
                 `reference` TEXT,
                 `date` BIGINT
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "categories" => "CREATE TABLE IF NOT EXISTS `categories` (
                 `id` VARCHAR(255) PRIMARY KEY,
                 `name` VARCHAR(255),
                 `image` TEXT
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "coupons" => "CREATE TABLE IF NOT EXISTS `coupons` (
                 `code` VARCHAR(50) PRIMARY KEY,
                 `discount_type` VARCHAR(50),
                 `value` DECIMAL(12,2) DEFAULT 0,
                 `active` TINYINT(1) DEFAULT 1
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "push_subscriptions" => "CREATE TABLE IF NOT EXISTS `push_subscriptions` (
                 `endpoint` VARCHAR(500) PRIMARY KEY,
@@ -125,7 +126,7 @@ function checkAndMigrateDB($pdo) {
                 `last_active` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 `last_notified_at` DATETIME NULL DEFAULT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "activity_logs" => "CREATE TABLE IF NOT EXISTS `activity_logs` (
                 `id` VARCHAR(255) PRIMARY KEY,
@@ -138,7 +139,7 @@ function checkAndMigrateDB($pdo) {
                 `timestamp` BIGINT,
                 INDEX (`timestamp`),
                 INDEX (`user_id`)
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
         ];
 
         foreach ($tables as $sql) $pdo->exec($sql);
@@ -172,6 +173,28 @@ function checkAndMigrateDB($pdo) {
             }
         }
 
+        // Blindaje de almacenamiento: garantizar motor transaccional InnoDB SOLO en tablas que no lo sean aún
+        try {
+            $stmtEngine = $pdo->prepare("
+                SELECT TABLE_NAME 
+                FROM information_schema.TABLES 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                  AND ENGINE != 'InnoDB' 
+                  AND TABLE_NAME IN ('products', 'orders', 'customers', 'settings', 'branches', 'inventory', 'product_movements', 'categories', 'coupons', 'push_subscriptions', 'activity_logs')
+            ");
+            $stmtEngine->execute();
+            $nonInnodbTables = $stmtEngine->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($nonInnodbTables as $t) {
+                try {
+                    $pdo->exec("ALTER TABLE `$t` ENGINE=InnoDB");
+                } catch (\Throwable $e) {
+                    error_log("Error al convertir tabla $t a InnoDB: " . $e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignorar si no hay permisos sobre information_schema
+        }
+
         // Migración de Columnas Faltantes
         $columns_to_check = [
             'products' => [
@@ -200,7 +223,8 @@ function checkAndMigrateDB($pdo) {
                 'delivery_method' => "VARCHAR(50) DEFAULT 'pos'",
                 'pickup_branch_id' => "INT DEFAULT 0",
                 'stock_deducted' => "TINYINT(1) DEFAULT 0",
-                'coupon_code' => "VARCHAR(50) DEFAULT NULL"
+                'coupon_code' => "VARCHAR(50) DEFAULT NULL",
+                'client_date' => "BIGINT DEFAULT NULL"
             ],
             'customers' => [
                 'cedula' => "VARCHAR(30) DEFAULT ''"

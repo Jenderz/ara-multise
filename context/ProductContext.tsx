@@ -1,8 +1,9 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, Category, StockMovement } from '../types';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
+import { updateProductWithStockSnapshot } from '../utils/stock';
 
 interface ProductContextType {
     products: Product[];
@@ -20,6 +21,8 @@ interface ProductContextType {
     getProductHistory: (productId: string) => Promise<StockMovement[]>;
     adjustStock: (productId: string, type: 'entry' | 'exit' | 'adjustment' | 'sale', amount: number, reference: string, targetBranchId?: number) => Promise<void>;
     adjustStockLocally: (productId: string, amount: number, variantId?: string) => void;
+    bulkUpdatePrices: (updates: Array<{ id: string; price: number; salePrice?: number; variants?: Array<{ id: string; price: number; salePrice?: number }> }>, onProgress?: (percent: number) => void) => Promise<void>;
+    applyStockSnapshot: (snapshot: Record<string, number>) => void;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -32,18 +35,94 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
     const addProduct = async (product: Product) => {
         setProducts(prev => [product, ...prev]);
         logActivity('create_product', `Creó producto: ${product.title}`);
-        // Enviamos usuario para auditoría de stock inicial
-        return api.saveProduct(product, currentUser?.id, currentUser?.name).catch(console.error);
+        try {
+            return await api.saveProduct(product, currentUser?.id, currentUser?.name);
+        } catch (error) {
+            // Revertir del estado local si el backend rechaza la creación
+            setProducts(prev => prev.filter(p => p.id !== product.id));
+            console.error('Error al crear producto:', error);
+            throw error;
+        }
     };
 
     const updateProduct = async (updatedProduct: Product) => {
-        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+        let previousProduct: Product | undefined;
+        setProducts(prev => {
+            previousProduct = prev.find(p => p.id === updatedProduct.id);
+            return prev.map(p => p.id === updatedProduct.id ? updatedProduct : p);
+        });
         logActivity('update_product', `Editó producto: ${updatedProduct.title}`);
-        // Enviamos usuario para auditoría de cambios de stock
-        return api.saveProduct(updatedProduct, currentUser?.id, currentUser?.name).catch(console.error);
+        try {
+            return await api.saveProduct(updatedProduct, currentUser?.id, currentUser?.name);
+        } catch (error) {
+            // Revertir cambios optimistas si el servidor rechaza (p. ej. 409 conflicto de stock)
+            if (previousProduct) {
+                setProducts(prev => prev.map(p => p.id === updatedProduct.id ? previousProduct! : p));
+            }
+            console.error('Error al actualizar producto:', error);
+            throw error;
+        }
     };
 
+    const bulkUpdatePrices = async (
+        updates: Array<{ id: string; price: number; salePrice?: number; variants?: Array<{ id: string; price: number; salePrice?: number }> }>,
+        onProgress?: (percent: number) => void
+    ) => {
+        const updateMap = new Map(updates.map(u => [u.id, u]));
+        // 1. Actualización optimista de precios en memoria SIN tocar stocks
+        setProducts(prev => prev.map(p => {
+            const u = updateMap.get(p.id);
+            if (!u) return p;
+            const updated = { ...p, price: u.price };
+            if (u.salePrice !== undefined) updated.salePrice = u.salePrice;
+            if (p.variants && u.variants) {
+                const varUpdateMap = new Map(u.variants.map(uv => [uv.id, uv]));
+                updated.variants = p.variants.map(v => {
+                    const uv = varUpdateMap.get(v.id);
+                    if (!uv) return v;
+                    return {
+                        ...v,
+                        price: uv.price,
+                        ...(uv.salePrice !== undefined ? { salePrice: uv.salePrice } : {})
+                    };
+                });
+            }
+            return updated;
+        }));
+
+        logActivity('update_product', `Actualización masiva de precios de ${updates.length} productos`);
+
+        // 2. Enviar actualización limpia de precios al servidor en lotes
+        const total = updates.length;
+        const chunkSize = 25;
+        let processed = 0;
+
+        for (let i = 0; i < total; i += chunkSize) {
+            const chunk = updates.slice(i, i + chunkSize);
+            await api.bulkUpdatePrices(chunk);
+            processed += chunk.length;
+            if (onProgress) onProgress(Math.min(100, Math.round((processed / total) * 100)));
+            await new Promise(resolve => setTimeout(resolve, 20));
+        }
+    };
+
+    const applyStockSnapshot = (snapshot: Record<string, number>) => {
+        if (!snapshot || Object.keys(snapshot).length === 0) return;
+        setProducts(prev => prev.map(p => updateProductWithStockSnapshot(p, snapshot)));
+    };
+
+    useEffect(() => {
+        const handleSnapshot = (e: any) => {
+            if (e.detail?.stockAfter) {
+                applyStockSnapshot(e.detail.stockAfter);
+            }
+        };
+        window.addEventListener('lyberate:stock_snapshot', handleSnapshot);
+        return () => window.removeEventListener('lyberate:stock_snapshot', handleSnapshot);
+    }, []);
+
     const updateMultipleProducts = async (productsToUpdate: Product[], onProgress?: (percent: number) => void) => {
+        // Redirigir a bulkUpdatePrices si solo son precios, o salvar seguro
         setProducts(prev => {
             const map = new Map(productsToUpdate.map(p => [p.id, p]));
             return prev.map(p => map.get(p.id) || p);
@@ -56,7 +135,6 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
 
         for (let i = 0; i < total; i += chunkSize) {
             const chunk = productsToUpdate.slice(i, i + chunkSize);
-            // Enviamos usuario en batch también
             await Promise.all(chunk.map(p => api.saveProduct(p, currentUser?.id, currentUser?.name)));
             processed += chunk.length;
             if (onProgress) onProgress(Math.min(100, Math.round((processed / total) * 100)));
@@ -241,9 +319,9 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({ children })
         <ProductContext.Provider value={{
             products, setProducts,
             categories, setCategories,
-            addProduct, updateProduct, updateMultipleProducts, deleteProduct,
+            addProduct, updateProduct, updateMultipleProducts, bulkUpdatePrices, deleteProduct,
             addCategory, updateCategory, deleteCategory, resetStoreProducts,
-            getProductHistory, adjustStock, adjustStockLocally
+            getProductHistory, adjustStock, adjustStockLocally, applyStockSnapshot
         }}>
             {children}
         </ProductContext.Provider>

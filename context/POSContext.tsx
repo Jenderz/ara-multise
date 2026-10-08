@@ -6,10 +6,12 @@ import { useAuth } from './AuthContext';
 import { useProduct } from './ProductContext';
 import { useNotification } from './NotificationContext';
 import { DEFAULT_IMAGE } from '../config';
+import { now } from '../utils/serverClock';
+import { updateProductWithStockSnapshot } from '../utils/stock';
 
 interface POSContextType {
     cart: CartItem[];
-    addToCart: (product: Product, options?: Record<string, string>, price?: number, sku?: string, image?: string) => void;
+    addToCart: (product: Product, options?: Record<string, string>, price?: number, sku?: string, image?: string, variantId?: string) => void;
     updateQuantity: (cartId: string, delta: number) => void;
     updateItemDiscount: (cartId: string, discountType: 'percent' | 'fixed', value: number) => void;
     removeFromCart: (cartId: string) => void;
@@ -84,7 +86,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const totalBs = total * activeExchangeRate;
 
     // --- ACCIONES DEL CARRITO ---
-    const addToCart = (product: Product, options: Record<string, string> = {}, priceOverride?: number, skuOverride?: string, imageOverride?: string) => {
+    const addToCart = (product: Product, options: Record<string, string> = {}, priceOverride?: number, skuOverride?: string, imageOverride?: string, variantIdOverride?: string) => {
         // PRECIO FINAL: Si hay override manual (ej. variante) > Descuento Global > Precio Base
         let finalPrice = product.price;
         if (priceOverride !== undefined) {
@@ -98,16 +100,34 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const sku = skuOverride || product.code;
         const image = imageOverride || product.images[0] || DEFAULT_IMAGE;
 
-        const cartId = `${product.id}-${JSON.stringify(options)}`;
-
-        // Buscar la variante específica para obtener su ID y stock
-        const matchingVariant = product.variants && product.variants.length > 0
-            ? product.variants.find(v => Object.entries(options).every(([k, val]) => v.selections[k] === val))
+        const hasVariants = Boolean(product.variants && product.variants.length > 0);
+        const hasOptions = Boolean(options && Object.keys(options).length > 0);
+        // Buscar la variante específica: el ID explícito tiene prioridad sobre la búsqueda por selecciones
+        const matchingVariant = hasVariants
+            ? (variantIdOverride
+                ? product.variants.find(v => v.id === variantIdOverride) || null
+                : (hasOptions
+                    ? product.variants.find(v => Object.entries(options).every(([k, val]) => v.selections && v.selections[k] === val)) || null
+                    : null))
             : null;
 
-        const maxStock = matchingVariant 
-            ? (Number(matchingVariant.stock) ?? 0) 
-            : (Number(product.stock) ?? 0);
+        // Un producto con variantes siempre debe resolverse a una variante concreta
+        if (hasVariants && !matchingVariant) {
+            addNotification({
+                title: 'Selecciona una variante',
+                body: `Debes elegir una variante de "${product.title}" antes de agregarlo al carrito.`,
+                type: 'warning'
+            });
+            return;
+        }
+
+        const cartId = matchingVariant ? `${product.id}-${matchingVariant.id}` : `${product.id}-${JSON.stringify(options)}`;
+
+        const rawStock = matchingVariant 
+            ? matchingVariant.stock 
+            : (product.stock !== undefined ? product.stock : 0);
+        const parsedStock = Number(rawStock);
+        const maxStock = Number.isFinite(parsedStock) ? parsedStock : 0;
         const tracks = product.trackStock !== false;
         const allowNegative = settings?.allowNegativeStock === true;
 
@@ -170,10 +190,10 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     let maxStock = item.maxStock;
 
                     // Fallback si no estaba en item
-                    if (maxStock === undefined) {
+                    if (maxStock === undefined || !Number.isFinite(maxStock)) {
                         const prod = products.find(p => p.id === item.productId);
                         if (prod) {
-                            maxStock = prod.stock;
+                            maxStock = prod.stock ?? 0;
                             if (item.variantId && prod.variants) {
                                 const v = prod.variants.find(vr => vr.id === item.variantId);
                                 if (v) maxStock = v.stock;
@@ -181,10 +201,13 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                         }
                     }
 
-                    if (tracks && maxStock !== undefined && (item.quantity + delta > maxStock)) {
+                    const parsed = Number(maxStock);
+                    const safeMaxStock = Number.isFinite(parsed) ? parsed : 0;
+
+                    if (tracks && (item.quantity + delta > safeMaxStock)) {
                         addNotification({
                             title: 'Límite de Stock',
-                            body: `Solo hay ${maxStock} unidades disponibles en esta sede.`,
+                            body: `Solo hay ${safeMaxStock} unidades disponibles en esta sede.`,
                             type: 'warning'
                         });
                         return item;
@@ -233,7 +256,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // --- ACCIONES DE ÓRDENES PAUSADAS ---
     const parkOrder = (name: string, customer: Customer | null, advisorId?: string | null, advisorName?: string | null) => {
         if (cart.length === 0) return;
-        setParkedOrders(prev => [...prev, { name: name || `Orden ${prev.length + 1}`, cart, date: Date.now(), customer, advisorId, advisorName }]);
+        setParkedOrders(prev => [...prev, { name: name || `Orden ${prev.length + 1}`, cart, date: now(), customer, advisorId, advisorName }]);
         setCart([]);
         addNotification({ title: 'Orden Pausada', body: 'La orden se guardó temporalmente.', type: 'info' });
     };
@@ -294,7 +317,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const cashierId = currentUser?.id || 'web-client';
             const cashierName = currentUser?.name || 'Venta Mostrador';
 
-            const orderId = await createOrder(
+            const orderResult = await createOrder(
                 checkoutDetails.name,
                 checkoutDetails.phone,
                 checkoutDetails.finalAddress,
@@ -316,12 +339,17 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 checkoutDetails.advisorRate || 0
             );
 
-            // 1. Descontar optimistamente el stock en la memoria local
-            cart.forEach(item => {
-                if (item.productId && !item.productId.startsWith('custom') && !item.productId.startsWith('manual-')) {
-                    adjustStockLocally(item.productId, -(item.quantity || 1), item.variantId);
-                }
-            });
+            const orderId = orderResult.orderId;
+            const hasSnapshot = orderResult.hasSnapshot;
+
+            // 1. Descontar optimistamente el stock en la memoria local SOLO si la respuesta no trajo stockAfter
+            if (!hasSnapshot) {
+                cart.forEach(item => {
+                    if (item.productId && !item.productId.startsWith('custom') && !item.productId.startsWith('manual-')) {
+                        adjustStockLocally(item.productId, -(item.quantity || 1), item.variantId);
+                    }
+                });
+            }
 
             // 2. Guardar orden para emitir ticket térmico
             const completedOrder: Order = {
@@ -344,7 +372,7 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 advisorCommission: checkoutDetails.advisorCommission || 0,
                 advisorRate: checkoutDetails.advisorRate || 0,
                 branchId: currentBranch?.id || 1,
-                date: Date.now(),
+                date: orderResult.date,
                 status: 'completed'
             };
             setLastCompletedOrder(completedOrder);
@@ -380,6 +408,16 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     // --- UI HELPERS ---
+    useEffect(() => {
+        const handleSnapshot = (e: any) => {
+            const stockAfter = e.detail?.stockAfter;
+            if (!stockAfter || typeof stockAfter !== 'object') return;
+            setSelectedProduct(prev => prev ? updateProductWithStockSnapshot(prev, stockAfter) : prev);
+        };
+        window.addEventListener('lyberate:stock_snapshot', handleSnapshot);
+        return () => window.removeEventListener('lyberate:stock_snapshot', handleSnapshot);
+    }, []);
+
     const openVariantModal = (product: Product) => {
         setSelectedProduct(product);
         setVariantModalOpen(true);

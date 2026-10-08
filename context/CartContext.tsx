@@ -6,6 +6,13 @@ import { useAuth } from './AuthContext';
 import { useSettings } from './SettingsContext';
 import { DEFAULT_IMAGE } from '../config';
 import { updateAppBadge } from '../utils/nativePwa';
+import { now } from '../utils/serverClock';
+
+export interface CreateOrderResult {
+    orderId: string;
+    hasSnapshot: boolean;
+    date: number;
+}
 
 interface CartContextType {
     cart: CartItem[];
@@ -23,7 +30,7 @@ interface CartContextType {
     updateCartQuantity: (cartId: string, delta: number) => void;
     clearCart: () => void;
 
-    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<string>;
+    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<CreateOrderResult>;
     updateOrder: (order: Order, processStock?: boolean) => Promise<void>;
     deleteOrder: (id: string) => void;
 
@@ -161,7 +168,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         advisorName?: string,
         advisorCommission?: number,
         advisorRate?: number
-    ): Promise<string> => {
+    ): Promise<CreateOrderResult> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
         // Calcular subtotal real (usando originalPrice si hubo descuento individual en el item)
@@ -242,7 +249,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             discount: orderDiscount,
             total: orderTotal,
             status: status,
-            date: Date.now(),
+            date: now(),
             paymentMethod: finalPaymentMethod,
             sellerId: activeSellerId,
             sellerName: activeSellerName,
@@ -268,13 +275,29 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (e) { }
 
         // Await order persistence to ensure data reaches server before any potential reload
+        let hasSnapshot = false;
+        let orderDate = newOrder.date;
         try {
             const pushEndpoint = localStorage.getItem('ara_push_endpoint');
             const orderPayload: any = {
                 ...newOrder,
                 ...(pushEndpoint && { pushEndpoint })
             };
-            await api.saveOrder(orderPayload, true);
+            const saveRes: any = await api.saveOrder(orderPayload, true);
+            if (saveRes?.date) {
+                orderDate = Number(saveRes.date);
+                setOrders(prev => {
+                    const newState = prev.map(o => o.id === newOrder.id ? { ...o, date: orderDate } : o);
+                    updateLocalCache('orders', newState);
+                    return newState;
+                });
+            }
+            if (saveRes?.stockAfter && typeof saveRes.stockAfter === 'object' && Object.keys(saveRes.stockAfter).length > 0) {
+                hasSnapshot = true;
+                window.dispatchEvent(new CustomEvent('lyberate:stock_snapshot', {
+                    detail: { stockAfter: saveRes.stockAfter }
+                }));
+            }
         } catch (saveError) {
             // Si el servidor rechaza la orden (concurrencia, falta de stock, etc.), revertir del estado local
             setOrders(prev => {
@@ -291,19 +314,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             let newState: Customer[];
             if (existingIndex >= 0) {
                 const existing = prev[existingIndex];
-                const updatedCustomer = { ...existing, name: customerName, address: customerAddress, totalSpent: (Number(existing.totalSpent) || 0) + orderTotal, orderCount: (Number(existing.orderCount) || 0) + 1, lastOrderDate: newOrder.date, orderIds: [newOrder.id, ...(existing.orderIds || [])] };
+                const updatedCustomer = { ...existing, name: customerName, address: customerAddress, totalSpent: (Number(existing.totalSpent) || 0) + orderTotal, orderCount: (Number(existing.orderCount) || 0) + 1, lastOrderDate: orderDate, orderIds: [newOrder.id, ...(existing.orderIds || [])] };
                 newState = [...prev];
                 newState[existingIndex] = updatedCustomer;
                 api.saveCustomer(updatedCustomer).catch(console.error);
             } else {
-                const newCustomer = { phone: customerPhone, name: customerName, address: customerAddress, totalSpent: orderTotal, orderCount: 1, lastOrderDate: newOrder.date, orderIds: [newOrder.id] };
+                const newCustomer = { phone: customerPhone, name: customerName, address: customerAddress, totalSpent: orderTotal, orderCount: 1, lastOrderDate: orderDate, orderIds: [newOrder.id] };
                 api.saveCustomer(newCustomer).catch(console.error);
                 newState = [newCustomer, ...prev];
             }
             updateLocalCache('customers', newState);
             return newState;
         });
-        return newOrder.id;
+
+        // Retornamos el identificador de la orden y la fecha confirmada por el servidor
+        return {
+            orderId: newOrder.id,
+            hasSnapshot,
+            date: orderDate
+        };
     };
 
     const updateOrder = async (updatedOrder: Order, processStock = false): Promise<void> => {
@@ -337,7 +366,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateLocalCache('orders', newState);
             return newState;
         });
-        await api.saveOrder(updatedOrder, processStock);
+        const saveRes: any = await api.saveOrder(updatedOrder, processStock);
+        if (saveRes?.stockAfter && typeof saveRes.stockAfter === 'object') {
+            window.dispatchEvent(new CustomEvent('lyberate:stock_snapshot', {
+                detail: { stockAfter: saveRes.stockAfter }
+            }));
+        }
     };
 
     const deleteOrder = (id: string) => {

@@ -9,6 +9,7 @@ import {
     Sparkles, Percent, Monitor, Briefcase, CheckCircle2, Store
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import { now as serverNow, startOfBusinessDay } from '../../../utils/serverClock';
 
 interface SellersAnalyticsProps {
     orders: Order[];
@@ -57,14 +58,12 @@ export const SellersAnalytics: React.FC<SellersAnalyticsProps> = ({ orders }) =>
     const periodOrders = useMemo(() => {
         if (timeRange === 'all') return completedOrders;
 
-        const now = Date.now();
+        const now = serverNow();
         const msPerDay = 24 * 60 * 60 * 1000;
         let startTimestamp = now - (30 * msPerDay);
 
         if (timeRange === 'today') {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            startTimestamp = today.getTime();
+            startTimestamp = startOfBusinessDay(now);
         } else if (timeRange === '7d') {
             startTimestamp = now - (7 * msPerDay);
         } else if (timeRange === '90d') {

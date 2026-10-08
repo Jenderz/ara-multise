@@ -7,17 +7,21 @@ import { DEFAULT_IMAGE } from '../../../config';
 import { useStore } from '../../../context/StoreContext';
 
 // --- MODAL SELECCIÓN DE VARIANTE ---
-export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { product: Product | null, isOpen: boolean, onClose: () => void, onConfirm: (p: Product, options: Record<string, string>, price: number, sku: string, image: string) => void }) => {
+export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { product: Product | null, isOpen: boolean, onClose: () => void, onConfirm: (p: Product, options: Record<string, string>, price: number, sku: string, image: string, variantId?: string) => void }) => {
     const { currentBranch, activeExchangeRate, activeCurrencySymbol } = useStore();
     const [selections, setSelections] = useState<Record<string, string>>({});
+    const [selectedVariantId, setSelectedVariantId] = useState<string>('');
 
     useEffect(() => {
         setSelections({});
+        setSelectedVariantId('');
     }, [product]);
 
     if (!isOpen || !product) return null;
 
     const isGlobalView = currentBranch?.id === 0;
+    // Productos con variantes pero sin opciones estructuradas (cada variante con selections = {})
+    const hasStructuredOptions = Boolean(product.variantOptions && product.variantOptions.length > 0);
 
     /**
      * Calcula la disponibilidad y el stock exacto de una opción
@@ -55,6 +59,9 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
     };
     const getSelectedVariant = () => {
         if (!product.variants) return null;
+        if (!hasStructuredOptions) {
+            return selectedVariantId ? (product.variants.find(v => v.id === selectedVariantId) || null) : null;
+        }
         return product.variants.find(v =>
             Object.entries(selections).every(([k, val]) => v.selections[k] === val)
         );
@@ -86,7 +93,9 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
     const currentImage = selectedVariant?.image || product.images[0] || DEFAULT_IMAGE;
 
     // Validation de Formulario
-    const allOptionsSelected = product.variantOptions?.every(opt => selections[opt.name]);
+    const allOptionsSelected = hasStructuredOptions
+        ? product.variantOptions?.every(opt => selections[opt.name])
+        : Boolean(selectedVariantId);
 
     // Stock final de la selección completa
     const finalStock = selectedVariant ? Number(selectedVariant.stock) : 0;
@@ -137,6 +146,45 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
 
                 {/* Opciones Scrollable */}
                 <div className="space-y-5 mb-6 overflow-y-auto pr-1 custom-scrollbar">
+                    {!hasStructuredOptions && (
+                        <div>
+                            <div className="flex justify-between mb-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Variante</label>
+                                {selectedVariant && <span className="text-xs font-bold text-ios-blue">{selectedVariant.sku}</span>}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                {product.variants?.map(v => {
+                                    const vStock = Number(v.stock) || 0;
+                                    const isSelected = selectedVariantId === v.id;
+                                    const label = v.sku || 'Variante';
+                                    const detail = Object.values(v.selections || {}).join(' / ');
+                                    const hasStock = vStock > 0;
+                                    return (
+                                        <button
+                                            key={v.id}
+                                            onClick={() => setSelectedVariantId(v.id)}
+                                            disabled={!hasStock}
+                                            className={`
+                                                w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold border transition-all
+                                                ${isSelected
+                                                    ? 'border-ios-blue ring-2 ring-ios-blue/20 bg-ios-blue/5 text-ios-blue'
+                                                    : hasStock
+                                                        ? 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20'
+                                                        : 'border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 text-red-400 cursor-not-allowed opacity-80'
+                                                }
+                                            `}
+                                        >
+                                            <span className="flex flex-col items-start text-left">
+                                                <span>{label}</span>
+                                                {detail && <span className="text-[10px] font-normal opacity-70">{detail}</span>}
+                                            </span>
+                                            <span className={hasStock ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>({vStock})</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                     {product.variantOptions?.map(opt => {
                         const activeValues = opt.values.filter(val =>
                             product.variants?.some(v => v.selections && v.selections[opt.name] === val)
@@ -244,7 +292,7 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
                     <Button
                         onClick={() => {
                             if (canAdd && selectedVariant) {
-                                onConfirm(product, selections, effectivePrice, selectedVariant.sku, currentImage);
+                                onConfirm(product, selections, effectivePrice, selectedVariant.sku, currentImage, selectedVariant.id);
                                 onClose();
                             }
                         }}

@@ -74,6 +74,8 @@ export interface ProductVariant {
   barcodeEan?: string;
   /** Peso en gramos para joyería (opcional por variante/talla) */
   weightGram?: number;
+  availableStock?: number;
+  isAvailable?: boolean;
 }
 
 export interface Product {
@@ -87,6 +89,14 @@ export interface Product {
   discountPrice?: number;
   stock: number;
   globalStock?: number;
+  availableStock?: number;
+  isAvailable?: boolean;
+  /**
+   * Stock por sede del producto padre (vista multisede).
+   * Ejemplo: { 1: 5, 2: 10 }
+   */
+  branchStock?: Record<number, number>;
+  expectedStock?: number;
   minStock?: number;
   trackStock?: boolean;
   images: string[];
@@ -374,6 +384,7 @@ export interface StoreContextType {
   addProduct: (product: Product) => Promise<any>;
   updateProduct: (product: Product) => Promise<any>;
   updateMultipleProducts: (products: Product[], onProgress?: (percent: number) => void) => Promise<void>;
+  bulkUpdatePrices: (updates: Array<{ id: string | number; price: number; salePrice?: number; variants?: any[] }>) => Promise<void>;
   deleteProduct: (id: string) => void;
   addCategory: (category: Category) => void;
   updateCategory: (category: Category) => void;

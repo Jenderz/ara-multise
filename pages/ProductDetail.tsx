@@ -11,6 +11,7 @@ import { DEFAULT_IMAGE } from '../config';
 import { trackProductView } from './Home';
 import { generateProductSlug } from '../utils/slugify';
 import { isJewelryPluginEnabled } from '../plugins/jewelry';
+import { getAvailableStock, getVariantAvailableStock, isOutOfStock } from '../utils/stock';
 
 export const ProductDetail = () => {
     const { id: slugParam } = useParams();
@@ -59,22 +60,32 @@ export const ProductDetail = () => {
         return product.variants.find(v => Object.entries(selections).every(([k, val]) => v.selections[k] === val));
     }, [product, selections]);
 
+    const currentReqIdRef = useRef(0);
+
     // Consulta de Disponibilidad (Dinámica: Producto Padre o Variante)
-    // FIX SEGURIDAD: Debounce de 400ms para evitar GETs por cada click en variante.
-    // Se usan IDs primitivos como dependencias (no objetos completos) para evitar
-    // re-renders espurios cuando el objeto cambia por referencia sin cambiar su valor.
+    // Anti-race-condition: currentReqIdRef descarta respuestas tardías de variantes anteriores.
     useEffect(() => {
         if (!product) return;
         const targetId = selectedVariant ? selectedVariant.id : product.id;
+        const reqId = ++currentReqIdRef.current;
+        setLoadingAvailability(true);
+
         const timer = setTimeout(() => {
-            setLoadingAvailability(true);
             getStockBreakdown(targetId)
-                .then(data => setBranchAvailability(data || []))
+                .then(data => {
+                    if (reqId === currentReqIdRef.current) {
+                        setBranchAvailability(data || []);
+                    }
+                })
                 .catch(console.error)
-                .finally(() => setLoadingAvailability(false));
-        }, 400); // Esperar 400ms — el usuario puede estar navegando entre variantes
+                .finally(() => {
+                    if (reqId === currentReqIdRef.current) {
+                        setLoadingAvailability(false);
+                    }
+                });
+        }, 250);
         return () => clearTimeout(timer);
-    }, [product?.id, selectedVariant?.id]); // Solo IDs, no objetos completos
+    }, [product?.id, selectedVariant?.id]);
 
 
     // Actualizar imagen SOLO si el usuario interactúa (no en la primera carga)
@@ -89,22 +100,12 @@ export const ProductDetail = () => {
         }
     }, [selectedVariant]);
 
-    // Lógica de disponibilidad visual (Opcional, no usado para ocultar temporalmente debido a sincronización multi-sede)
+    // Lógica de disponibilidad visual usando helper centralizado
     const isOptionInStock = (optionName: string, value: string) => {
         if (!product || !product.variants) return true;
-        
         const matchingVariants = product.variants.filter(v => v.selections[optionName] === value);
         if (matchingVariants.length === 0) return false;
-        
-        let totalValStock = 0;
-        matchingVariants.forEach(v => {
-            const vStock = v.branchStock && Object.keys(v.branchStock).length > 0
-                ? Object.values(v.branchStock).reduce((acc: number, qty: any) => acc + Number(qty), 0)
-                : (v.stock || 0);
-            totalValStock += vStock;
-        });
-        
-        return totalValStock > 0;
+        return matchingVariants.some(v => getVariantAvailableStock(v) > 0);
     };
 
     // Obtener imagen específica para una opción
@@ -151,18 +152,11 @@ export const ProductDetail = () => {
 
     // --- LOGICA DE COMPRA (Multi-Sede) ---
     const effectiveTotalStock = useMemo(() => {
-        if (branchAvailability.length === 0) {
-            // Fallback mejorado: Usar branchStock estático del producto o variante si existe
-            const source = selectedVariant || product;
-            if (source.branchStock && Object.keys(source.branchStock).length > 0) {
-                return Object.values(source.branchStock).reduce((acc: number, val: number) => acc + val, 0);
-            }
-
-            if (selectedVariant) return selectedVariant.stock;
-            return product.globalStock !== undefined ? product.globalStock : product.stock;
+        if (loadingAvailability || branchAvailability.length === 0) {
+            return selectedVariant ? getVariantAvailableStock(selectedVariant) : (product ? getAvailableStock(product) : 0);
         }
-        return branchAvailability.reduce((acc, curr) => acc + curr.stock, 0);
-    }, [branchAvailability, selectedVariant, product]);
+        return branchAvailability.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+    }, [loadingAvailability, branchAvailability, selectedVariant, product]);
 
     const canBuy = isSelectionComplete && effectiveTotalStock > 0;
 
@@ -370,9 +364,12 @@ export const ProductDetail = () => {
                         >
                             {!isSelectionComplete
                                 ? 'Selecciona Opciones'
-                                : (!canBuy
-                                    ? 'Agotado Totalmente'
-                                    : 'Añadir a la Bolsa' // Texto Unificado
+                                : (loadingAvailability && effectiveTotalStock <= 0
+                                    ? 'Verificando...'
+                                    : (!canBuy
+                                        ? 'Agotado Totalmente'
+                                        : 'Añadir a la Bolsa'
+                                    )
                                 )
                             }
                         </Button>

@@ -123,11 +123,11 @@ export const InventoryAnalyticsModule = ({ products }: { products: Product[] }) 
             }
 
             if (dateStart) {
-                const start = new Date(dateStart).getTime();
+                const start = new Date(`${dateStart}T00:00:00-04:00`).getTime();
                 if (log.timestamp < start) return false;
             }
             if (dateEnd) {
-                const end = new Date(dateEnd).getTime() + 86400000; 
+                const end = new Date(`${dateEnd}T23:59:59.999-04:00`).getTime(); 
                 if (log.timestamp > end) return false;
             }
 

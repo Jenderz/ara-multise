@@ -118,6 +118,7 @@ const fetchApi = async (action: string, method: 'GET' | 'POST' = 'GET', data?: a
 };
 
 export const api = {
+    getServerTime: () => fetchApi('server_time'),
     login: (username: string, password: string) => fetchApi('login', 'POST', { username, password }),
     runMigration: () => fetchApi('migrate', 'POST'),
     getAllData: () => fetchApi('get_all'),
@@ -125,6 +126,12 @@ export const api = {
 
     getProducts: (page = 1, limit = 100, search = '', category = '') =>
         fetchApi(`get_products&page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`),
+
+    getProduct: (id: string) =>
+        fetchApi(`get_product&id=${encodeURIComponent(id)}`),
+
+    bulkUpdatePrices: (updates: Array<{ id: string; price: number; salePrice?: number; variants?: Array<{ id: string; price: number; salePrice?: number }> }>) =>
+        fetchApi('bulk_update_prices', 'POST', { updates }),
 
     getOrders: (filters: any) => {
         let qs = `get_orders&page=${filters.page || 1}&limit=${filters.limit || 50}`;

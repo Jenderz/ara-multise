@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { queryGeminiAI, hasGeminiApiKey } from '../../services/geminiService';
 import { CURRENT_SYSTEM_VERSION, LATEST_RELEASE, VersionFeatureItem } from '../../data/versionUpdates';
+import { now, startOfBusinessDay, startOfBusinessMonth, formatBusinessDate, formatTime } from '../../utils/serverClock';
 
 export interface AssistantAction {
     label: string;
@@ -86,7 +87,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
         sender: 'bot',
         type: 'version_release',
         data: LATEST_RELEASE,
-        timestamp: Date.now() + 1
+        timestamp: now() + 1
     }), []);
 
     // Inicializar mensajes: si no ha visto la nueva versión, incluir la tarjeta de novedades de ARA
@@ -209,7 +210,6 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
     // --- CEREBRO OMNICANAL DE ARA (Conexión Total a Datos) ---
     const processOmniQuery = (query: string): Omit<AssistantMessage, 'id' | 'sender' | 'timestamp'> | null => {
         const q = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        const now = new Date();
 
         // 1. Saludos
         if (/^(hola|buenas|buenos dias|buenas tardes|buenas noches|saludos|hey|alo|hola ara)$/.test(q)) {
@@ -360,8 +360,13 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
 
         // 7. VENDEDORES: "Mis ventas" o "Mis comisiones"
         if (currentUser && (q.includes('mis venta') || q.includes('mi comision') || q.includes('cuanto vendi') || q.includes('mis ingresos'))) {
+            const todayStartMs = startOfBusinessDay();
             const myOrders = completedOrders.filter(o => o.sellerId === currentUser.id || o.sellerName === currentUser.name);
-            const myToday = myOrders.filter(o => o.date >= new Date().setHours(0, 0, 0, 0));
+            const myToday = myOrders.filter(o => {
+                const rawDate = Number(o.date || 0);
+                const dateMs = rawDate < 100000000000 ? rawDate * 1000 : rawDate;
+                return dateMs >= todayStartMs;
+            });
             const myTotalToday = myToday.reduce((sum, o) => sum + (o.total || 0), 0);
             const myCommissionToday = myToday.reduce((sum, o) => sum + (o.sellerCommission || 0), 0);
             const myTotalMonth = myOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -380,7 +385,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
                 return { text: "No hay registros de actividad recientes en el sistema." };
             }
             return {
-                text: `🛡️ **Últimos Movimientos en el Sistema:**\n\n${recentLogs.map(l => `• **${l.userName || 'Usuario'}** (${l.action}): ${l.details} - *${new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}*`).join('\n')}`
+                text: `🛡️ **Últimos Movimientos en el Sistema:**\n\n${recentLogs.map(l => `• **${l.userName || 'Usuario'}** (${l.action}): ${l.details} - *${formatTime(l.timestamp)}*`).join('\n')}`
             };
         }
 
@@ -442,7 +447,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
 
         // 11. VENTAS POR MÉTODO DE PAGO / ARQUEO
         if (q.includes('metodo de pago') || q.includes('arqueo') || q.includes('caja') || q.includes('punto') || q.includes('pago movil') || q.includes('zelle') || q.includes('efectivo')) {
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const todayStart = startOfBusinessDay();
             const isTodayOnly = q.includes('hoy') || !q.includes('mes');
             const targetOrders = isTodayOnly ? completedOrders.filter(o => o.date >= todayStart) : completedOrders;
 
@@ -470,14 +475,14 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
 
         // 12. BRIEFING / RESUMEN EJECUTIVO
         if (q.includes('resumen') || q.includes('briefing') || q.includes('como vamos') || q.includes('informe') || q.includes('reporte del dia')) {
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const todayStart = startOfBusinessDay();
             const todayOrders = completedOrders.filter(o => o.date >= todayStart);
             const todayTotal = todayOrders.reduce((sum, o) => sum + o.total, 0);
             const avgTicket = todayOrders.length > 0 ? (todayTotal / todayOrders.length) : 0;
             const outOfStockCount = products.filter(p => (p.stock || 0) <= 0).length;
 
             return {
-                text: `📊 **Briefing Ejecutivo ARA** (${now.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'short' })}):`,
+                text: `📊 **Briefing Ejecutivo ARA** (${formatBusinessDate(now(), { weekday: 'long', day: 'numeric', month: 'short' })}):`,
                 type: 'briefing',
                 data: {
                     todayTotal,
@@ -494,10 +499,10 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
 
         // 13. VENTAS HOY / MES
         if (q.includes('venta') || q.includes('hoy') || q.includes('mes')) {
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const todayStart = startOfBusinessDay();
 
             if (q.includes('mes')) {
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+                const monthStart = startOfBusinessMonth();
                 const monthOrders = completedOrders.filter(o => o.date >= monthStart);
                 const total = monthOrders.reduce((sum, o) => sum + o.total, 0);
                 return {
@@ -620,10 +625,10 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
         if (!textToSend.trim()) return;
 
         const userMsg: AssistantMessage = {
-            id: Date.now().toString(),
+            id: now().toString(),
             text: textToSend,
             sender: 'user',
-            timestamp: Date.now()
+            timestamp: now()
         };
 
         setMessages(prev => [...prev, userMsg]);
@@ -636,7 +641,7 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
         if (localResult) {
             setTimeout(() => {
                 const botMsg: AssistantMessage = {
-                    id: (Date.now() + 1).toString(),
+                    id: (now() + 1).toString(),
                     text: localResult.text,
                     sender: 'bot',
                     type: localResult.type || 'text',
@@ -653,9 +658,8 @@ export const SmartAssistant: React.FC<SmartAssistantProps> = ({ activeTab, onNav
         // 2. Fallback con Gemini AI si hay clave
         if (hasGeminiApiKey()) {
             try {
-                const todayStart = new Date();
-                todayStart.setHours(0, 0, 0, 0);
-                const todayOrders = orders.filter(o => o.status === 'completed' && o.date >= todayStart.getTime());
+                const todayStart = startOfBusinessDay();
+                const todayOrders = orders.filter(o => o.status === 'completed' && o.date >= todayStart);
                 const todayTotal = todayOrders.reduce((sum, o) => sum + o.total, 0);
                 const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
                 const lowStockCount = products.filter(p => (p.stock || 0) < 5).length;

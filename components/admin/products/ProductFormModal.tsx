@@ -5,14 +5,16 @@ import { ImageCropper } from '../../ImageCropper';
 import { api } from '../../../services/api';
 import {
     X, Plus, Minus, Trash2, Save, Upload, AlertCircle, Lock, MapPin, Globe,
-    Tag, Printer, Camera, Scan, Star, CheckCircle2, Barcode, Layers, Info
+    Tag, Printer, Camera, Scan, Star, CheckCircle2, Barcode, Layers, Info, SlidersHorizontal
 } from 'lucide-react';
 import { generateId } from '../Shared';
 import { useStore } from '../../../context/StoreContext';
 import { generateEAN13, renderBarcodeSVG, normalizeToEAN13 } from '../../../utils/barcodeUtils';
 import { BarcodePrintModal } from './BarcodePrintModal';
 import { BarcodeScannerModal } from './BarcodeScannerModal';
+import { StockAdjustmentModal } from './StockAdjustmentModal';
 import { ProductJewelryFields, calculateJewelryPrice, isJewelryPluginEnabled as checkJewelryPlugin } from '../../../plugins/jewelry';
+import { now } from '../../../utils/serverClock';
 
 interface ProductFormModalProps {
     isOpen: boolean;
@@ -34,6 +36,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
     const [scannerOpen, setScannerOpen] = useState(false);
     const [scanningTarget, setScanningTarget] = useState<{ type: 'main' | 'variant', index?: number } | null>(null);
 
+    // --- STOCK ADJUSTMENT STATE ---
+    const [showStockAdjustment, setShowStockAdjustment] = useState(false);
+
     const [formData, setFormData] = useState<Product>({
         id: '',
         code: '',
@@ -49,7 +54,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
         isFeatured: false,
         variantOptions: [],
         variants: [],
-        createdAt: Date.now()
+        createdAt: now()
     });
 
     const [activeTab, setActiveTab] = useState<'info' | 'variants'>('info');
@@ -89,7 +94,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     isFeatured: false,
                     variantOptions: [],
                     variants: [],
-                    createdAt: Date.now()
+                    createdAt: now()
                 });
             }
             setActiveTab('info');
@@ -319,6 +324,29 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
     const hasVariants = formData.variants.length > 0;
     const isGlobalView = currentBranch?.id === 0;
+    const isExistingProduct = Boolean(product && product.id);
+
+    const handleStockAdjustmentSuccess = async () => {
+        setShowStockAdjustment(false);
+        if (product?.id) {
+            try {
+                const fresh = await api.getProduct(product.id);
+                if (fresh) {
+                    setFormData(prev => ({
+                        ...prev,
+                        stock: fresh.stock,
+                        globalStock: fresh.globalStock,
+                        variants: (prev.variants || []).map(v => {
+                            const freshV = fresh.variants?.find(fv => fv.id === v.id);
+                            return freshV ? { ...v, stock: freshV.stock } : v;
+                        })
+                    }));
+                }
+            } catch (e) {
+                console.error("Error recargando producto tras ajuste:", e);
+            }
+        }
+    };
 
     // --- GESTIÓN ERGONÓMICA DE IMÁGENES ---
     const handleRemoveImage = (indexToRemove: number) => {
@@ -690,7 +718,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                 </div>
 
                                 {/* Control de Stock */}
-                                <div className={`bg-gray-50 dark:bg-black/30 p-4 rounded-2xl border border-gray-100 dark:border-white/5 ${hasVariants ? 'opacity-80 pointer-events-none' : ''}`}>
+                                <div className={`bg-gray-50 dark:bg-black/30 p-4 rounded-2xl border border-gray-100 dark:border-white/5 ${(hasVariants || isExistingProduct || isGlobalView) ? 'opacity-90' : ''}`}>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className="text-xs font-bold text-gray-500 uppercase">
                                             Stock {isGlobalView ? 'Total Global' : currentBranch?.name}
@@ -700,7 +728,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     <div className="flex items-center justify-between gap-3 bg-white dark:bg-zinc-800/80 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs">
                                         <button
                                             type="button"
-                                            disabled={hasVariants}
+                                            disabled={hasVariants || isExistingProduct || isGlobalView}
                                             onClick={() => setFormData({ ...formData, stock: Math.max(0, (formData.stock || 0) - 1) })}
                                             className="w-12 h-12 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-white rounded-xl shadow-xs hover:bg-gray-200 dark:hover:bg-zinc-600 disabled:opacity-40 active:scale-90 transition border border-black/5 dark:border-white/5"
                                             title="Restar 1 unidad"
@@ -710,7 +738,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         <div className="flex-1 min-w-0 flex items-center justify-center">
                                             <input
                                                 type="number"
-                                                disabled={hasVariants}
+                                                disabled={hasVariants || isExistingProduct || isGlobalView}
                                                 className="w-full text-center bg-transparent text-2xl sm:text-3xl font-black outline-none dark:text-white disabled:opacity-50 py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 value={formData.stock}
                                                 onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
@@ -718,7 +746,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         </div>
                                         <button
                                             type="button"
-                                            disabled={hasVariants}
+                                            disabled={hasVariants || isExistingProduct || isGlobalView}
                                             onClick={() => setFormData({ ...formData, stock: (formData.stock || 0) + 1 })}
                                             className="w-12 h-12 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-ios-blue text-white rounded-xl shadow-md shadow-ios-blue/20 hover:bg-blue-600 disabled:opacity-40 active:scale-90 transition"
                                             title="Sumar 1 unidad"
@@ -729,6 +757,23 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     {hasVariants && (
                                         <p className="text-[11px] text-ios-blue font-bold mt-2.5 flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 p-2.5 rounded-xl">
                                             <Lock size={13} /> Stock sincronizado automáticamente con la suma de variantes.
+                                        </p>
+                                    )}
+                                    {isExistingProduct && !hasVariants && !isGlobalView && (
+                                        <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
+                                            <span className="flex items-center gap-1.5"><Lock size={13} /> El stock existente no se edita directamente para mantener la trazabilidad.</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowStockAdjustment(true)}
+                                                className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition flex items-center gap-1 shadow-sm"
+                                            >
+                                                <SlidersHorizontal size={11} /> Ajustar Stock
+                                            </button>
+                                        </div>
+                                    )}
+                                    {isGlobalView && (
+                                        <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold mt-2.5 flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/20 p-2.5 rounded-xl border border-purple-200 dark:border-purple-800/30">
+                                            <Globe size={13} /> Vista Global: Stock consolidado de solo lectura. Selecciona una sede para registrar ajustes.
                                         </p>
                                     )}
                                     {product?.globalStock !== undefined && !isGlobalView && (
@@ -1014,26 +1059,40 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                         />
                                                     </div>
                                                     <div className="col-span-2 sm:col-span-1">
-                                                        <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Stock (Unidades)</label>
-                                                        <div className="flex items-center justify-between gap-1.5 bg-gray-50 dark:bg-black/30 rounded-xl p-1 border border-gray-150 dark:border-white/5">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <label className="text-[10px] text-gray-400 uppercase font-bold block">Stock (Unidades)</label>
+                                                            {isExistingProduct && !isGlobalView && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowStockAdjustment(true)}
+                                                                    className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-0.5"
+                                                                >
+                                                                    <SlidersHorizontal size={10} /> Ajustar
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className={`flex items-center justify-between gap-1.5 bg-gray-50 dark:bg-black/30 rounded-xl p-1 border border-gray-150 dark:border-white/5 ${(isExistingProduct || isGlobalView) ? 'opacity-80' : ''}`}>
                                                             <button
                                                                 type="button"
+                                                                disabled={isExistingProduct || isGlobalView}
                                                                 onClick={() => updateVariant(idx, 'stock', Math.max(0, (v.stock || 0) - 1))}
-                                                                className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-lg shadow-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10"
+                                                                className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-lg shadow-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10 disabled:opacity-40"
                                                                 title="Restar 1 unidad"
                                                             >
                                                                 <Minus size={14} className="stroke-[2.5]" />
                                                             </button>
                                                             <input
                                                                 type="number"
-                                                                className="flex-1 w-0 min-w-0 text-center bg-transparent text-sm sm:text-xs font-black dark:text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-1"
+                                                                disabled={isExistingProduct || isGlobalView}
+                                                                className="flex-1 w-0 min-w-0 text-center bg-transparent text-sm sm:text-xs font-black dark:text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-1 disabled:opacity-70"
                                                                 value={v.stock}
                                                                 onChange={e => updateVariant(idx, 'stock', Number(e.target.value) || 0)}
                                                             />
                                                             <button
                                                                 type="button"
+                                                                disabled={isExistingProduct || isGlobalView}
                                                                 onClick={() => updateVariant(idx, 'stock', (v.stock || 0) + 1)}
-                                                                className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 text-ios-blue dark:text-blue-400 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10"
+                                                                className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 text-ios-blue dark:text-blue-400 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10 disabled:opacity-40"
                                                                 title="Sumar 1 unidad"
                                                             >
                                                                 <Plus size={14} className="stroke-[2.5]" />
@@ -1047,8 +1106,24 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
                                     {/* ── DESKTOP TABLE (Variantes en Pantallas Grandes) ── */}
                                     <div className="hidden md:block border border-gray-150 dark:border-white/5 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
-                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-xs text-blue-700 dark:text-blue-300 font-medium">
-                                            <b>Sede Activa:</b> Estás editando el inventario de <b>{currentBranch?.name || 'Sede Principal'}</b>.
+                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-xs text-blue-700 dark:text-blue-300 font-medium flex items-center justify-between gap-2">
+                                            <div>
+                                                <b>Sede Activa:</b> Estás editando el inventario de <b>{currentBranch?.name || 'Sede Principal'}</b>.
+                                                {isExistingProduct && !isGlobalView && (
+                                                    <span className="ml-2 text-amber-700 dark:text-amber-300 font-medium">
+                                                        (Stock de variantes existentes gestionado vía Ajuste).
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {isExistingProduct && !isGlobalView && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowStockAdjustment(true)}
+                                                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shrink-0 active:scale-95 transition flex items-center gap-1 shadow-sm"
+                                                >
+                                                    <SlidersHorizontal size={12} /> Ajustar Stock
+                                                </button>
+                                            )}
                                         </div>
                                         <table className="w-full text-left">
                                             <thead className="bg-gray-50 dark:bg-white/5 text-[10px] text-gray-500 uppercase font-bold">
@@ -1131,24 +1206,27 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                             />
                                                         </td>
                                                         <td className="p-3">
-                                                            <div className="flex items-center gap-1 bg-gray-50 dark:bg-black/30 rounded-lg p-1 border border-gray-150 dark:border-white/5">
+                                                            <div className={`flex items-center gap-1 bg-gray-50 dark:bg-black/30 rounded-lg p-1 border border-gray-150 dark:border-white/5 ${(isExistingProduct || isGlobalView) ? 'opacity-80' : ''}`}>
                                                                 <button
                                                                     type="button"
+                                                                    disabled={isExistingProduct || isGlobalView}
                                                                     onClick={() => updateVariant(idx, 'stock', Math.max(0, (v.stock || 0) - 1))}
-                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition"
+                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition disabled:opacity-30"
                                                                 >
                                                                     <Minus size={11} />
                                                                 </button>
                                                                 <input
                                                                     type="number"
-                                                                    className="w-10 text-center bg-transparent outline-none text-xs font-bold dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    disabled={isExistingProduct || isGlobalView}
+                                                                    className="w-10 text-center bg-transparent outline-none text-xs font-bold dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-70"
                                                                     value={v.stock}
                                                                     onChange={e => updateVariant(idx, 'stock', Number(e.target.value) || 0)}
                                                                 />
                                                                 <button
                                                                     type="button"
+                                                                    disabled={isExistingProduct || isGlobalView}
                                                                     onClick={() => updateVariant(idx, 'stock', (v.stock || 0) + 1)}
-                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition"
+                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition disabled:opacity-30"
                                                                 >
                                                                     <Plus size={11} />
                                                                 </button>
@@ -1251,6 +1329,16 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     isOpen={showBarcodePrint}
                     onClose={() => setShowBarcodePrint(false)}
                     product={formData as Product}
+                />
+            )}
+
+            {/* MODAL DE AJUSTE DE STOCK */}
+            {showStockAdjustment && product && (
+                <StockAdjustmentModal
+                    isOpen={showStockAdjustment}
+                    product={product}
+                    onClose={() => setShowStockAdjustment(false)}
+                    onSuccess={handleStockAdjustmentSuccess}
                 />
             )}
         </div>

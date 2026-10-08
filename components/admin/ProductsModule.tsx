@@ -11,6 +11,7 @@ import {
 import { Product, Category } from '../../types';
 import { DEFAULT_IMAGE } from '../../config';
 import { api } from '../../services/api';
+import { now, toBusinessDateString } from '../../utils/serverClock';
 import { ProductFormModal } from './products/ProductFormModal';
 import { ProductImporter } from './products/ProductImporter';
 import { StockBreakdownModal } from './products/StockBreakdownModal';
@@ -66,23 +67,37 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
         }
     };
 
+    const handleStartEdit = async (p: Product) => {
+        setEditingProduct(p);
+        setIsModalOpen(true);
+        try {
+            const fresh = await api.getProduct(p.id);
+            if (fresh && fresh.id) {
+                setEditingProduct(fresh);
+            }
+        } catch (e) {
+            console.error("Error al obtener producto fresco para edición:", e);
+        }
+    };
+
     const handleSaveProduct = async (data: any) => {
         try {
             if (editingProduct) {
-                await updateProduct({ ...data, id: editingProduct.id });
+                await updateProduct({
+                    ...data,
+                    id: editingProduct.id,
+                    expectedStock: editingProduct.stock
+                });
                 addNotification({ title: 'Actualizado', body: 'Producto guardado.', type: 'success' });
             } else {
-                await addProduct({ ...data, id: generateId(), createdAt: Date.now() });
+                await addProduct({ ...data, id: generateId(), createdAt: now() });
                 addNotification({ title: 'Creado', body: 'Nuevo producto añadido.', type: 'success' });
             }
             setIsModalOpen(false);
-            // FIX SEGURIDAD: Se eliminó loadProducts() aquí.
-            // ProductContext.updateProduct/addProduct ya actualizan el estado local vía setProducts().
-            // Re-llamar a la API sólo genera un GET redundante por cada producto guardado.
-            // La tabla se actualiza automáticamente porque serverProducts refleja el contexto.
-            loadProducts(); // Mantener para sincronizar stock y datos del servidor
-        } catch (e) {
-            addNotification({ title: 'Error', body: 'Falló el guardado.', type: 'warning' });
+            loadProducts();
+        } catch (e: any) {
+            const msg = e?.message || 'Falló el guardado.';
+            addNotification({ title: 'Error', body: msg, type: 'warning' });
         }
     };
 
@@ -143,7 +158,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                 }
             });
 
-            const fileName = `Inventario_${currentBranch?.name || 'Global'}_${new Date().toISOString().split('T')[0]}`;
+            const fileName = `Inventario_${currentBranch?.name || 'Global'}_${toBusinessDateString()}`;
             exportToExcel(data, fileName);
             addNotification({ title: 'Exportación Lista', body: `Se exportaron ${data.length} filas (incluyendo imágenes de productos y categorías).`, type: 'success' });
 
@@ -252,7 +267,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                                     <>
                                                         <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Ajuste Rápido de Stock"><SlidersHorizontal size={18} /></button>
                                                         <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg" title="Imprimir Etiqueta"><Tag size={18} /></button>
-                                                        <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 size={18} /></button>
+                                                        <button onClick={() => handleStartEdit(p)} className="p-2 text-ios-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><Edit2 size={18} /></button>
                                                         <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><Trash2 size={18} /></button>
                                                     </>
                                                 )}
@@ -324,7 +339,7 @@ export const ProductsModule = ({ categories, addProduct, updateProduct, deletePr
                                         <>
                                             <button onClick={() => setAdjustingProduct(p)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl" title="Ajuste Rápido de Stock"><SlidersHorizontal size={16} /></button>
                                             <button onClick={() => setBarcodeProduct(p)} className="p-2 text-indigo-500 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl" title="Imprimir Etiqueta"><Tag size={16} /></button>
-                                            <button onClick={() => { setEditingProduct(p); setIsModalOpen(true); }} className="p-2 text-ios-blue bg-blue-50 dark:bg-blue-900/10 rounded-xl"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleStartEdit(p)} className="p-2 text-ios-blue bg-blue-50 dark:bg-blue-900/10 rounded-xl"><Edit2 size={16} /></button>
                                             <button onClick={() => { if (window.confirm('¿Eliminar?')) { deleteProduct(p.id); loadProducts(); } }} className="p-2 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-xl"><Trash2 size={16} /></button>
                                         </>
                                     )}

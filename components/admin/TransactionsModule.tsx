@@ -6,6 +6,7 @@ import { OrderDetailsModal } from './OrderDetailsModal';
 import { Search, User, Filter, Wallet, CreditCard, DollarSign, ChevronRight, ChevronLeft, ChevronDown, Calendar, Globe, X, CalendarDays, Loader2, CheckCircle2, XCircle, Clock, AlertCircle, UserCircle, Banknote, Smartphone, Download } from 'lucide-react';
 import { api } from '../../services/api';
 import { useDebounce } from '../../hooks/useDebounce';
+import { now, toBusinessDateString, formatDate } from '../../utils/serverClock';
 
 interface GroupedTransaction {
     dateLabel: string;
@@ -32,8 +33,9 @@ export const TransactionsModule = () => {
     const [selectedMethod, setSelectedMethod] = useState('all');
     const [selectedStatus, setSelectedStatus] = useState('all');
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const thirtyDaysAgoStr = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const initialNow = now();
+    const todayStr = toBusinessDateString(initialNow);
+    const thirtyDaysAgoStr = toBusinessDateString(initialNow - 30 * 24 * 60 * 60 * 1000);
 
     const [dateStart, setDateStart] = useState(thirtyDaysAgoStr);
     const [dateEnd, setDateEnd] = useState(todayStr);
@@ -105,9 +107,8 @@ export const TransactionsModule = () => {
         const groups: Record<string, GroupedTransaction> = {};
 
         serverOrders.forEach(order => {
-            const date = new Date(order.date);
-            const dateKey = date.toISOString().split('T')[0];
-            const dateLabel = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+            const dateKey = toBusinessDateString(order.date);
+            const dateLabel = formatDate(order.date, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
 
             if (!groups[dateKey]) {
                 groups[dateKey] = {
@@ -139,29 +140,27 @@ export const TransactionsModule = () => {
     };
 
     const handlePresetDate = (type: 'today' | 'yesterday' | 'week' | 'month') => {
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        const currentMs = now();
+        const today = toBusinessDateString(currentMs);
         let start = today;
 
         if (type === 'yesterday') {
-            const y = new Date(now);
-            y.setDate(y.getDate() - 1);
-            start = y.toISOString().split('T')[0];
+            const yMs = currentMs - 24 * 60 * 60 * 1000;
+            start = toBusinessDateString(yMs);
             setDateEnd(start);
         } else if (type === 'week') {
-            const w = new Date(now);
-            w.setDate(w.getDate() - 7);
-            start = w.toISOString().split('T')[0];
+            const wMs = currentMs - 7 * 24 * 60 * 60 * 1000;
+            start = toBusinessDateString(wMs);
             setDateEnd(today);
         } else if (type === 'month') {
-            const m = new Date(now);
-            m.setDate(m.getDate() - 30);
-            start = m.toISOString().split('T')[0];
+            const mMs = currentMs - 30 * 24 * 60 * 60 * 1000;
+            start = toBusinessDateString(mMs);
             setDateEnd(today);
         } else {
             setDateEnd(today);
         }
         setDateStart(start);
+        setCurrentPage(1);
     };
 
     const clearFilters = () => {

@@ -9,6 +9,7 @@ import {
 import { api } from '../../../services/api';
 import { useNotification } from '../../../context/NotificationContext';
 import { useStore } from '../../../context/StoreContext';
+import { toBusinessDateString } from '../../../utils/serverClock';
 
 // Tipos para el análisis del respaldo
 interface BackupStats {
@@ -97,7 +98,7 @@ export const DataManagementTab = () => {
 
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Lyberate_Backup_${new Date().toISOString().split('T')[0]}_v4.json`;
+            link.download = `Lyberate_Backup_${toBusinessDateString()}_v4.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

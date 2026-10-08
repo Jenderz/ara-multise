@@ -3,6 +3,7 @@ import React from 'react';
 import { Card } from '../UIComponents';
 import * as XLSX from 'xlsx';
 import { TrendingUp } from 'lucide-react';
+import { toBusinessDateString } from '../../utils/serverClock';
 
 export const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -10,7 +11,7 @@ export const exportToExcel = (data: any[], fileName: string) => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Datos");
-    XLSX.writeFile(workbook, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(workbook, `${fileName}_${toBusinessDateString()}.xlsx`);
 };
 
 interface NavButtonProps {

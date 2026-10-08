@@ -10,6 +10,7 @@ import { useDebounce } from '../../../hooks/useDebounce';
 import { api } from '../../../services/api';
 
 import { generateEAN13, normalizeToEAN13 } from '../../../utils/barcodeUtils';
+import { updateProductWithStockSnapshot } from '../../../utils/stock';
 
 export const POSProductGrid = () => {
     const { categories, activeExchangeRate, activeCurrencySymbol } = useStore();
@@ -23,7 +24,10 @@ export const POSProductGrid = () => {
 
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const observerTarget = useRef(null);
+    const observerTarget = useRef<HTMLDivElement | null>(null);
+    const pageRef = useRef(1);
+    const loadingRef = useRef(false);
+    const searchReqIdRef = useRef(0);
 
     // ──────────────────────────────────────────────────────────────
     // PISTOLA DE CÓDIGO DE BARRAS
@@ -102,7 +106,8 @@ export const POSProductGrid = () => {
                         matchedVariant.selections,
                         matchedVariant.price,
                         matchedVariant.sku,
-                        matchedVariant.image
+                        matchedVariant.image,
+                        matchedVariant.id
                     );
                 } else {
                     openVariantModal(found);
@@ -161,51 +166,109 @@ export const POSProductGrid = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleBarcodeDetected]);
 
-    const loadProducts = async (reset = false) => {
-        if (loading && !reset) return;
+    const loadProducts = useCallback(async (reset = false) => {
+        if (loadingRef.current && !reset) return;
+        loadingRef.current = true;
         setLoading(true);
+
         if (reset) {
-            setProducts([]);
+            pageRef.current = 1;
             setPage(1);
+            setHasMore(true);
         }
 
-        try {
-            const p = reset ? 1 : page;
-            const catFilter = selectedCategory === 'Todas' ? '' : selectedCategory;
-            const res = await api.getProducts(p, 24, debouncedSearch, catFilter);
+        const currentReqId = ++searchReqIdRef.current;
+        const pageToLoad = pageRef.current;
 
-            if (res && res.data) {
-                setProducts(prev => reset ? res.data : [...prev, ...res.data]);
-                setHasMore(res.data.length === 24);
-                if (!reset) setPage(prev => prev + 1);
+        try {
+            const catFilter = selectedCategory === 'Todas' ? '' : selectedCategory;
+            const res = await api.getProducts(pageToLoad, 24, debouncedSearch, catFilter);
+
+            // Descartar si llegó una petición de búsqueda posterior
+            if (currentReqId !== searchReqIdRef.current) return;
+
+            if (res && Array.isArray(res.data)) {
+                setProducts(prev => {
+                    if (reset) return res.data;
+                    const existingIds = new Set(prev.map(item => String(item.id)));
+                    const filtered = res.data.filter(item => !existingIds.has(String(item.id)));
+                    return [...prev, ...filtered];
+                });
+                const moreAvailable = res.data.length === 24;
+                setHasMore(moreAvailable);
+                if (moreAvailable) {
+                    pageRef.current += 1;
+                    setPage(pageRef.current);
+                }
             } else {
                 if (reset) setProducts([]);
                 setHasMore(false);
             }
         } catch (e) {
-            console.error(e);
+            console.error('Error cargando productos POS:', e);
         } finally {
-            setLoading(false);
+            if (currentReqId === searchReqIdRef.current) {
+                loadingRef.current = false;
+                setLoading(false);
+            }
         }
-    };
-
-    useEffect(() => {
-        setHasMore(true);
-        loadProducts(true);
     }, [debouncedSearch, selectedCategory]);
 
     useEffect(() => {
+        loadProducts(true);
+    }, [loadProducts]);
+
+    useEffect(() => {
         const observer = new IntersectionObserver(
-            entries => { if (entries[0].isIntersecting && hasMore && !loading) loadProducts(false); },
-            { threshold: 1.0 }
+            entries => {
+                if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
+                    loadProducts(false);
+                }
+            },
+            { threshold: 0.1 }
         );
         if (observerTarget.current) observer.observe(observerTarget.current);
         return () => observer.disconnect();
-    }, [hasMore, loading]);
+    }, [hasMore, loadProducts]);
+
+    // Helper para obtener el stock real de la sede activa en el POS
+    const getLocalStock = useCallback((p: Product): number => {
+        if (p.variants && p.variants.length > 0) {
+            return p.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+        }
+        return Number(p.stock) || 0;
+    }, []);
+
+    // Sincronización reactiva con snapshot de stock tras ventas (padre y variantes)
+    useEffect(() => {
+        const handleSnapshot = (e: any) => {
+            const stockAfter = e.detail?.stockAfter;
+            if (!stockAfter || typeof stockAfter !== 'object') return;
+            setProducts(prev => prev.map(p => updateProductWithStockSnapshot(p, stockAfter)));
+        };
+        window.addEventListener('lyberate:stock_snapshot', handleSnapshot);
+        return () => window.removeEventListener('lyberate:stock_snapshot', handleSnapshot);
+    }, []);
+
+    // Refrescar al volver al foco si hubo inactividad (throttle de 60s para no perder scroll)
+    const lastVisibilityRefreshRef = useRef<number>(Date.now());
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                const nowTime = Date.now();
+                if (nowTime - lastVisibilityRefreshRef.current >= 60000) {
+                    lastVisibilityRefreshRef.current = nowTime;
+                    loadProducts(true);
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [loadProducts]);
 
     const handleProductClick = (p: Product) => {
-        const hasVariants = Boolean(p.variants && p.variants.length > 0 && p.variantOptions && p.variantOptions.length > 0);
-        const localStock = p.stock || 0;
+        const hasVariants = Boolean(p.variants && p.variants.length > 0);
+        const localStock = getLocalStock(p);
         const globalStock = p.globalStock || 0;
 
         if (hasVariants) {
@@ -474,14 +537,14 @@ export const POSProductGrid = () => {
                     </div>
                 ) : (
                     products.map(p => {
-                        const hasVariants = Boolean(p.variants && p.variants.length > 0 && p.variantOptions && p.variantOptions.length > 0);
-                        const realStock = p.stock || 0;
+                        const hasVariants = Boolean(p.variants && p.variants.length > 0);
+                        const localStock = getLocalStock(p);
                         const globalStock = p.globalStock || 0;
 
                         // Si tiene variantes, siempre parece "disponible" para poder abrir el modal y chequear combinaciones
-                        // Si es simple, depende del stock real.
-                        const isInteractable = hasVariants || realStock > 0;
-                        const isRemoteStock = !hasVariants && realStock === 0 && globalStock > 0;
+                        // Si es simple, depende del stock real de la sede local.
+                        const isInteractable = hasVariants || localStock > 0;
+                        const isRemoteStock = !hasVariants && localStock === 0 && globalStock > 0;
 
                         return (
                             <div
@@ -540,8 +603,8 @@ export const POSProductGrid = () => {
                                                 )}
                                             </div>
                                         )}
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${realStock > 0 ? 'text-gray-500 bg-gray-100 dark:bg-white/10' : 'text-red-500 bg-red-50'}`}>
-                                            {realStock}u
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${localStock > 0 ? 'text-gray-500 bg-gray-100 dark:bg-white/10' : 'text-red-500 bg-red-50'}`}>
+                                            {hasVariants ? `${localStock}u (var)` : `${localStock}u`}
                                         </span>
                                     </div>
                                 </div>

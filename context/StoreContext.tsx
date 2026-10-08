@@ -373,6 +373,7 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
             addProduct: useProduct().addProduct,
             updateProduct: useProduct().updateProduct,
             updateMultipleProducts: useProduct().updateMultipleProducts,
+            bulkUpdatePrices: useProduct().bulkUpdatePrices,
             deleteProduct: useProduct().deleteProduct,
             addCategory: useProduct().addCategory,
             updateCategory: useProduct().updateCategory,

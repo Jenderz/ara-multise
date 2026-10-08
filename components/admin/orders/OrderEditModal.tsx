@@ -111,9 +111,9 @@ export const OrderEditModal: React.FC<OrderEditModalProps> = ({ order, onSave, o
     };
 
     // Agregar variante confirmada desde el modal
-    const handleVariantConfirm = (p: Product, selections: Record<string, string>, price: number, variantSku: string, image: string) => {
-        // Encontrar la variante original para asegurar que guardamos su ID (para el inventario en backend)
-        const v = p.variants?.find(v => v.sku === variantSku);
+    const handleVariantConfirm = (p: Product, selections: Record<string, string>, price: number, variantSku: string, image: string, variantId?: string) => {
+        // Preferir el ID explícito del selector; caer a SKU solo como respaldo
+        const v = (variantId ? p.variants?.find(v => v.id === variantId) : undefined) || p.variants?.find(v => v.sku === variantSku);
         
         const newItem: CartItem = {
             cartId: `edit-${p.id}-${v ? v.id : 'variant'}-${Date.now()}`,

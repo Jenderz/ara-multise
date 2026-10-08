@@ -152,44 +152,7 @@ function handleTransferStock($pdo, $input)
         $currentStock = $stmtCheck->fetchColumn();
 
         if ($currentStock === false) {
-            // AUTO-HEALING (TRANSFERENCIA):
-            // La columna 'stock' no existe en la tabla products para productos simples legacy.
-            // Por lo tanto, el healing principal se enfoca en VARIANTE (dentro del JSON variants).
-
-            $legacyStock = 0;
-            $foundLegacy = false;
-
-            // Intentar encontrar como VARIANTE (dentro del JSON variants de un padre)
-            // BUG FIX: Usar un bucle para manejar falsos positivos del LIKE (ej. buscar "5" y encontrar "55")
-            $stmtVar = $pdo->prepare("SELECT variants FROM products WHERE variants LIKE ? LIMIT 50");
-            $stmtVar->execute(['%' . $p['productId'] . '%']);
-
-            while ($parent = $stmtVar->fetch()) {
-                if (!empty($parent['variants'])) {
-                    $variants = json_decode($parent['variants'], true);
-                    if (is_array($variants)) {
-                        foreach ($variants as $v) {
-                            // Comparación estricta o laxa dependiendo del tipo de dato, aquí string compare es seguro
-                            if (isset($v['id']) && (string)$v['id'] === (string)$p['productId']) {
-                                $legacyStock = (int)($v['stock'] ?? 0);
-                                $foundLegacy = true;
-                                break 2; // Salir de ambos bucles
-                            }
-                        }
-                    }
-                }
-            }
-
-            if ($foundLegacy) {
-                // Curar: Crear el registro en inventory
-                $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (?, ?, ?, ?)")
-                    ->execute([(string)$p['productId'], $p['fromBranchId'], $legacyStock, time()]);
-
-                $currentStock = $legacyStock;
-            } else {
-                // Si falla, es un error real de stock no encontrado
-                throw new Exception("Stock no encontrado: No existe registro en inventario ni datos legacy recuperables.");
-            }
+            $currentStock = 0;
         }
 
         if (intval($currentStock) < intval($p['amount'])) {

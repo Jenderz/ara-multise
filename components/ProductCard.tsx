@@ -8,6 +8,7 @@ import { Product } from '../types';
 import { DEFAULT_IMAGE } from '../config';
 import { generateProductSlug } from '../utils/slugify';
 import { showWishlistToast } from './WishlistToast';
+import { getAvailableStock, isOutOfStock as checkOutOfStock } from '../utils/stock';
 
 interface ProductCardProps {
     product: Product;
@@ -17,27 +18,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const { addToCart, wishlist, toggleWishlist, settings, activeExchangeRate, activeCurrencySymbol } = useStore();
     const navigate = useNavigate();
 
-    // --- LÓGICA DE STOCK GLOBAL ---
-    // Calculamos el stock total sumando todas las sedes disponibles
+    // --- LÓGICA DE STOCK CENTRALIZADA ---
     const totalStock = React.useMemo(() => {
-        if (product.globalStock !== undefined) return product.globalStock;
-
-        if (product.branchStock && Object.keys(product.branchStock).length > 0) {
-            return Object.values(product.branchStock).reduce((acc: number, qty: number) => acc + qty, 0);
-        }
-
-        return product.stock || 0;
+        return getAvailableStock(product);
     }, [product]);
 
-    // Calcular si hay stock local para diferenciar visualmente (opcional)
+    // Calcular si hay stock local para diferenciar visualmente
     const localStock = product.stock || 0;
 
     const [isHeartAnimating, setIsHeartAnimating] = useState(false);
     const [isQuickAdded, setIsQuickAdded] = useState(false);
 
-    // Permitir compra si hay stock en cualquier parte de la empresa
-    const canBuy = totalStock > 0;
-    const isOutOfStock = totalStock === 0;
+    // Permitir compra si hay stock disponible según el helper centralizado
+    const isOutOfStock = checkOutOfStock(product);
+    const canBuy = !isOutOfStock;
     const isRemoteStock = localStock === 0 && totalStock > 0;
 
     const isOnSale = Boolean(product.salePrice && product.salePrice > 0 && product.salePrice < product.price);

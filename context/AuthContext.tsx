@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { UserAccount, UserRole, ActivityLog } from '../types';
 import { api } from '../services/api';
 import { useSettings } from './SettingsContext';
+import { now } from '../utils/serverClock';
 
 // FIX SEGURIDAD: Cache de módulo para api.getSettings()
 // Evita que addUser/updateUser/deleteUser hagan una petición GET cada una.
@@ -59,7 +60,7 @@ const isTokenExpired = (token: string | null): boolean => {
         );
         const payload = JSON.parse(jsonPayload);
         if (!payload.exp) return false;
-        return Date.now() >= payload.exp * 1000;
+        return now() >= payload.exp * 1000;
     } catch {
         return true;
     }

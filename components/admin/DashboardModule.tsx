@@ -12,6 +12,7 @@ import { useNotification } from '../../context/NotificationContext';
 import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, Cell
 } from 'recharts';
+import { now as serverNow, startOfBusinessDay, getBusinessHour, BUSINESS_TZ } from '../../utils/serverClock';
 
 interface DashboardModuleProps {
     orders?: any[];
@@ -72,7 +73,7 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
 
     // Saludo según la hora del día
     const greeting = useMemo(() => {
-        const hour = new Date().getHours();
+        const hour = getBusinessHour(serverNow());
         if (hour < 12) return 'Buenos días';
         if (hour < 18) return 'Buenas tardes';
         return 'Buenas noches';
@@ -92,8 +93,7 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
     // CÁLCULO DE MÉTRICAS Y DATOS DEL DASHBOARD
     // =========================================================================
     const dashboardData = useMemo(() => {
-        const now = new Date();
-        const nowMs = now.getTime();
+        const nowMs = serverNow();
 
         // 1. Filtrar órdenes por Rol/Permisos
         let relevantOrders = userRole === 'admin'
@@ -116,8 +116,8 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
             return raw < 100000000000 ? raw * 1000 : raw;
         };
 
-        // 3. Delimitar rangos temporales
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        // 3. Delimitar rangos temporales en hora oficial del servidor
+        const todayStart = startOfBusinessDay(nowMs);
         let periodStart = todayStart;
         let prevPeriodStart = todayStart - 86400000;
         let prevPeriodEnd = todayStart;
@@ -214,7 +214,7 @@ export const DashboardModule: React.FC<DashboardModuleProps> = ({
             chartData = slots.map(slot => {
                 const inSlot = periodCompletedOrders.filter((o: any) => {
                     const d = new Date(getOrderDateMs(o));
-                    const h = d.getHours();
+                    const h = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: BUSINESS_TZ, hour: 'numeric', hour12: false }).format(d));
                     return h >= slot.start && h < slot.end;
                 });
                 const rev = inSlot.reduce((s: number, o: any) => s + Number(o.total || 0), 0);

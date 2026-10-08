@@ -69,7 +69,14 @@ function getDBConnection()
     ];
 
     try {
-        return new PDO($dsn, $user, $pass, $options);
+        $pdo = new PDO($dsn, $user, $pass, $options);
+        // Sincronizar zona horaria de MySQL con America/Caracas (UTC -04:00)
+        try {
+            $pdo->exec("SET time_zone = '-04:00'");
+        } catch (\Throwable $tzEx) {
+            // Si el servidor de BD no soporta SET time_zone o no tiene tablas tz, continuar sin abortar
+        }
+        return $pdo;
     } catch (\PDOException $e) {
         jsonResponse(['error' => 'Error de conexión a la DB', 'details' => $e->getMessage()], 500);
     }
@@ -119,11 +126,13 @@ function mapProduct($p)
     $p['isFeatured']       = (bool)$p['is_featured'];
     $p['stock']            = (int)($p['stock'] ?? 0);
     $p['globalStock']      = (int)($p['global_stock'] ?? 0);
+    $p['availableStock']   = (int)($p['available_stock'] ?? $p['global_stock'] ?? 0);
     $p['minStock']         = (int)($p['min_stock'] ?? 5);
     $p['price']            = (float)$p['price'];
     $p['salePrice']        = (float)($p['sale_price'] ?? 0);
     $p['cost']             = (float)($p['cost'] ?? 0);
     $p['trackStock']       = isset($p['track_stock']) ? (bool)$p['track_stock'] : true;
+    $p['isAvailable']      = !$p['trackStock'] || $p['availableStock'] > 0;
     $p['barcodeEan']       = $p['barcode_ean'] ?? ($p['barcodeEan'] ?? '');
     $p['images']           = safeJsonDecode($p['images']);
     $p['variantOptions']   = safeJsonDecode($p['variant_options']);

@@ -90,7 +90,7 @@ interface FinanceTabProps {
 }
 
 export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) => {
-    const { products, updateMultipleProducts, exchangeRate, exchangeRateParalelo, exchangeRateEuro, activeCurrencySymbol } = useStore();
+    const { products, bulkUpdatePrices, exchangeRate, exchangeRateParalelo, exchangeRateEuro, activeCurrencySymbol } = useStore();
     const { addNotification } = useNotification();
     
     const [inflationGap, setInflationGap] = useState(0);
@@ -122,21 +122,20 @@ export const FinanceTab: React.FC<FinanceTabProps> = ({ settings, onUpdate }) =>
             return parseFloat(newPrice.toFixed(2));
         };
 
-        const updates = products.map(p => {
-            const updatedProduct = { ...p };
-            updatedProduct.price = calcPrice(p.price);
-            if (updatedProduct.salePrice) updatedProduct.salePrice = calcPrice(updatedProduct.salePrice);
-            if (updatedProduct.variants && updatedProduct.variants.length > 0) {
-                updatedProduct.variants = updatedProduct.variants.map(v => ({
-                    ...v,
-                    price: calcPrice(v.price)
-                }));
-            }
-            return updatedProduct;
-        });
+        const updates = products.map(p => ({
+            id: p.id,
+            price: calcPrice(p.price),
+            salePrice: p.salePrice ? calcPrice(p.salePrice) : undefined,
+            variants: p.variants && p.variants.length > 0 ? p.variants.map(v => ({
+                ...v,
+                price: calcPrice(v.price)
+            })) : undefined
+        }));
 
-        await updateMultipleProducts(updates, onProgress);
-        addNotification({ title: 'Actualización Exitosa', body: `Se han actualizado los precios de ${updates.length} productos.`, type: 'success' });
+        onProgress(30);
+        await bulkUpdatePrices(updates);
+        onProgress(100);
+        addNotification({ title: 'Actualización Exitosa', body: `Se han actualizado los precios de ${updates.length} productos sin alterar inventario.`, type: 'success' });
     };
 
     // --- GESTIÓN MÉTODOS DE PAGO ---

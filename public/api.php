@@ -45,6 +45,10 @@ require_once __DIR__ . '/lib/schema.php';
 require_once __DIR__ . '/lib/auth.php';
 
 // --- SEGURIDAD DE APLICACIÓN (PARA EVITAR BLOQUEOS ANTIVIRUS) ---
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("X-Server-Time: " . intval(microtime(true) * 1000));
+
 if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
     header('Content-Type: application/json');
     http_response_code(403);
@@ -57,7 +61,7 @@ if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
 $pdo = getDBConnection();
 
 $schemaLock = __DIR__ . '/.schema_version';
-$currentSchemaVersion = 10;
+$currentSchemaVersion = 11;
 if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
     checkAndMigrateDB($pdo);
     @file_put_contents($schemaLock, strval($currentSchemaVersion));
@@ -74,6 +78,16 @@ $input = safeJsonDecode($rawInput);
 // 4. Enrutador Modular
 try {
     switch ($action) {
+        // --- HORA AUTORITATIVA DEL SERVIDOR ---
+        case 'server_time':
+            $nowMs = intval(microtime(true) * 1000);
+            jsonResponse([
+                'now' => $nowMs,
+                'tz' => 'America/Caracas',
+                'offsetMinutes' => -240
+            ]);
+            break;
+
         // --- AUTENTICACIÓN & MIGRACIONES ---
         case 'login':
             handleLogin($pdo, $input);
@@ -104,6 +118,10 @@ try {
             require_once 'lib/read.php';
             handleGetProducts($pdo, $branchId);
             break;
+        case 'get_product':
+            require_once 'lib/read.php';
+            handleGetSingleProduct($pdo, $branchId);
+            break;
         case 'get_orders':
             require_once 'lib/read.php';
             handleGetOrders($pdo, $branchId);
@@ -117,6 +135,10 @@ try {
         case 'save_product':
             require_once 'lib/write.php';
             handleSaveProduct($pdo, $input, $branchId);
+            break;
+        case 'bulk_update_prices':
+            require_once 'lib/write.php';
+            handleBulkUpdatePrices($pdo, $input);
             break;
         case 'save_order':
             require_once 'lib/write.php';

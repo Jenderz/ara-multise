@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { AppNotification, NotificationContextType } from '../types';
 import { useStore } from './StoreContext';
 import { api } from '../services/api';
+import { now } from '../utils/serverClock';
 
 // --- CONFIGURACIÓN VAPID OFICIAL ARA V 2.0 ---
 const VAPID_PUBLIC_KEY = 'BMS4ALXFLZGF2W_KYT9Gf8ZbmA8r4RjyEgyikAZO3j56is92_0XyddxO75G9VWDBY9wfG3YUUPPawtYdr-0GpFI'; 
@@ -133,18 +134,35 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             console.log("Suscripción Web Push vinculada en el servidor ARA V 2.0 (Sede: " + branchId + ")");
         }
 
-        return subscription;
     } catch (error) {
         console.error("Error al suscribirse al PushManager:", error);
         return null;
     }
   };
 
+  // Escuchar desalineación de reloj entre cliente y servidor
+  useEffect(() => {
+    let warned = false;
+    const handleSkewed = (e: any) => {
+      if (warned) return;
+      warned = true;
+      const skewMs = Math.abs(e.detail?.skew || 0);
+      const minutes = Math.max(1, Math.round(skewMs / 60000));
+      addNotification({
+        title: 'Reloj desincronizado',
+        body: `El reloj de tu dispositivo tiene un desfase de aprox. ${minutes} min con el servidor. Las operaciones usarán la hora oficial del sistema.`,
+        type: 'warning'
+      });
+    };
+    window.addEventListener('lyberate:clock_skewed', handleSkewed);
+    return () => window.removeEventListener('lyberate:clock_skewed', handleSkewed);
+  }, []);
+
   const addNotification = (notif: Omit<AppNotification, 'id' | 'timestamp'>) => {
     const newNotif: AppNotification = {
       ...notif,
       id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now()
+      timestamp: now()
     };
     setNotifications(prev => [newNotif, ...prev]);
     setTimeout(() => removeNotification(newNotif.id), 6000);

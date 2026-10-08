@@ -6,6 +6,7 @@ import { Order, Product, UserAccount } from '../../../types';
 import { StatCard, CustomTooltip, PIE_COLORS } from './SharedStatsComponents';
 import { DollarSign, Wallet, PieChart, ShoppingBag, Star, CreditCard, User, Trophy, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, PieChart as RePieChart, Pie, Cell, BarChart as ReBarChart, Bar } from 'recharts';
+import { now as serverNow, startOfBusinessDay, getBusinessHour } from '../../../utils/serverClock';
 
 interface FinancialAnalyticsProps {
     orders: Order[];
@@ -37,7 +38,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
     }, [orders, userRole, currentUser, selectedUser, currentBranch]);
 
     const financialStats = useMemo(() => {
-        const now = Date.now();
+        const now = serverNow();
         let days = 30;
         if (timeRange === 'today') days = 1;
         if (timeRange === '7d') days = 7;
@@ -48,9 +49,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
         let currentPeriodStart = now - (days * msPerDay);
         
         if (timeRange === 'today') {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            currentPeriodStart = today.getTime();
+            currentPeriodStart = startOfBusinessDay(now);
         }
 
         const previousPeriodStart = currentPeriodStart - (days * msPerDay);
@@ -116,8 +115,7 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
             });
 
             currentOrders.forEach(o => {
-                const orderDate = new Date(Number(o.date));
-                const orderHour = orderDate.getHours();
+                const orderHour = getBusinessHour(Number(o.date));
                 const bucketHour = Math.floor(orderHour / 2) * 2;
                 const entry = hourMap.get(bucketHour);
                 if (entry) {
@@ -298,8 +296,8 @@ export const FinancialAnalytics: React.FC<FinancialAnalyticsProps> = ({ orders, 
         if (timeRange === 'year') days = 365;
 
         const start = timeRange === 'today'
-            ? new Date(new Date().setHours(0, 0, 0, 0)).getTime()
-            : (Date.now() - (days * msPerDay));
+            ? startOfBusinessDay(serverNow())
+            : (serverNow() - (days * msPerDay));
 
         let assistedSalesTotal = 0;
         let assistedCount = 0;

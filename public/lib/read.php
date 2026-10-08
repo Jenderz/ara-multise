@@ -3,6 +3,11 @@
 function injectVariantStock($product, $localMap, $globalMap, $branchId = 0)
 {
     if (empty($product['variants']) || !is_array($product['variants'])) {
+        $pStock = (int)($product['stock'] ?? 0);
+        $pGlobal = (int)($product['global_stock'] ?? $product['globalStock'] ?? $pStock);
+        $product['availableStock'] = $pGlobal;
+        $product['globalStock']    = $pGlobal;
+        $product['isAvailable']    = !($product['trackStock'] ?? true) || $product['availableStock'] > 0;
         return $product;
     }
 
@@ -10,10 +15,9 @@ function injectVariantStock($product, $localMap, $globalMap, $branchId = 0)
     $globalTotal = 0;
 
     foreach ($product['variants'] as &$variant) {
-        // 1. Calcular Stock Local (Sede Actual)
-        // Usamos cast a string para asegurar coincidencia con el mapa indexado como string
         $vId = isset($variant['id']) ? (string)$variant['id'] : '';
 
+        // 1. Calcular Stock Local (Sede Actual)
         if ($vId !== '' && isset($localMap[$vId])) {
             $variant['stock'] = (int)$localMap[$vId];
         } else {
@@ -22,23 +26,25 @@ function injectVariantStock($product, $localMap, $globalMap, $branchId = 0)
         }
         $localTotal += $variant['stock'];
 
-        // 2. Calcular Stock Global (Suma Real de todas las sedes)
+        // 2. Calcular Stock Global / Disponible (solo sedes activas)
         if ($vId !== '' && isset($globalMap[$vId])) {
-            $globalTotal += (int)$globalMap[$vId];
+            $vGlobal = (int)$globalMap[$vId];
         } else {
-            // STRICT GLOBAL: Si no hay registros globales, es 0.
-            $globalTotal += 0;
+            $vGlobal = 0;
         }
+        $variant['availableStock'] = $vGlobal;
+        $variant['globalStock']    = $vGlobal;
+        $variant['isAvailable']    = $variant['availableStock'] > 0;
+        $globalTotal += $variant['availableStock'];
     }
+    unset($variant);
 
-    // Asignar totales calculados
-    if (!empty($product['variants'])) {
-        $product['stock'] = $localTotal; // Stock visible en la sede actual
-
-        // Stock Global Real (Sobrescribe siempre al "Fantasma" de la DB)
-        $product['global_stock'] = $globalTotal;
-        $product['globalStock'] = $globalTotal;
-    }
+    // Asignar totales calculados al padre
+    $product['stock']          = $localTotal; // Stock visible en la sede actual
+    $product['global_stock']   = $globalTotal;
+    $product['globalStock']    = $globalTotal;
+    $product['availableStock'] = $globalTotal;
+    $product['isAvailable']    = !($product['trackStock'] ?? true) || $product['availableStock'] > 0;
 
     return $product;
 }
@@ -91,19 +97,19 @@ function handleGetAll($pdo, $branchId)
     if ($branchId > 0) {
         $prodSql = "SELECT p.*, 
                     COALESCE(i.stock, 0) as `stock`,
-                    (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `global_stock`
+                    (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock`
                     FROM `products` p 
                     LEFT JOIN `inventory` i ON p.id = i.product_id AND i.branch_id = :branchId 
-                    ORDER BY p.created_at DESC";
+                    ORDER BY p.created_at DESC, p.id DESC";
         $stmt = $pdo->prepare($prodSql);
         $stmt->execute([':branchId' => $branchId]);
     } else {
-        // Vista Global: El stock del padre es la suma de todas las sedes
+        // Vista Global: El stock del padre es la suma de todas las sedes activas
         $prodSql = "SELECT p.*, 
-                    (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `stock`,
-                    (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `global_stock`
+                    (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `stock`,
+                    (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock`
                     FROM `products` p 
-                    ORDER BY p.created_at DESC";
+                    ORDER BY p.created_at DESC, p.id DESC";
         $stmt = $pdo->prepare($prodSql);
         $stmt->execute();
     }
@@ -121,38 +127,33 @@ function handleGetAll($pdo, $branchId)
     }
     unset($p);
 
-    // 2. Hidratación de Variantes (Optimizado)
+    // 2. Hidratación de Variantes (Optimizado y filtrando sedes activas)
     // Obtenemos el stock de TODAS las variantes relevantes.
-    // Si es una sede específica, filtramos por ella. Si es global, sumamos.
     $inventoryMap = [];
-    $globalInventoryMap = []; // Mapa separado para el stock global real
+    $globalInventoryMap = []; // Mapa separado para el stock disponible en sedes activas
 
     if ($branchId > 0) {
         $invStmt = $pdo->prepare("SELECT product_id, stock FROM inventory WHERE branch_id = ?");
         $invStmt->execute([$branchId]);
         while ($row = $invStmt->fetch()) {
-            $inventoryMap[(string)$row['product_id']] = $row['stock'];
+            $inventoryMap[(string)$row['product_id']] = (int)$row['stock'];
         }
     } else {
-        // Modo Global: Sumamos el stock de cada variante a través de todas las sedes
-        // Usamos GROUP BY product_id (que en el caso de variantes es su ID único)
-        $invStmt = $pdo->query("SELECT product_id, SUM(stock) as stock FROM inventory GROUP BY product_id");
+        // Modo Global: Sumamos el stock de cada variante a través de sedes activas (excluyendo branch_id 0)
+        $invStmt = $pdo->query("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 GROUP BY i.product_id");
         while ($row = $invStmt->fetch()) {
-            $inventoryMap[(string)$row['product_id']] = $row['stock'];
+            $inventoryMap[(string)$row['product_id']] = (int)$row['stock'];
         }
     }
 
-    // SIEMPRE calculamos el mapa global real para saber disponibilidad en otras sedes
-    // (Incluso si estamos en una sede específica y no tenemos stock local, queremos saber si hay global)
-    $gStmt = $pdo->query("SELECT product_id, SUM(stock) as stock FROM inventory GROUP BY product_id");
+    // SIEMPRE calculamos el mapa global disponible sobre sedes activas (excluye inactivas y branch_id 0)
+    $gStmt = $pdo->query("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 GROUP BY i.product_id");
     while ($row = $gStmt->fetch()) {
-        $globalInventoryMap[(string)$row['product_id']] = $row['stock'];
+        $globalInventoryMap[(string)$row['product_id']] = (int)$row['stock'];
     }
 
     // 3. Inyectar en cada producto
     foreach ($prods as &$p) {
-        // CORRECCIÓN: Usamos el mapa global real como tercer argumento
-        // Esto asegura que las variantes tengan su global_stock calculado correctamente
         $p = injectVariantStock($p, $inventoryMap, $globalInventoryMap, $branchId);
     }
 
@@ -225,9 +226,9 @@ function handleGetProducts($pdo, $branchId)
 
     // SQL Base (Solo usamos la tabla products para la metadata, el stock lo recalcularemos)
     if ($branchId > 0) {
-        $sql = "SELECT p.*, COALESCE(i.stock, 0) as `stock`, (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `global_stock` FROM `products` p LEFT JOIN `inventory` i ON p.id = i.product_id AND i.branch_id = :branchId WHERE $whereSql ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset";
+        $sql = "SELECT p.*, COALESCE(i.stock, 0) as `stock`, (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock` FROM `products` p LEFT JOIN `inventory` i ON p.id = i.product_id AND i.branch_id = :branchId WHERE $whereSql ORDER BY p.created_at DESC, p.id DESC LIMIT $limit OFFSET $offset";
     } else {
-        $sql = "SELECT p.*, (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `stock`, (SELECT COALESCE(SUM(`stock`), 0) FROM `inventory` WHERE `product_id` = p.id) as `global_stock` FROM `products` p WHERE $whereSql ORDER BY p.created_at DESC LIMIT $limit OFFSET $offset";
+        $sql = "SELECT p.*, (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `stock`, (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock` FROM `products` p WHERE $whereSql ORDER BY p.created_at DESC, p.id DESC LIMIT $limit OFFSET $offset";
     }
 
     $stmt = $pdo->prepare($sql);
@@ -258,19 +259,18 @@ function handleGetProducts($pdo, $branchId)
         if ($branchId > 0) {
             $localStmt = $pdo->prepare("SELECT product_id, stock FROM inventory WHERE branch_id = ? AND product_id IN ($placeholders)");
             $localStmt->execute(array_merge([$branchId], $flatParams));
-            while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = $row['stock'];
+            while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = (int)$row['stock'];
         } else {
-            // Si es vista global, el "Local" es igual al Global
-            $localStmt = $pdo->prepare("SELECT product_id, SUM(stock) as stock FROM inventory WHERE product_id IN ($placeholders) GROUP BY product_id");
+            // Si es vista global, el "Local" es igual al Global sobre sedes activas
+            $localStmt = $pdo->prepare("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 AND i.product_id IN ($placeholders) GROUP BY i.product_id");
             $localStmt->execute($flatParams);
-            while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = $row['stock'];
+            while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = (int)$row['stock'];
         }
 
-        // 2. Obtener MAPA GLOBAL (Siempre suma de todas las sedes)
-        // Esto es necesario para corregir el "Total: 5" fantasma cuando estamos en una sede vacía.
-        $globalStmt = $pdo->prepare("SELECT product_id, SUM(stock) as stock FROM inventory WHERE product_id IN ($placeholders) GROUP BY product_id");
+        // 2. Obtener MAPA GLOBAL (Solo sedes activas, excluyendo inactivas y branch_id 0)
+        $globalStmt = $pdo->prepare("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 AND i.product_id IN ($placeholders) GROUP BY i.product_id");
         $globalStmt->execute($flatParams);
-        while ($row = $globalStmt->fetch()) $globalMap[(string)$row['product_id']] = $row['stock'];
+        while ($row = $globalStmt->fetch()) $globalMap[(string)$row['product_id']] = (int)$row['stock'];
     }
 
     foreach ($data as &$p) {
@@ -283,6 +283,67 @@ function handleGetProducts($pdo, $branchId)
     $cStmt->execute($params);
 
     jsonResponse(['data' => $data, 'pagination' => ['total' => (int)$cStmt->fetchColumn(), 'page' => $page, 'limit' => $limit]]);
+}
+
+function handleGetSingleProduct($pdo, $branchId)
+{
+    $id = $_GET['id'] ?? '';
+    if (empty($id)) {
+        jsonResponse(['error' => 'ID de producto requerido'], 400);
+    }
+
+    if ($branchId > 0) {
+        $sql = "SELECT p.*, COALESCE(i.stock, 0) as `stock`,
+                (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock`
+                FROM `products` p
+                LEFT JOIN `inventory` i ON p.id = i.product_id AND i.branch_id = :branchId
+                WHERE p.id = :id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':branchId' => $branchId, ':id' => $id]);
+    } else {
+        $sql = "SELECT p.*,
+                (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `stock`,
+                (SELECT COALESCE(SUM(i2.stock), 0) FROM `inventory` i2 JOIN `branches` b2 ON b2.id = i2.branch_id AND b2.is_active = 1 WHERE i2.product_id = p.id AND i2.branch_id > 0) as `global_stock`
+                FROM `products` p
+                WHERE p.id = :id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':id' => $id]);
+    }
+
+    $raw = $stmt->fetch();
+    if (!$raw) {
+        jsonResponse(['error' => 'Producto no encontrado'], 404);
+    }
+
+    $prod = mapProduct($raw);
+    $variantIds = [];
+    if (!empty($prod['variants'])) {
+        foreach ($prod['variants'] as $v) {
+            if (isset($v['id'])) $variantIds[] = $v['id'];
+        }
+    }
+
+    $allIds = array_merge([$prod['id']], $variantIds);
+    $placeholders = implode(',', array_fill(0, count($allIds), '?'));
+    $localMap = [];
+    $globalMap = [];
+
+    if ($branchId > 0) {
+        $localStmt = $pdo->prepare("SELECT product_id, stock FROM inventory WHERE branch_id = ? AND product_id IN ($placeholders)");
+        $localStmt->execute(array_merge([$branchId], $allIds));
+        while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = (int)$row['stock'];
+    } else {
+        $localStmt = $pdo->prepare("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 AND i.product_id IN ($placeholders) GROUP BY i.product_id");
+        $localStmt->execute($allIds);
+        while ($row = $localStmt->fetch()) $localMap[(string)$row['product_id']] = (int)$row['stock'];
+    }
+
+    $globalStmt = $pdo->prepare("SELECT i.product_id, SUM(i.stock) as stock FROM inventory i JOIN branches b ON b.id = i.branch_id AND b.is_active = 1 WHERE i.branch_id > 0 AND i.product_id IN ($placeholders) GROUP BY i.product_id");
+    $globalStmt->execute($allIds);
+    while ($row = $globalStmt->fetch()) $globalMap[(string)$row['product_id']] = (int)$row['stock'];
+
+    $prod = injectVariantStock($prod, $localMap, $globalMap, $branchId);
+    jsonResponse($prod);
 }
 
 // ... Resto de funciones (GetOrders, GetCustomers) se mantienen igual ...

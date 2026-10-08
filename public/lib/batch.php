@@ -14,6 +14,7 @@ function handleBatchWrite($pdo, $input, $branchId) {
     
     if (empty($items)) jsonResponse(['status' => 'success', 'message' => 'Empty batch']);
 
+    $skipped = 0;
     $pdo->beginTransaction();
     try {
         if ($type === 'products') {
@@ -56,35 +57,46 @@ function handleBatchWrite($pdo, $input, $branchId) {
                     ':is_featured'      => ($p['isFeatured'] ?? false) ? 1 : 0,
                     ':variant_options'  => $vOptions,
                     ':variants'         => $variantsStr,
-                    ':created_at'       => $p['createdAt'] ?? time()*1000, 
+                    ':created_at'       => time() * 1000, // TIEMPO AUTORITATIVO DEL SERVIDOR
                     ':track_stock'      => ($p['trackStock'] ?? true) ? 1 : 0, 
                     ':min_stock'        => intval($p['minStock'] ?? 5),
                     ':barcode_ean'      => $p['barcodeEan'] ?? ($p['barcode_ean'] ?? '')
                 ]);
                 
-                // 1. Insertar stock del PADRE (Suma total)
-                if (isset($p['stock'])) {
-                    $stockStmt->execute([$p['id'], $branchId, intval($p['stock']), time()]);
-                }
+                // 1. Insertar stock del PADRE y VARIANTES solo si hay una sede activa seleccionada (branchId > 0) o branchStock explícito
+                if ($branchId > 0) {
+                    if (isset($p['stock'])) {
+                        $stockStmt->execute([$p['id'], $branchId, intval($p['stock']), time()]);
+                    }
 
-                // 2. Insertar stock de las VARIANTES (Individual)
-                if (!empty($p['variants']) && is_array($p['variants'])) {
-                    foreach ($p['variants'] as $variant) {
-                        if (isset($variant['id'])) {
-                            $vStock = isset($variant['stock']) ? intval($variant['stock']) : 0;
-                            $stockStmt->execute([$variant['id'], $branchId, $vStock, time()]);
+                    if (!empty($p['variants']) && is_array($p['variants'])) {
+                        foreach ($p['variants'] as $variant) {
+                            if (isset($variant['id'])) {
+                                $vStock = isset($variant['stock']) ? intval($variant['stock']) : 0;
+                                $stockStmt->execute([$variant['id'], $branchId, $vStock, time()]);
+                            }
+                        }
+                    }
+                } else if (!empty($p['branchStock']) && is_array($p['branchStock'])) {
+                    foreach ($p['branchStock'] as $bId => $bStk) {
+                        $bId = intval($bId);
+                        if ($bId > 0) {
+                            $stockStmt->execute([$p['id'], $bId, intval($bStk), time()]);
                         }
                     }
                 }
             }
         }
         elseif ($type === 'inventory') {
-            // Importación explícita de tabla de inventario (Multisede)
+            // Importación explícita de tabla de inventario (Multisede) - Sanitizar que branch_id sea > 0
             $stmt = $pdo->prepare("INSERT INTO `inventory` (product_id, branch_id, stock, updated_at) VALUES (:pid, :bid, :st, :ua) ON DUPLICATE KEY UPDATE stock=VALUES(stock), updated_at=VALUES(updated_at)");
             foreach($items as $inv) {
+                $targetBid = (!empty($inv['branch_id']) && intval($inv['branch_id']) > 0) ? intval($inv['branch_id']) : 0;
+                // No inventar stock en la sede 1: saltar filas sin branch_id válido
+                if ($targetBid <= 0) { $skipped++; continue; }
                 $stmt->execute([
                     ':pid' => $inv['product_id'],
-                    ':bid' => $inv['branch_id'] ?? 1,
+                    ':bid' => $targetBid,
                     ':st' => $inv['stock'],
                     ':ua' => $inv['updated_at'] ?? time()
                 ]);
@@ -97,10 +109,12 @@ function handleBatchWrite($pdo, $input, $branchId) {
             ON DUPLICATE KEY UPDATE reference=VALUES(reference)"); 
             
             foreach($items as $mov) {
+                $targetBid = intval($mov['branch_id'] ?? 0);
+                if ($targetBid <= 0) { $skipped++; continue; }
                 $stmt->execute([
                     ':id' => $mov['id'] ?? generateUniqueId(),
                     ':pid' => $mov['product_id'],
-                    ':bid' => $mov['branch_id'] ?? 1,
+                    ':bid' => $targetBid,
                     ':uid' => $mov['user_id'] ?? 'system',
                     ':uname' => $mov['user_name'] ?? 'System',
                     ':type' => $mov['type'] ?? 'adjustment',
@@ -226,7 +240,7 @@ function handleBatchWrite($pdo, $input, $branchId) {
         }
         
         $pdo->commit();
-        jsonResponse(['status' => 'success', 'count' => count($items)]);
+        jsonResponse(['status' => 'success', 'count' => count($items), 'skipped' => $skipped]);
     } catch (Exception $e) {
         $pdo->rollBack();
         jsonResponse(['error' => 'Batch Error', 'details' => $e->getMessage()], 500);
