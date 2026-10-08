@@ -62,23 +62,49 @@ export const CustomerEditModal: React.FC<CustomerEditModalProps> = ({ customer, 
                         placeholder="Nombre del cliente"
                     />
 
-                    <Input 
-                        label="Cédula / DNI" 
-                        value={formData.cedula || ''} 
-                        onChange={e => setFormData({ ...formData, cedula: e.target.value })} 
-                        icon={<CreditCard size={16}/>}
-                        placeholder="V-12345678 (opcional)"
-                    />
+                    <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase ml-1 block mb-1">Cédula / RIF</label>
+                        <div className="flex gap-2">
+                            <div className="flex rounded-2xl bg-gray-100 dark:bg-white/5 p-1 gap-1 border border-transparent">
+                                {['V-', 'E-', 'J-', 'G-'].map(p => (
+                                    <button
+                                        type="button"
+                                        key={p}
+                                        onClick={() => {
+                                            const currentNum = (formData.cedula || '').replace(/^[VEJGvejg]-?/, '');
+                                            setFormData({ ...formData, cedula: `${p}${currentNum}` });
+                                        }}
+                                        className={`px-2 py-1 text-xs font-bold rounded-xl transition-all ${
+                                            (formData.cedula || '').toUpperCase().startsWith(p)
+                                                ? 'bg-ios-blue text-white shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex-1">
+                                <Input 
+                                    value={formData.cedula || ''} 
+                                    onChange={e => setFormData({ ...formData, cedula: e.target.value.toUpperCase() })} 
+                                    icon={<CreditCard size={16}/>}
+                                    placeholder="V-12345678"
+                                    className="font-mono"
+                                />
+                            </div>
+                        </div>
+                    </div>
                     
                     <div>
                         <Input 
-                            label="Teléfono / WhatsApp" 
+                            label="Teléfono / WhatsApp *" 
                             value={formData.phone} 
                             onChange={e => setFormData({ ...formData, phone: e.target.value })} 
                             icon={<Phone size={16}/>}
                             placeholder="+584120000000"
-                            disabled={!isNew} // Solo se puede escribir si es nuevo cliente
-                            className={!isNew ? "opacity-60 cursor-not-allowed bg-gray-100 dark:bg-white/5" : ""}
+                            disabled={!isNew}
+                            className={!isNew ? "opacity-60 cursor-not-allowed bg-gray-100 dark:bg-white/5 font-mono" : "font-mono"}
                         />
                         {!isNew ? (
                             <p className="text-[10px] text-red-400 mt-1 ml-1 font-medium">El número de teléfono es el identificador único y no se puede editar.</p>
@@ -87,17 +113,35 @@ export const CustomerEditModal: React.FC<CustomerEditModalProps> = ({ customer, 
                         )}
                     </div>
 
+                    <Input 
+                        label="Correo Electrónico (Opcional)" 
+                        type="email"
+                        value={formData.email || ''} 
+                        onChange={e => setFormData({ ...formData, email: e.target.value })} 
+                        placeholder="cliente@ejemplo.com"
+                    />
+
                     <div className="space-y-1">
-                        <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Dirección</label>
+                        <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Dirección de Entrega</label>
                         <div className="relative">
                             <MapPin size={16} className="absolute left-4 top-3 text-gray-400 pointer-events-none"/>
                             <textarea 
-                                className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl pl-11 pr-4 py-3 outline-none text-sm dark:text-white min-h-[100px]"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl pl-11 pr-4 py-3 outline-none text-sm dark:text-white min-h-[70px]"
                                 value={formData.address}
                                 onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                placeholder="Dirección de entrega..."
+                                placeholder="Dirección o punto de entrega..."
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500 uppercase ml-1">Notas Internas (Opcional)</label>
+                        <textarea 
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-transparent focus:border-ios-blue/50 rounded-2xl px-4 py-2.5 outline-none text-xs dark:text-white min-h-[60px]"
+                            value={formData.notes || ''}
+                            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                            placeholder="Preferencias del cliente, observaciones de cobro..."
+                        />
                     </div>
                 </div>
 

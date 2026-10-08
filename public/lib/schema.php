@@ -61,11 +61,15 @@ function checkAndMigrateDB($pdo) {
                 `phone` VARCHAR(50) PRIMARY KEY,
                 `name` VARCHAR(255),
                 `cedula` VARCHAR(30) DEFAULT '',
+                `email` VARCHAR(120) DEFAULT '',
+                `notes` TEXT,
+                `category` VARCHAR(20) DEFAULT 'regular',
                 `address` TEXT,
                 `total_spent` DECIMAL(12,2) DEFAULT 0,
                 `order_count` INT DEFAULT 0,
                 `last_order_date` BIGINT,
-                `order_ids` LONGTEXT
+                `order_ids` LONGTEXT,
+                `created_at` BIGINT DEFAULT NULL
             ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
 
             "settings" => "CREATE TABLE IF NOT EXISTS `settings` (
@@ -227,7 +231,11 @@ function checkAndMigrateDB($pdo) {
                 'client_date' => "BIGINT DEFAULT NULL"
             ],
             'customers' => [
-                'cedula' => "VARCHAR(30) DEFAULT ''"
+                'cedula' => "VARCHAR(30) DEFAULT ''",
+                'email' => "VARCHAR(120) DEFAULT ''",
+                'notes' => "TEXT DEFAULT NULL",
+                'category' => "VARCHAR(20) DEFAULT 'regular'",
+                'created_at' => "BIGINT DEFAULT NULL"
             ],
             'push_subscriptions' => [
                 'branch_id'        => "INT DEFAULT 1",

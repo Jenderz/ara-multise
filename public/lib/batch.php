@@ -168,19 +168,23 @@ function handleBatchWrite($pdo, $input, $branchId) {
             }
         }
         elseif ($type === 'customers') {
-            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, address, total_spent, order_count, last_order_date, order_ids) 
-            VALUES (:p, :n, :a, :t, :c, :d, :i) 
-            ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids)");
+            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, cedula, email, notes, category, address, total_spent, order_count, last_order_date, order_ids, created_at) 
+            VALUES (:p, :n, :cedula, :email, :notes, :category, :a, :t, :c, :d, :i, :ca) 
+            ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), cedula=COALESCE(NULLIF(VALUES(cedula), ''), customers.cedula), email=VALUES(email), notes=VALUES(notes), category=VALUES(category), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids), created_at=VALUES(created_at)");
             
             foreach ($items as $c) {
                 if (empty($c['phone'])) continue;
                 $orderIdsJson = is_string($c['orderIds'] ?? []) ? $c['orderIds'] : safeJsonEncode($c['orderIds'] ?? []);
+                $categoryIn = strval($c['category'] ?? 'regular');
+                if (!in_array($categoryIn, ['regular', 'vip', 'wholesale'])) $categoryIn = 'regular';
                 $stmt->execute([
-                    ':p' => $c['phone'], ':n' => $c['name'] ?? '', ':a' => $c['address'] ?? '', 
+                    ':p' => $c['phone'], ':n' => $c['name'] ?? '', ':cedula' => $c['cedula'] ?? '', ':a' => $c['address'] ?? '', 
+                    ':email' => strval($c['email'] ?? ''), ':notes' => strval($c['notes'] ?? ''), ':category' => $categoryIn,
                     ':t' => floatval($c['totalSpent'] ?? ($c['total_spent'] ?? 0)), 
                     ':c' => intval($c['orderCount'] ?? ($c['order_count'] ?? 0)), 
                     ':d' => intval($c['lastOrderDate'] ?? ($c['last_order_date'] ?? 0)), 
-                    ':i' => $orderIdsJson
+                    ':i' => $orderIdsJson,
+                    ':ca' => !empty($c['createdAt']) ? intval($c['createdAt']) : (!empty($c['created_at']) ? intval($c['created_at']) : (time() * 1000))
                 ]);
             }
         }

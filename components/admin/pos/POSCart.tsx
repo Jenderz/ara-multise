@@ -4,14 +4,15 @@ import { Customer, SalesAdvisor, PaymentMethod } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
 import { usePOS } from '../../../context/POSContext';
 import { Button } from '../../UIComponents';
-import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus, ChevronDown, ChevronLeft } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, X, User, FileText, PauseCircle, Maximize2, Minimize2, Tag, DollarSign, Percent, History, CheckCircle2, UserCheck, Award, UserPlus, ChevronDown, ChevronLeft, CreditCard } from 'lucide-react';
+import { extractCedula, matchCustomer, formatCedulaDisplay } from '../../../utils/customerUtils';
 
 interface POSCartProps {
     onBackToCatalog?: () => void;
 }
 
 export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
-    const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings, updateSettings, currentBranch } = useStore();
+    const { customers, activeExchangeRate, activeCurrencySymbol, currentUser, settings, updateSettings, currentBranch, updateCustomer } = useStore();
     const {
         cart,
         updateQuantity,
@@ -38,6 +39,11 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [orderNote, setOrderNote] = useState('');
     const [showParkedList, setShowParkedList] = useState(false);
+
+    // --- MODAL DE REGISTRO RÁPIDO DE CLIENTE EN POS ---
+    const [showQuickCustomerModal, setShowQuickCustomerModal] = useState(false);
+    const [quickCustData, setQuickCustData] = useState({ name: '', phone: '+58', cedula: '', address: '' });
+    const [isSavingQuickCust, setIsSavingQuickCust] = useState(false);
 
     // --- ESTADO PARA ASIGNACIÓN DE ASESOR DE PISO (OPCIONAL) Y COMISIÓN ---
     const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
@@ -177,20 +183,74 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             setCustomerSuggestions([]);
             return;
         }
-        const term = customerInput.toLowerCase();
-        const matches = customers.filter(c =>
-            c.name.toLowerCase().includes(term) || c.phone.includes(term) || (c.cedula || '').toLowerCase().includes(term)
-        ).slice(0, 5);
+        const matches = customers.filter(c => matchCustomer(c, customerInput)).slice(0, 5);
         setCustomerSuggestions(matches);
         setShowSuggestions(matches.length > 0);
-    }, [customerInput, customers]);
+    }, [customerInput, customers, selectedCustomer]);
 
     const selectCustomer = (c: Customer) => {
         setSelectedCustomer(c);
         setCustomerInput(c.name);
         setCustomerPhone(c.phone || '+58');
-        setCustomerCedula(c.cedula || '');
+        const resolvedCedula = extractCedula(c.cedula, c.address);
+        setCustomerCedula(resolvedCedula || '');
         setShowSuggestions(false);
+    };
+
+    const clearSelectedCustomer = () => {
+        setSelectedCustomer(null);
+        setCustomerInput('');
+        setCustomerPhone('+58');
+        setCustomerCedula('');
+        setShowCustomerDetails(false);
+        setShowSuggestions(false);
+    };
+
+    const toggleCustomerDetails = () => {
+        if (!selectedCustomer && customerInput.trim()) {
+            const found = customers.find(c => matchCustomer(c, customerInput.trim()));
+            if (found) {
+                selectCustomer(found);
+            }
+        }
+        setShowCustomerDetails(prev => !prev);
+    };
+
+    const handleQuickSaveCustomer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!quickCustData.name.trim()) {
+            alert('El nombre es obligatorio');
+            return;
+        }
+        const cleanPhone = quickCustData.phone.replace(/\s/g, '').trim();
+        if (!cleanPhone || cleanPhone === '+58') {
+            alert('El teléfono es obligatorio');
+            return;
+        }
+
+        setIsSavingQuickCust(true);
+        try {
+            const newCust: Customer = {
+                name: quickCustData.name.trim(),
+                phone: cleanPhone,
+                cedula: quickCustData.cedula.trim(),
+                address: quickCustData.address.trim(),
+                totalSpent: 0,
+                orderCount: 0,
+                lastOrderDate: Date.now(),
+                orderIds: []
+            };
+
+            await updateCustomer(newCust);
+            selectCustomer(newCust);
+            setShowQuickCustomerModal(false);
+            setQuickCustData({ name: '', phone: '+58', cedula: '', address: '' });
+        } catch (err) {
+            console.error('Error registrando cliente rápido:', err);
+            alert('No se pudo registrar el cliente.');
+        } finally {
+            setIsSavingQuickCust(false);
+        }
     };
 
     const addPaymentRow = () => {
@@ -249,6 +309,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             name, 
             phone, 
             finalAddress, 
+            customerCedula: customerCedula.trim(),
             finalPaymentMethod, 
             totalOverride: finalTotal,
             advisorId: activeAdv ? activeAdv.id : (selectedAdvisorId || null),
@@ -280,7 +341,17 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
             return;
         }
         const name = selectedCustomer ? selectedCustomer.name : (customerInput || 'Sin Nombre');
-        parkOrder(name, selectedCustomer, selectedAdvisor?.id || null, selectedAdvisor?.name || null);
+        const custToPark: Customer | null = selectedCustomer || (customerInput.trim() ? {
+            name: customerInput.trim(),
+            phone: customerPhone,
+            cedula: customerCedula.trim(),
+            address: '',
+            totalSpent: 0,
+            orderCount: 0,
+            lastOrderDate: Date.now(),
+            orderIds: []
+        } : null);
+        parkOrder(name, custToPark, selectedAdvisor?.id || null, selectedAdvisor?.name || null);
         setSelectedAdvisorId('');
         setApplyCommission(false);
         setCustomCommissionRate('0');
@@ -589,46 +660,129 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                     <div className="p-4 sm:p-5 pb-5 sm:pb-6 bg-white dark:bg-zinc-900 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] space-y-3 rounded-t-2xl z-10">
                         {/* --- DATOS DEL CLIENTE (COMPACTO Y COLAPSABLE) --- */}
                         <div className="space-y-1.5">
-                            <div className="relative flex items-center">
-                                <input
-                                    value={customerInput}
-                                    onChange={e => { setCustomerInput(e.target.value); setSelectedCustomer(null); }}
-                                    placeholder="Nombre del Cliente..."
-                                    className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-8 pr-14 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
-                                />
-                                <User size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                
-                                {/* Flechita para expandir/colapsar detalles adicionales */}
-                                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                    {(customerPhone !== '+58' || customerCedula || orderNote) && (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-ios-blue animate-pulse" title="Tiene datos adicionales" />
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCustomerDetails(!showCustomerDetails)}
-                                        className={`p-1 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ${
-                                            showCustomerDetails ? 'rotate-180 text-ios-blue dark:text-ios-blue' : ''
-                                        }`}
-                                        title={showCustomerDetails ? "Ocultar detalles (teléfono, cédula, nota)" : "Ver teléfono, cédula y nota"}
-                                    >
-                                        <ChevronDown size={14} />
-                                    </button>
-                                </div>
-
-                                {showSuggestions && (
-                                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50">
-                                        {customerSuggestions.map(c => (
-                                            <button key={c.phone} onClick={() => selectCustomer(c)} className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/5 text-xs border-b border-gray-50 dark:border-white/5 last:border-0">
-                                                <p className="font-bold dark:text-white">{c.name}</p>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <p className="text-[10px] text-gray-400">{c.phone}</p>
-                                                    {c.cedula && <p className="text-[10px] text-gray-400 font-mono">CI: {c.cedula}</p>}
-                                                </div>
-                                            </button>
-                                        ))}
+                            {selectedCustomer ? (
+                                /* Cliente Seleccionado - Chip Visual Elegante */
+                                <div className="flex items-center justify-between p-2 px-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/40 rounded-xl">
+                                    <div className="flex items-center gap-2.5 overflow-hidden">
+                                        <div className="w-7 h-7 rounded-lg bg-ios-blue text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                                            {selectedCustomer.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="truncate">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-xs text-gray-900 dark:text-white truncate">{selectedCustomer.name}</span>
+                                                {customerCedula ? (
+                                                    <span className="text-[10px] bg-white dark:bg-zinc-800 px-1.5 py-0.5 rounded font-mono font-bold text-ios-blue border border-blue-100 dark:border-white/5">
+                                                        CI: {formatCedulaDisplay(customerCedula)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[9px] text-gray-400 italic">Sin CI</span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400 font-mono">
+                                                <span>{customerPhone}</span>
+                                                {orderNote && <span className="text-[9px] text-amber-500 font-sans italic truncate max-w-[100px]">Nota: {orderNote}</span>}
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
+
+                                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCustomerDetails(!showCustomerDetails)}
+                                            className={`p-1 rounded-md hover:bg-blue-100 dark:hover:bg-white/10 transition-all text-blue-600 dark:text-blue-400 ${
+                                                showCustomerDetails ? 'rotate-180' : ''
+                                            }`}
+                                            title="Editar Cédula, Teléfono o Nota"
+                                        >
+                                            <ChevronDown size={14} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={clearSelectedCustomer}
+                                            className="p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors"
+                                            title="Cambiar cliente"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Input de Búsqueda de Cliente */
+                                <div className="relative flex items-center">
+                                    <input
+                                        value={customerInput}
+                                        onChange={e => { setCustomerInput(e.target.value); setSelectedCustomer(null); }}
+                                        placeholder="Buscar cliente (Nombre, CI o Tel)..."
+                                        className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-8 pr-16 py-1.5 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
+                                    />
+                                    <User size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    
+                                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setQuickCustData({ name: customerInput, phone: '+58', cedula: '', address: '' });
+                                                setShowQuickCustomerModal(true);
+                                            }}
+                                            className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-gray-400 hover:text-ios-blue dark:hover:text-ios-blue"
+                                            title="Registrar nuevo cliente"
+                                        >
+                                            <UserPlus size={14} />
+                                        </button>
+
+                                        {(customerPhone !== '+58' || customerCedula || orderNote) && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-ios-blue animate-pulse" title="Tiene datos adicionales" />
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={toggleCustomerDetails}
+                                            className={`p-1 rounded-md hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ${
+                                                showCustomerDetails ? 'rotate-180 text-ios-blue dark:text-ios-blue' : ''
+                                            }`}
+                                            title={showCustomerDetails ? "Ocultar detalles (teléfono, cédula, nota)" : "Ver teléfono, cédula y nota"}
+                                        >
+                                            <ChevronDown size={14} />
+                                        </button>
+                                    </div>
+
+                                    {showSuggestions && (
+                                        <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden z-50 max-h-52 overflow-y-auto">
+                                            {customerSuggestions.map(c => {
+                                                const resolvedCedula = extractCedula(c.cedula, c.address);
+                                                return (
+                                                    <button 
+                                                        key={c.phone} 
+                                                        onClick={() => selectCustomer(c)} 
+                                                        className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/5 text-xs border-b border-gray-50 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                                    >
+                                                        <div>
+                                                            <p className="font-bold dark:text-white">{c.name}</p>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <p className="text-[10px] text-gray-400 font-mono">{c.phone}</p>
+                                                                {resolvedCedula && (
+                                                                    <p className="text-[10px] text-ios-blue dark:text-blue-400 font-mono font-medium">CI: {formatCedulaDisplay(resolvedCedula)}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-400">{c.orderCount || 0} ped.</span>
+                                                    </button>
+                                                );
+                                            })}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setQuickCustData({ name: customerInput, phone: '+58', cedula: '', address: '' });
+                                                    setShowQuickCustomerModal(true);
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="w-full text-center px-3 py-2 bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-ios-blue text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors border-t border-gray-100 dark:border-white/5"
+                                            >
+                                                <UserPlus size={13} /> Registrar &quot;{customerInput}&quot; como nuevo
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Campos desplegables adicionales (Teléfono, Cédula y Nota) */}
                             {showCustomerDetails && (
@@ -638,7 +792,7 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                             value={customerPhone}
                                             onChange={e => setCustomerPhone(e.target.value)}
                                             placeholder="Teléfono"
-                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-6 pr-2 py-1.5 text-[11px] dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400"
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent dark:border-white/5 rounded-lg pl-6 pr-2 py-1.5 text-[11px] dark:text-white outline-none focus:ring-1 focus:ring-ios-blue/30 font-medium placeholder-gray-400 font-mono"
                                         />
                                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] font-bold">#</span>
                                     </div>
@@ -989,6 +1143,110 @@ export const POSCart: React.FC<POSCartProps> = ({ onBackToCatalog }) => {
                                 Listo
                             </Button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Registro Rápido de Cliente */}
+            {showQuickCustomerModal && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowQuickCustomerModal(false)} />
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl relative animate-slide-up border border-gray-100 dark:border-white/10 space-y-4">
+                        <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-3">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ios-blue">
+                                    <UserPlus size={18} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm dark:text-white">Nuevo Cliente</h3>
+                                    <p className="text-[10px] text-gray-400">Registrar y asociar a la venta actual</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowQuickCustomerModal(false)}
+                                className="p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleQuickSaveCustomer} className="space-y-3">
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nombre Completo *</label>
+                                <div className="relative">
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="Nombre y Apellido"
+                                        value={quickCustData.name}
+                                        onChange={e => setQuickCustData({ ...quickCustData, name: e.target.value })}
+                                        className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue font-medium"
+                                    />
+                                    <User size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cédula / RIF</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="V-12345678"
+                                            value={quickCustData.cedula}
+                                            onChange={e => setQuickCustData({ ...quickCustData, cedula: e.target.value })}
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-2 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue font-mono font-medium"
+                                        />
+                                        <CreditCard size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Teléfono *</label>
+                                    <div className="relative">
+                                        <input
+                                            required
+                                            type="tel"
+                                            placeholder="+58412..."
+                                            value={quickCustData.phone}
+                                            onChange={e => setQuickCustData({ ...quickCustData, phone: e.target.value })}
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-7 pr-3 py-2 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue font-mono font-medium"
+                                        />
+                                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">#</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Dirección (Opcional)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Dirección o punto de referencia..."
+                                    value={quickCustData.address}
+                                    onChange={e => setQuickCustData({ ...quickCustData, address: e.target.value })}
+                                    className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs dark:text-white outline-none focus:ring-1 focus:ring-ios-blue font-medium"
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => setShowQuickCustomerModal(false)}
+                                    className="flex-1 py-2 text-xs font-bold"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    loading={isSavingQuickCust}
+                                    className="flex-1 py-2 text-xs font-bold bg-ios-blue text-white"
+                                >
+                                    Guardar y Usar
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

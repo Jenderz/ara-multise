@@ -61,7 +61,7 @@ if (($_SERVER['HTTP_X_APP_TOKEN'] ?? '') !== 'AraEcom_v5_Secure') {
 $pdo = getDBConnection();
 
 $schemaLock = __DIR__ . '/.schema_version';
-$currentSchemaVersion = 11;
+$currentSchemaVersion = 12;
 if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
     checkAndMigrateDB($pdo);
     @file_put_contents($schemaLock, strval($currentSchemaVersion));
@@ -146,8 +146,25 @@ try {
             break;
         case 'save_customer':
             require_once 'lib/write.php';
-            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, cedula, address, total_spent, order_count, last_order_date, order_ids) VALUES (:p, :n, :cedula, :a, :t, :c, :d, :i) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), cedula=VALUES(cedula), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids)");
-            $stmt->execute([':p' => $input['phone'], ':n' => $input['name'], ':cedula' => $input['cedula'] ?? '', ':a' => $input['address'], ':t' => floatval($input['totalSpent']), ':c' => intval($input['orderCount']), ':d' => intval($input['lastOrderDate']), ':i' => safeJsonEncode($input['orderIds'])]);
+            // Auto-recuperación de cédulas legadas: si la cédula viene vacía, se intenta extraer del address ("Calle X | CI: V-12345678")
+            $cedulaIn = strtoupper(trim(strval($input['cedula'] ?? '')));
+            if ($cedulaIn === '' && !empty($input['address'])) {
+                if (preg_match('/(?:CI|C\.I\.|RIF|CEDULA|DNI)[\s:\-#]*([VEJG]?[-.\s]?\d{5,10}[A-Z0-9]?)/i', strval($input['address']), $mCed)) {
+                    $cedulaIn = strtoupper(str_replace(['.', ' '], '', trim($mCed[1])));
+                } else if (preg_match('/(?:^|\s|[|,;])([VEJG]-?\d{6,9}(?:-\d)?)(?:$|\s|[|,;])/i', strval($input['address']), $mCed)) {
+                    $cedulaIn = strtoupper(str_replace(['.', ' '], '', trim($mCed[1])));
+                }
+            }
+            $categoryIn = strval($input['category'] ?? 'regular');
+            if (!in_array($categoryIn, ['regular', 'vip', 'wholesale'])) $categoryIn = 'regular';
+            $stmt = $pdo->prepare("INSERT INTO `customers` (phone, `name`, cedula, email, notes, category, address, total_spent, order_count, last_order_date, order_ids, created_at) VALUES (:p, :n, :cedula, :email, :notes, :category, :a, :t, :c, :d, :i, :ca) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), cedula=COALESCE(NULLIF(VALUES(cedula), ''), customers.cedula), email=VALUES(email), notes=VALUES(notes), category=VALUES(category), address=VALUES(address), total_spent=VALUES(total_spent), order_count=VALUES(order_count), last_order_date=VALUES(last_order_date), order_ids=VALUES(order_ids)");
+            $stmt->execute([
+                ':p' => $input['phone'], ':n' => $input['name'], ':cedula' => $cedulaIn,
+                ':email' => strval($input['email'] ?? ''), ':notes' => strval($input['notes'] ?? ''), ':category' => $categoryIn,
+                ':a' => $input['address'], ':t' => floatval($input['totalSpent']), ':c' => intval($input['orderCount']),
+                ':d' => intval($input['lastOrderDate']), ':i' => safeJsonEncode($input['orderIds']),
+                ':ca' => !empty($input['createdAt']) ? intval($input['createdAt']) : (time() * 1000)
+            ]);
             jsonResponse(['status' => 'success']);
             break;
         case 'save_settings':

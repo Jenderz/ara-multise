@@ -7,6 +7,7 @@ import { useSettings } from './SettingsContext';
 import { DEFAULT_IMAGE } from '../config';
 import { updateAppBadge } from '../utils/nativePwa';
 import { now } from '../utils/serverClock';
+import { extractCedula } from '../utils/customerUtils';
 
 export interface CreateOrderResult {
     orderId: string;
@@ -30,7 +31,7 @@ interface CartContextType {
     updateCartQuantity: (cartId: string, delta: number) => void;
     clearCart: () => void;
 
-    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<CreateOrderResult>;
+    createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number, customerCedula?: string) => Promise<CreateOrderResult>;
     updateOrder: (order: Order, processStock?: boolean) => Promise<void>;
     deleteOrder: (id: string) => void;
 
@@ -167,7 +168,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         advisorId?: string,
         advisorName?: string,
         advisorCommission?: number,
-        advisorRate?: number
+        advisorRate?: number,
+        customerCedula?: string
     ): Promise<CreateOrderResult> => {
         const finalItems = items && items.length > 0 ? items : [...cart];
 
@@ -309,17 +311,37 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const safePhone = customerPhone.replace(/\s/g, '').trim();
+        const resolvedCedula = (customerCedula || '').trim() || extractCedula(undefined, customerAddress);
         setCustomers(prev => {
             const existingIndex = prev.findIndex(c => c.phone.replace(/\s/g, '') === safePhone);
             let newState: Customer[];
             if (existingIndex >= 0) {
                 const existing = prev[existingIndex];
-                const updatedCustomer = { ...existing, name: customerName, address: customerAddress, totalSpent: (Number(existing.totalSpent) || 0) + orderTotal, orderCount: (Number(existing.orderCount) || 0) + 1, lastOrderDate: orderDate, orderIds: [newOrder.id, ...(existing.orderIds || [])] };
+                const finalCedula = resolvedCedula || existing.cedula || '';
+                const updatedCustomer: Customer = { 
+                    ...existing, 
+                    name: customerName, 
+                    cedula: finalCedula,
+                    address: customerAddress, 
+                    totalSpent: (Number(existing.totalSpent) || 0) + orderTotal, 
+                    orderCount: (Number(existing.orderCount) || 0) + 1, 
+                    lastOrderDate: orderDate, 
+                    orderIds: [newOrder.id, ...(existing.orderIds || [])] 
+                };
                 newState = [...prev];
                 newState[existingIndex] = updatedCustomer;
                 api.saveCustomer(updatedCustomer).catch(console.error);
             } else {
-                const newCustomer = { phone: customerPhone, name: customerName, address: customerAddress, totalSpent: orderTotal, orderCount: 1, lastOrderDate: orderDate, orderIds: [newOrder.id] };
+                const newCustomer: Customer = { 
+                    phone: customerPhone, 
+                    name: customerName, 
+                    cedula: resolvedCedula,
+                    address: customerAddress, 
+                    totalSpent: orderTotal, 
+                    orderCount: 1, 
+                    lastOrderDate: orderDate, 
+                    orderIds: [newOrder.id] 
+                };
                 api.saveCustomer(newCustomer).catch(console.error);
                 newState = [newCustomer, ...prev];
             }

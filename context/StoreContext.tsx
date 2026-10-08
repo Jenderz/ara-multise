@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useEffect, ReactNode, useRef, useState, useCallback } from 'react';
-import { StoreContextType, Order, Product, Category, Branch, Coupon, ActivityLog } from '../types';
+import { StoreContextType, Order, Product, Category, Branch, Coupon, ActivityLog, Customer } from '../types';
 import { api } from '../services/api';
+import { extractCedula } from '../utils/customerUtils';
 
 import { SettingsProvider, useSettings } from './SettingsContext';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -218,8 +219,28 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
             }));
         };
 
+        const normalizeCustomers = (rawCustomers: any[]): Customer[] => {
+            return (rawCustomers || []).map(c => {
+                const resolvedCedula = extractCedula(c.cedula, c.address);
+                return {
+                    phone: String(c.phone || '').trim(),
+                    name: String(c.name || 'Cliente').trim(),
+                    cedula: resolvedCedula || '',
+                    email: c.email || undefined,
+                    address: String(c.address || ''),
+                    notes: c.notes || undefined,
+                    category: c.category || 'regular',
+                    totalSpent: Number(c.totalSpent || c.total_spent || 0),
+                    orderCount: Number(c.orderCount || c.order_count || 0),
+                    lastOrderDate: Number(c.lastOrderDate || c.last_order_date || 0),
+                    orderIds: Array.isArray(c.orderIds) ? c.orderIds : [],
+                    createdAt: Number(c.createdAt || c.created_at || 0) || undefined
+                };
+            });
+        };
+
         setOrders(normalizeOrders(data.orders || []));
-        setCustomers(data.customers || []);
+        setCustomers(normalizeCustomers(data.customers || []));
         setCoupons(normalizeCoupons(data.coupons || []));
     };
 

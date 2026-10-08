@@ -336,7 +336,8 @@ export const POSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 checkoutDetails.advisorId || undefined,
                 checkoutDetails.advisorName || undefined,
                 checkoutDetails.advisorCommission || 0,
-                checkoutDetails.advisorRate || 0
+                checkoutDetails.advisorRate || 0,
+                checkoutDetails.customerCedula || undefined
             );
 
             const orderId = orderResult.orderId;

@@ -206,11 +206,15 @@ export interface Customer {
   phone: string;
   name: string;
   cedula?: string;
+  email?: string;
   address: string;
+  notes?: string;
+  category?: 'regular' | 'vip' | 'wholesale';
   totalSpent: number;
   orderCount: number;
   lastOrderDate: number;
   orderIds: string[];
+  createdAt?: number;
 }
 
 export interface Coupon {
@@ -393,7 +397,7 @@ export interface StoreContextType {
   removeFromCart: (cartId: string) => void;
   updateCartQuantity: (cartId: string, delta: number) => void;
   clearCart: () => void;
-  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number) => Promise<string>;
+  createOrder: (customerName: string, customerPhone: string, customerAddress: string, items?: CartItem[], total?: number, paymentMethod?: string, status?: 'pending' | 'completed' | 'cancelled', discount?: number, deliveryMethod?: 'delivery' | 'pickup' | 'pos', pickupBranchId?: number, sellerId?: string, sellerName?: string, sellerCommission?: number, commissionRate?: number, couponCode?: string, advisorId?: string, advisorName?: string, advisorCommission?: number, advisorRate?: number, customerCedula?: string) => Promise<string>;
   updateOrder: (order: Order) => Promise<void>;
   deleteOrder: (id: string) => void;
   updateCustomer: (customer: Customer) => Promise<void>;

@@ -190,6 +190,10 @@ function mapCustomer($c)
     $c['lastOrderDate'] = (int)($c['last_order_date'] ?? 0);
     $c['orderIds'] = safeJsonDecode($c['order_ids']);
     $c['cedula'] = $c['cedula'] ?? '';
+    $c['email'] = $c['email'] ?? '';
+    $c['notes'] = $c['notes'] ?? '';
+    $c['category'] = $c['category'] ?? 'regular';
+    if (!empty($c['created_at']) && empty($c['createdAt'])) $c['createdAt'] = (int)$c['created_at'];
     return $c;
 }
 
