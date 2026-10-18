@@ -27,27 +27,51 @@ export const PWAInstallPrompt: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [showIosGuide, setShowIosGuide] = useState(false);
 
+    // Detección estricta de dispositivo móvil (para no mostrar en computadoras de escritorio)
+    const [isMobile, setIsMobile] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        const ua = navigator.userAgent || '';
+        const isMobileUA = /android|iphone|ipad|ipod|mobile/i.test(ua);
+        return isMobileUA || window.innerWidth < 768;
+    });
+
+    useEffect(() => {
+        const handleResize = () => {
+            const ua = navigator.userAgent || '';
+            const isMobileUA = /android|iphone|ipad|ipod|mobile/i.test(ua);
+            setIsMobile(isMobileUA || window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const appIcon = settings?.appIconUrl || settings?.logoUrl || "https://cdn-icons-png.flaticon.com/512/3081/3081559.png";
     const storeName = settings?.storeName || 'App';
 
-    // Sincronizar apertura manual desde Dashboard o contexto
+    // Sincronizar apertura manual desde Dashboard o contexto (solo si es iOS móvil)
     useEffect(() => {
         if (showInstallModal) {
-            if (isIOS) {
+            if (isIOS && isMobile) {
                 setShowIosGuide(true);
             }
         }
-    }, [showInstallModal, isIOS]);
+    }, [showInstallModal, isIOS, isMobile]);
 
     // Control de visibilidad del banner flotante
     useEffect(() => {
+        // No mostrar en computadoras de escritorio
+        if (!isMobile) {
+            setIsVisible(false);
+            return;
+        }
+
         // No mostrar si la app ya está instalada en modo standalone
         if (isStandalone) {
             setIsVisible(false);
             return;
         }
 
-        // Si no es iOS ni hay evento diferido para Android/Desktop, no mostrar
+        // Si no es iOS ni hay evento diferido para móviles, no mostrar
         if (!isIOS && !deferredPrompt) {
             setIsVisible(false);
             return;
@@ -67,7 +91,7 @@ export const PWAInstallPrompt: React.FC = () => {
         }, 20000);
 
         return () => clearTimeout(timer);
-    }, [deferredPrompt, isStandalone, isIOS]);
+    }, [deferredPrompt, isStandalone, isIOS, isMobile]);
 
     const handleInstallClick = async () => {
         setIsVisible(false);
@@ -91,14 +115,14 @@ export const PWAInstallPrompt: React.FC = () => {
         localStorage.setItem('pwa_install_dismissed', Date.now().toString());
     };
 
-    const canShowBanner = isVisible && !isStandalone && (isIOS || deferredPrompt) && !showIosGuide && !showInstallModal;
-    const canShowIosModal = (showIosGuide || showInstallModal) && isIOS && !isStandalone;
+    const canShowBanner = isMobile && isVisible && !isStandalone && (isIOS || deferredPrompt) && !showIosGuide && !showInstallModal;
+    const canShowIosModal = (showIosGuide || showInstallModal) && isIOS && isMobile && !isStandalone;
 
     return (
         <>
-            {/* 1. BANNER FLOTANTE NO INTRUSIVO (Android, Desktop e iOS) */}
+            {/* 1. BANNER FLOTANTE NO INTRUSIVO (Solo en dispositivos móviles) */}
             {canShowBanner && (
-                <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 z-[100] flex justify-center animate-slide-up pointer-events-auto">
+                <div className="md:hidden fixed bottom-24 left-4 right-4 z-[100] flex justify-center animate-slide-up pointer-events-auto">
                     <div className="bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl rounded-2xl shadow-2xl p-3 sm:p-4 flex items-center justify-between gap-3 max-w-sm w-full border border-gray-100 dark:border-white/10">
                         <div className="flex items-center gap-3 min-w-0">
                             <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-700 shadow-md border border-gray-100 dark:border-white/10 overflow-hidden p-0.5 shrink-0 flex items-center justify-center">
