@@ -299,22 +299,23 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ label, value, onCh
         {value ? (
           <div className={`relative group ${aspectClass} w-full h-full`}>
             <LazyImage src={value} alt="Uploaded" className="w-full h-full object-contain relative z-10" />
-            <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2.5 z-20">
+            {/* Acciones de imagen: siempre accesibles y ergonómicas en móvil y PC */}
+            <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
               <button
-                onClick={() => window.open(value, '_blank')}
-                className="p-2.5 bg-white/30 backdrop-blur rounded-full text-white hover:bg-white/50 active:scale-90 transition shadow-md"
+                onClick={(e) => { e.stopPropagation(); window.open(value, '_blank'); }}
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full text-white flex items-center justify-center active:scale-90 transition shadow-md border border-white/20"
                 type="button"
                 title="Ver imagen"
               >
-                <ImageIcon size={18} />
+                <ImageIcon size={14} />
               </button>
               <button
-                onClick={() => onChange('')}
-                className="p-2.5 bg-red-600 backdrop-blur rounded-full text-white hover:bg-red-700 active:scale-90 transition shadow-md"
+                onClick={(e) => { e.stopPropagation(); onChange(''); }}
+                className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center active:scale-90 transition shadow-md border border-white/20"
                 type="button"
                 title="Eliminar imagen"
               >
-                <X size={18} />
+                <X size={14} />
               </button>
             </div>
           </div>

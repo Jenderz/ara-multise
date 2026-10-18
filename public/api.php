@@ -130,6 +130,10 @@ try {
             require_once 'lib/read.php';
             handleGetCustomers($pdo);
             break;
+        case 'get_stagnant_stock':
+            require_once 'lib/read.php';
+            handleGetStagnantStock($pdo, $branchId);
+            break;
 
         // --- ESCRITURA ---
         case 'save_product':
@@ -139,6 +143,10 @@ try {
         case 'bulk_update_prices':
             require_once 'lib/write.php';
             handleBulkUpdatePrices($pdo, $input);
+            break;
+        case 'update_product_offer':
+            require_once 'lib/write.php';
+            handleUpdateProductOffer($pdo, $input);
             break;
         case 'save_order':
             require_once 'lib/write.php';

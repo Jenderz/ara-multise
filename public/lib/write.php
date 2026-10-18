@@ -1151,4 +1151,58 @@ function handleSaveBranch($pdo, $input)
     }
     jsonResponse(['status' => 'success']);
 }
+
+function handleUpdateProductOffer($pdo, $input)
+{
+    $authUser = getAuthUser($pdo);
+    if (!$authUser) {
+        jsonResponse(['error' => 'No autorizado. Se requiere sesión activa.'], 401);
+    }
+    $role = $authUser['role'] ?? '';
+    $perms = is_array($authUser['permissions'] ?? null) ? $authUser['permissions'] : [];
+    if ($role !== 'admin' && $role !== 'master' && !in_array('products_manage', $perms) && !in_array('all', $perms)) {
+        jsonResponse(['error' => 'No autorizado para gestionar precios u ofertas.'], 403);
+    }
+
+    $id = strval($input['id'] ?? '');
+    if (empty($id)) {
+        jsonResponse(['error' => 'ID de producto requerido'], 400);
+    }
+
+    $salePrice = max(0, floatval($input['salePrice'] ?? ($input['sale_price'] ?? 0)));
+
+    $stmtSel = $pdo->prepare("SELECT id, title, cost, price, sale_price FROM `products` WHERE id = ?");
+    $stmtSel->execute([$id]);
+    $prod = $stmtSel->fetch(PDO::FETCH_ASSOC);
+
+    if (!$prod) {
+        jsonResponse(['error' => 'Producto no encontrado'], 404);
+    }
+
+    $cost = floatval($prod['cost'] ?? 0);
+    $price = floatval($prod['price'] ?? 0);
+
+    // Validación inquebrantable de integridad de costos:
+    if ($salePrice > 0 && $cost > 0 && $salePrice < $cost) {
+        jsonResponse([
+            'error' => "El precio de oferta ($" . number_format($salePrice, 2) . ") no puede ser menor al costo ($" . number_format($cost, 2) . ")."
+        ], 422);
+    }
+
+    $stmtUpd = $pdo->prepare("UPDATE `products` SET `sale_price` = :sale_price WHERE id = :id");
+    $stmtUpd->execute([
+        ':sale_price' => $salePrice,
+        ':id' => $id
+    ]);
+
+    jsonResponse([
+        'status' => 'success',
+        'id' => $id,
+        'title' => $prod['title'] ?? '',
+        'salePrice' => $salePrice,
+        'price' => $price,
+        'cost' => $cost
+    ]);
+}
 ?>
+

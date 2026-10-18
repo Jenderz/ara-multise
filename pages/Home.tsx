@@ -465,15 +465,15 @@ export const Home = () => {
             {/* --- OFERTAS RELÁMPAGO (FLASH SALES MOBILE-FIRST) --- */}
             {settings.showSaleSection !== false && saleProducts.length > 0 && (
                 <section className="mb-12 sm:mb-16 md:mb-24 px-1 sm:px-4">
-                    <div className="bg-red-50 dark:bg-red-950/20 rounded-2xl sm:rounded-3xl md:rounded-[3rem] p-4 sm:p-8 md:p-12 border border-red-100 dark:border-red-900/30 relative overflow-hidden">
+                    <div className="bg-red-50 dark:bg-red-950/20 rounded-2xl sm:rounded-3xl md:rounded-[3rem] px-2.5 py-4 sm:p-8 md:p-12 border border-red-100 dark:border-red-900/30 relative overflow-hidden">
                         {/* Decoración sutil de Fondo */}
                         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none hidden sm:block">
                             <Percent size={180} className="text-red-500" />
                         </div>
 
-                        <div className="flex justify-between items-center mb-4 sm:mb-8 gap-2 relative z-10">
+                        <div className="flex justify-between items-center mb-3 sm:mb-8 px-1 sm:px-0 gap-2 relative z-10">
                             <div>
-                                <div className="flex items-center gap-1.5 mb-1">
+                                <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
                                     <Zap size={14} className="text-red-500 fill-red-500" />
                                     <span className="text-[10px] sm:text-xs font-black text-red-500 uppercase tracking-widest">Tiempo Limitado</span>
                                 </div>
@@ -482,14 +482,14 @@ export const Home = () => {
                             <Button 
                                 variant="ghost" 
                                 onClick={() => navigate('/shop?filter=offers')} 
-                                className="text-xs sm:text-sm font-bold text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 gap-1 sm:gap-2 px-2.5 sm:px-4 py-1.5"
+                                className="text-xs sm:text-sm font-bold text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 gap-1 sm:gap-2 px-2 sm:px-4 py-1.5"
                             >
                                 <span>Ver Todas</span>
                                 <ArrowRight size={14} />
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6 relative z-10">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 relative z-10">
                             {saleProducts.map(product => (
                                 <ProductCard key={product.id} product={product} />
                             ))}

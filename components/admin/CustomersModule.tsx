@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Badge, Button } from '../UIComponents';
 import { Customer, Order } from '../../types';
-import { Search, Eye, ShoppingBag, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight, Download, MessageCircle, Plus, Users, UserCheck, TrendingUp, CreditCard, Copy, Check, Filter } from 'lucide-react';
+import { Search, Eye, ShoppingBag, Trash2, Edit2, Loader2, ChevronLeft, ChevronRight, Download, MessageCircle, Plus, Users, UserCheck, TrendingUp, CreditCard, Copy, Check, Filter, Phone } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { api } from '../../services/api';
 import { exportToExcel } from './Shared';
@@ -146,7 +146,7 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
     };
 
     return (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 animate-fade-in pb-24 sm:pb-8">
 
             {/* KPIs Ejecutivos del Módulo */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -206,7 +206,7 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Buscar por nombre, cédula o teléfono..."
+                            placeholder="Buscar cliente, cédula o teléfono..."
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                             className="w-full pl-12 pr-4 py-2.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-transparent outline-none focus:ring-4 focus:ring-ios-blue/10 dark:text-white transition-all shadow-inner text-sm"
@@ -250,9 +250,117 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
                 </div>
             </div>
 
-            {/* Tabla de Clientes */}
+            {/* Contenedor de Clientes: Vista Híbrida (Cards en Móvil, Tabla en Desktop) */}
             <Card className="overflow-hidden bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md border-gray-100 dark:border-white/5">
-                <div className="overflow-x-auto">
+                {/* 1. VISTA MÓVIL (< md): Tarjetas Táctiles ergonómicas */}
+                <div className="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+                    {loading ? (
+                        <div className="py-12 text-center"><Loader2 className="animate-spin mx-auto text-ios-blue" /></div>
+                    ) : displayedCustomers.length > 0 ? (
+                        displayedCustomers.map((c: Customer) => {
+                            const resolvedCedula = extractCedula(c.cedula, c.address);
+                            return (
+                                <div key={c.phone} className="p-4 space-y-3 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                                    {/* Fila 1: Avatar, Nombre, Acciones directas llamada y WA */}
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/20 text-ios-blue dark:text-blue-400 flex items-center justify-center font-bold text-sm shadow-inner shrink-0">
+                                                {c.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-sm dark:text-white truncate">{c.name}</p>
+                                                <p className="text-[10px] text-gray-400 line-clamp-1">{c.address || 'Sin dirección registrada'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                onClick={(e) => handleWhatsApp(e, c)}
+                                                className="w-8 h-8 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                                                title="WhatsApp"
+                                            >
+                                                <MessageCircle size={16} />
+                                            </button>
+                                            <a
+                                                href={`tel:${c.phone}`}
+                                                className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ios-blue flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                                                title="Llamar"
+                                            >
+                                                <Phone size={14} />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {/* Fila 2: Cédula, Teléfono y Fidelidad */}
+                                    <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {resolvedCedula ? (
+                                                <div className="flex items-center gap-1">
+                                                    <span className="font-mono text-[11px] font-bold text-ios-blue dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                                                        CI: {formatCedulaDisplay(resolvedCedula)}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleCopy(e, resolvedCedula)}
+                                                        className="p-1 text-gray-400 hover:text-ios-blue"
+                                                        title="Copiar Cédula"
+                                                    >
+                                                        {copiedPhone === resolvedCedula ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30 font-medium">
+                                                    Sin Cédula
+                                                </span>
+                                            )}
+                                            <Badge color={(c.orderCount || 0) >= 2 ? 'green' : 'blue'} className="text-[10px] font-bold py-0.5">
+                                                {c.orderCount || 0} {c.orderCount === 1 ? 'Pedido' : 'Pedidos'}
+                                            </Badge>
+                                        </div>
+
+                                        <div className="text-right">
+                                            <span className="text-[10px] uppercase font-bold text-gray-400 block">Total Gastado</span>
+                                            <span className="font-black text-sm text-ios-text dark:text-white">${(Number(c.totalSpent) || 0).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Fila 3: Botones de Acción Móvil */}
+                                    <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-gray-100 dark:border-white/5">
+                                        <button
+                                            onClick={() => setSelectedCustomer(c)}
+                                            className="flex-1 py-2 px-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-ios-blue/10 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-ios-blue flex items-center justify-center gap-1.5 transition-all"
+                                        >
+                                            <Eye size={14} /> Ficha 360°
+                                        </button>
+                                        <button
+                                            onClick={() => handleEditCustomer(c)}
+                                            className="py-2 px-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-900/10 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-blue-500 flex items-center justify-center gap-1.5 transition-all"
+                                        >
+                                            <Edit2 size={14} /> Editar
+                                        </button>
+                                        {userRole === 'admin' && (
+                                            <button
+                                                onClick={(e) => handleDelete(e, c.phone)}
+                                                className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/10 text-gray-400 hover:text-red-500 transition-all cursor-pointer"
+                                                title="Eliminar Cliente"
+                                            >
+                                                <Trash2 size={15} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="text-center py-12 text-gray-400">
+                            <ShoppingBag className="mx-auto mb-2 opacity-20" size={40} />
+                            <p className="text-sm font-medium">No se encontraron clientes con el criterio actual.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* 2. VISTA ESCRITORIO (>= md): Tabla completa con scroll seguro */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-gray-100/60 dark:bg-white/5 text-gray-500 text-[10px] uppercase font-bold tracking-wider">
                             <tr>
@@ -375,9 +483,9 @@ export const CustomersModule = ({ orders }: { orders: Order[] }) => {
                 </div>
 
                 {/* Paginación */}
-                <div className="flex justify-between items-center p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/10">
-                    <span className="text-xs font-bold text-gray-500">Página {currentPage} de {totalPages || 1} ({totalCustomers} clientes)</span>
-                    <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/10">
+                    <span className="text-xs font-bold text-gray-500 text-center sm:text-left">Página {currentPage} de {totalPages || 1} ({totalCustomers} clientes)</span>
+                    <div className="flex gap-2 sm:mr-16">
                         <button
                             disabled={currentPage === 1}
                             onClick={() => setCurrentPage(p => p - 1)}

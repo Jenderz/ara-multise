@@ -73,12 +73,11 @@ self.addEventListener('fetch', (event) => {
     url.pathname.includes('api.php') ||
     url.pathname.includes('rates.php') ||
     url.pathname.includes('seo-proxy.php') ||
-    url.pathname.includes('favicon.php') ||
-    url.pathname.includes('favicon.ico') ||
-    url.pathname.includes('robots.txt') ||
-    url.pathname.includes('robots.php') ||
-    url.pathname.includes('sitemap.xml') ||
-    url.pathname.includes('sitemap.php') ||
+    url.pathname.includes('favicon') ||
+    url.pathname.includes('apple-touch-icon') ||
+    url.pathname.includes('manifest.json.php') ||
+    url.pathname.includes('robots') ||
+    url.pathname.includes('sitemap') ||
     url.pathname.includes('cron_notifications.php') ||
     url.search.includes('action=')
   ) {

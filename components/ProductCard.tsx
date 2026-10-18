@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { Card, Badge, LazyImage } from './UIComponents';
-import { ShoppingBag, Eye, Heart, ListPlus, Share2, Globe, Plus, Check } from 'lucide-react';
+import { ShoppingBag, Eye, Heart, ListPlus, Share2, Globe, Plus, Check, Sparkles } from 'lucide-react';
 import { Product } from '../types';
 import { DEFAULT_IMAGE } from '../config';
 import { generateProductSlug } from '../utils/slugify';
@@ -152,74 +152,109 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </div>
 
                 {/* Badges Inteligentes */}
-                <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex gap-1 sm:gap-1.5 flex-wrap max-w-[70%] sm:max-w-[85%] z-20">
-                    {isOutOfStock && <Badge color="red">AGOTADO</Badge>}
+                <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex items-center gap-1 sm:gap-1.5 flex-wrap max-w-[70%] sm:max-w-[80%] z-20 pointer-events-none">
+                    {isOutOfStock && (
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[8px] sm:text-[9.5px] font-black uppercase tracking-wider bg-red-600/90 text-white shadow-xs backdrop-blur-xs">
+                            AGOTADO
+                        </span>
+                    )}
                     {isOnSale && !isOutOfStock && (
-                        <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-[9.5px] font-black uppercase tracking-wider bg-red-500 text-white shadow-xs animate-pulse-slow">
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[8px] sm:text-[9.5px] font-black uppercase tracking-wider bg-red-500 text-white shadow-xs animate-pulse-slow">
                             {discountPercent > 0 ? `-${discountPercent}%` : 'OFERTA'}
                         </span>
                     )}
-                    {product.isFeatured && !isOutOfStock && <Badge color="green">DESTACADO</Badge>}
+                    {product.isFeatured && !isOutOfStock && (
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider bg-emerald-600/95 text-white shadow-xs backdrop-blur-xs flex items-center gap-0.5">
+                            <Sparkles size={9} className="text-amber-300 fill-amber-300 shrink-0" />
+                            <span>Destacado</span>
+                        </span>
+                    )}
                 </div>
             </Link>
 
-            <div className="p-2.5 sm:p-4 md:p-5 flex-1 flex flex-col">
-                <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block group-hover:text-ios-blue transition-colors mb-1">
-                    <h3 className="text-xs sm:text-sm md:text-base font-semibold sm:font-bold text-ios-text dark:text-white leading-snug sm:leading-tight line-clamp-2 min-h-[2.4em]">{product.title}</h3>
-                </Link>
+            <div className="p-2 sm:p-3.5 md:p-4 flex-1 flex flex-col justify-between">
+                <div>
+                    <span className="text-[9px] sm:text-[10.5px] text-ios-subtext dark:text-gray-400 uppercase tracking-wider font-semibold block truncate mb-1">
+                        {product.category}
+                    </span>
+                    <Link to={`/product/${generateProductSlug(product.title, product.id)}`} className="block group-hover:text-ios-blue transition-colors mb-2">
+                        <h3 className="text-xs sm:text-sm md:text-base font-semibold sm:font-bold text-ios-text dark:text-white leading-snug sm:leading-tight line-clamp-2 min-h-[2.4em]">
+                            {product.title}
+                        </h3>
+                    </Link>
+                </div>
 
-                <div className="flex items-center justify-between mb-2.5 sm:mb-3 flex-wrap gap-1">
-                    <span className="text-[9.5px] sm:text-[11px] text-ios-subtext dark:text-gray-400 uppercase tracking-wider font-semibold truncate max-w-[75px] sm:max-w-none">{product.category}</span>
-                    <div className="text-right ml-auto">
+                <div className="mt-auto pt-1">
+                    {/* Precios con jerarquía clara y sin wrap desordenado */}
+                    <div className="mb-2.5">
                         {isOnSale ? (
-                            <div className="flex flex-col items-end">
-                                <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap justify-end">
-                                    {showUsd && <span className="text-xs sm:text-sm md:text-base font-bold text-red-500">{activeCurrencySymbol}{finalSalePrice.toFixed(2)}</span>}
-                                    {showVes && <span className="text-[9px] sm:text-xs md:text-sm font-bold text-red-500/90">{formatVes(finalSalePrice)}</span>}
+                            <div className="flex flex-col">
+                                <div className="flex items-baseline gap-1.5 flex-wrap">
+                                    {showUsd && (
+                                        <span className="text-xs sm:text-sm md:text-base font-black text-red-500 leading-none">
+                                            {activeCurrencySymbol}{finalSalePrice.toFixed(2)}
+                                        </span>
+                                    )}
+                                    {showUsd && (
+                                        <span className="text-[9px] sm:text-[10.5px] text-gray-400 line-through opacity-70 leading-none">
+                                            {activeCurrencySymbol}{finalPrice.toFixed(2)}
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-1 text-[8.5px] sm:text-[10px] text-gray-400 line-through opacity-60">
-                                    {showUsd && <span>{activeCurrencySymbol}{finalPrice.toFixed(2)}</span>}
-                                    {showVes && <span>{formatVes(finalPrice)}</span>}
-                                </div>
+                                {showVes && (
+                                    <div className="text-[9px] sm:text-xs font-bold text-red-500/90 mt-1 leading-tight truncate">
+                                        {formatVes(finalSalePrice)}
+                                    </div>
+                                )}
                             </div>
                         ) : (
-                            <div className="flex flex-col items-end">
-                                {showUsd && <span className="text-xs sm:text-sm md:text-base font-bold text-ios-text dark:text-white">{activeCurrencySymbol}{finalPrice.toFixed(2)}</span>}
-                                {showVes && <span className="text-[9px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">{formatVes(finalPrice)}</span>}
+                            <div className="flex flex-col">
+                                <div className="flex items-baseline gap-1">
+                                    {showUsd && (
+                                        <span className="text-xs sm:text-sm md:text-base font-black text-ios-text dark:text-white leading-none">
+                                            {activeCurrencySymbol}{finalPrice.toFixed(2)}
+                                        </span>
+                                    )}
+                                </div>
+                                {showVes && (
+                                    <div className="text-[9px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mt-1 leading-tight truncate">
+                                        {formatVes(finalPrice)}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                </div>
 
-                <div className="mt-auto flex items-center gap-1.5 sm:gap-2">
-                    <button 
-                        onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} 
-                        className="flex-1 flex items-center justify-center gap-1 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-semibold h-8 sm:h-9 md:h-10 px-2 sm:px-3 rounded-xl sm:rounded-2xl transition-all active:scale-95 text-[11px] sm:text-xs"
-                    >
-                        <Eye size={13} className="sm:w-[14px] sm:h-[14px]" /> Ver
-                    </button>
-                    <button
-                        onClick={handleQuickAdd}
-                        disabled={!canBuy}
-                        aria-label={!canBuy ? 'Agotado' : isQuickAdded ? 'Añadido' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
-                        title={!canBuy ? 'Agotado' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
-                        className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all active:scale-90 shadow-2xs sm:shadow-md 
-                            ${!canBuy
-                                ? 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-600 cursor-not-allowed border dark:border-white/5'
-                                : isQuickAdded
-                                    ? 'bg-green-500 text-white shadow-green-500/30'
-                                    : 'bg-ios-blue text-white hover:brightness-110 shadow-ios-blue/25'
-                            }`
-                        }
-                    >
-                        {isQuickAdded ? (
-                            <Check size={15} className="animate-spring-scale text-white stroke-[3] sm:w-[17px] sm:h-[17px]" />
-                        ) : showOptions ? (
-                            <ListPlus size={14} className="sm:w-4 sm:h-4" />
-                        ) : (
-                            <Plus size={15} className="sm:w-4 sm:h-4" />
-                        )}
-                    </button>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        <button 
+                            onClick={() => navigate(`/product/${generateProductSlug(product.title, product.id)}`)} 
+                            className="flex-1 flex items-center justify-center gap-1 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-ios-text dark:text-white font-semibold h-8 sm:h-9 md:h-10 px-2 sm:px-3 rounded-xl sm:rounded-2xl transition-all active:scale-95 text-[11px] sm:text-xs"
+                        >
+                            <Eye size={13} className="sm:w-[14px] sm:h-[14px]" /> Ver
+                        </button>
+                        <button
+                            onClick={handleQuickAdd}
+                            disabled={!canBuy}
+                            aria-label={!canBuy ? 'Agotado' : isQuickAdded ? 'Añadido' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
+                            title={!canBuy ? 'Agotado' : showOptions ? 'Ver Opciones' : 'Añadir al Carrito'}
+                            className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all active:scale-90 shadow-2xs sm:shadow-md 
+                                ${!canBuy
+                                    ? 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-600 cursor-not-allowed border dark:border-white/5'
+                                    : isQuickAdded
+                                        ? 'bg-green-500 text-white shadow-green-500/30'
+                                        : 'bg-ios-blue text-white hover:brightness-110 shadow-ios-blue/25'
+                                }`
+                            }
+                        >
+                            {isQuickAdded ? (
+                                <Check size={15} className="animate-spring-scale text-white stroke-[3] sm:w-[17px] sm:h-[17px]" />
+                            ) : showOptions ? (
+                                <ListPlus size={14} className="sm:w-4 sm:h-4" />
+                            ) : (
+                                <Plus size={15} className="sm:w-4 sm:h-4" />
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </Card>

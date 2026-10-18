@@ -19,6 +19,10 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
 
     if (!isOpen || !product) return null;
 
+    // Ancho dinámico: si hay muchas variantes sin opciones estructuradas, ampliar el modal
+    const needsWiderModal = !Boolean(product.variantOptions && product.variantOptions.length > 0)
+        && product.variants && product.variants.length > 8;
+
     const isGlobalView = currentBranch?.id === 0;
     // Productos con variantes pero sin opciones estructuradas (cada variante con selections = {})
     const hasStructuredOptions = Boolean(product.variantOptions && product.variantOptions.length > 0);
@@ -106,40 +110,41 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
     return (
         <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl relative p-6 animate-slide-up border border-white/10 flex flex-col max-h-[90vh]">
+            <div className={`bg-white dark:bg-zinc-900 w-full ${needsWiderModal ? 'max-w-lg' : 'max-w-md'} rounded-2xl shadow-2xl relative p-6 animate-slide-up border border-white/10 flex flex-col max-h-[90vh]`}>
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition dark:text-white z-10"><X size={20} /></button>
 
                 {/* Header Producto */}
-                <div className="flex gap-4 mb-6 shrink-0">
-                    <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden border border-gray-200 dark:border-white/10 relative shrink-0">
+                <div className="flex gap-3 sm:gap-4 mb-5 sm:mb-6 shrink-0 pr-8">
+                    <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-xl bg-gray-100 overflow-hidden border border-gray-200 dark:border-white/10 relative shrink-0">
                         <img src={currentImage} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg dark:text-white line-clamp-2 leading-tight">{product.title}</h3>
-                        <p className="text-gray-400 text-xs mt-1 line-clamp-1">{product.code}</p>
-
-                        <div className="flex items-center gap-2 mt-2">
-                            <div className="flex flex-col">
-                                {effectivePrice < basePrice ? (
-                                    <>
-                                        <span className="text-gray-400 line-through text-xs">{activeCurrencySymbol}{basePrice.toFixed(2)}</span>
-                                        <span className="text-red-500 font-black text-xl">{activeCurrencySymbol}{effectivePrice.toFixed(2)}</span>
-                                    </>
-                                ) : (
-                                    <span className="text-ios-blue font-black text-xl">{activeCurrencySymbol}{effectivePrice.toFixed(2)}</span>
-                                )}
-
-                                {activeExchangeRate > 0 && (
-                                    <span className="text-[10px] font-bold text-gray-400 -mt-1 leading-none">
-                                        {(effectivePrice * activeExchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs
-                                    </span>
-                                )}
-                            </div>
+                        <h3 className="font-bold text-base sm:text-lg dark:text-white line-clamp-2 leading-snug">{product.title}</h3>
+                        
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <p className="text-gray-400 text-xs font-mono">{product.code}</p>
                             {/* Badge de Sede */}
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-[10px] font-bold text-gray-500 border border-gray-200 dark:border-white/10">
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-[10px] font-bold text-gray-500 border border-gray-200 dark:border-white/10 shrink-0">
                                 {isGlobalView ? <Globe size={10} /> : <MapPin size={10} />}
-                                <span className="truncate max-w-[100px]">{currentBranch?.name}</span>
+                                <span className="truncate max-w-[120px]">{currentBranch?.name}</span>
                             </div>
+                        </div>
+
+                        <div className="flex items-baseline gap-2 mt-1.5 flex-wrap">
+                            {effectivePrice < basePrice ? (
+                                <div className="flex items-baseline gap-1.5 flex-wrap">
+                                    <span className="text-red-500 font-black text-lg sm:text-xl">{activeCurrencySymbol}{effectivePrice.toFixed(2)}</span>
+                                    <span className="text-gray-400 line-through text-xs">{activeCurrencySymbol}{basePrice.toFixed(2)}</span>
+                                </div>
+                            ) : (
+                                <span className="text-ios-blue font-black text-lg sm:text-xl">{activeCurrencySymbol}{effectivePrice.toFixed(2)}</span>
+                            )}
+
+                            {activeExchangeRate > 0 && (
+                                <span className="text-[10px] sm:text-[11px] font-bold text-gray-400">
+                                    {(effectivePrice * activeExchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -149,36 +154,67 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
                     {!hasStructuredOptions && (
                         <div>
                             <div className="flex justify-between mb-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Variante</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Seleccionar Variante</label>
                                 {selectedVariant && <span className="text-xs font-bold text-ios-blue">{selectedVariant.sku}</span>}
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-4 gap-2">
                                 {product.variants?.map(v => {
                                     const vStock = Number(v.stock) || 0;
                                     const isSelected = selectedVariantId === v.id;
                                     const label = v.sku || 'Variante';
-                                    const detail = Object.values(v.selections || {}).join(' / ');
                                     const hasStock = vStock > 0;
+                                    const variantImage = v.image || product.images[0] || DEFAULT_IMAGE;
+
                                     return (
                                         <button
                                             key={v.id}
                                             onClick={() => setSelectedVariantId(v.id)}
                                             disabled={!hasStock}
                                             className={`
-                                                w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold border transition-all
+                                                relative aspect-square rounded-xl overflow-hidden border-2 transition-all group
                                                 ${isSelected
-                                                    ? 'border-ios-blue ring-2 ring-ios-blue/20 bg-ios-blue/5 text-ios-blue'
+                                                    ? 'border-ios-blue ring-2 ring-ios-blue/30 scale-[1.03] shadow-lg shadow-ios-blue/20 z-10'
                                                     : hasStock
-                                                        ? 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20'
-                                                        : 'border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10 text-red-400 cursor-not-allowed opacity-80'
+                                                        ? 'border-gray-200 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/30 hover:shadow-md hover:scale-[1.02]'
+                                                        : 'border-red-300/50 dark:border-red-900/30 opacity-50 grayscale cursor-not-allowed'
                                                 }
                                             `}
                                         >
-                                            <span className="flex flex-col items-start text-left">
-                                                <span>{label}</span>
-                                                {detail && <span className="text-[10px] font-normal opacity-70">{detail}</span>}
-                                            </span>
-                                            <span className={hasStock ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>({vStock})</span>
+                                            {/* Imagen de la variante */}
+                                            <img
+                                                src={variantImage}
+                                                alt={label}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+
+                                            {/* Overlay inferior con SKU */}
+                                            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-1.5 pt-4 pb-1">
+                                                <span className="text-white text-[8px] font-bold line-clamp-1 leading-tight drop-shadow-sm">{label}</span>
+                                            </div>
+
+                                            {/* Badge de stock */}
+                                            <div className={`absolute top-1 right-1 text-[7px] font-black px-1 py-0.5 rounded-md shadow-sm
+                                                ${hasStock ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}
+                                            >
+                                                {vStock}
+                                            </div>
+
+                                            {/* Checkmark cuando seleccionado */}
+                                            {isSelected && (
+                                                <div className="absolute inset-0 bg-ios-blue/20 flex items-center justify-center backdrop-brightness-110">
+                                                    <div className="w-7 h-7 rounded-full bg-ios-blue/90 flex items-center justify-center shadow-lg">
+                                                        <Check size={16} className="text-white" strokeWidth={3} />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Diagonal de agotado */}
+                                            {!hasStock && !isSelected && (
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
+                                                    <div className="w-[140%] h-[2px] bg-red-500/80 rotate-45 transform shadow-sm"></div>
+                                                </div>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -234,13 +270,13 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
                                             title={`${val} - Stock: ${stock}`}
                                         >
                                             {!isColor && (
-                                                <>
-                                                    {val}
+                                                <span className="flex items-center gap-1 min-w-0 max-w-full">
+                                                    <span className="truncate">{val}</span>
                                                     {/* Indicador de Stock Inline - CRUCIAL PARA UX POS */}
-                                                    <span className={`text-[9px] font-normal ml-1 ${isSelected ? 'text-white/80' : hasStock ? 'text-gray-400' : 'text-red-500 font-bold'}`}>
+                                                    <span className={`text-[9px] font-normal shrink-0 ${isSelected ? 'text-white/80' : hasStock ? 'text-gray-400' : 'text-red-500 font-bold'}`}>
                                                         ({stock})
                                                     </span>
-                                                </>
+                                                </span>
                                             )}
 
                                             {isColor && isSelected && (
@@ -267,26 +303,28 @@ export const VariantSelectorModal = ({ product, isOpen, onClose, onConfirm }: { 
                 {/* Footer Status */}
                 <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5">
                     <div className={`flex justify-between items-center mb-4 p-3 rounded-xl border ${finalStock > 0 ? 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/20' : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20'}`}>
-                        <span className="text-xs font-bold text-gray-500 flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-2 shrink-0">
                             <Package size={14} /> Disponibilidad:
                         </span>
-                        {allOptionsSelected ? (
-                            selectedVariant ? (
-                                finalStock > 0 ? (
-                                    <span className="text-sm font-black text-green-600 dark:text-green-400 flex items-center gap-1">
-                                        <CheckCircle2 size={16} /> {finalStock} Unds.
-                                    </span>
+                        <div className="text-right min-w-0 pl-2">
+                            {allOptionsSelected ? (
+                                selectedVariant ? (
+                                    finalStock > 0 ? (
+                                        <span className="text-sm font-black text-green-600 dark:text-green-400 flex items-center justify-end gap-1 truncate">
+                                            <CheckCircle2 size={16} className="shrink-0" /> {finalStock} Unds.
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm font-black text-red-500 flex items-center justify-end gap-1 truncate">
+                                            <AlertCircle size={16} className="shrink-0" /> Agotado
+                                        </span>
+                                    )
                                 ) : (
-                                    <span className="text-sm font-black text-red-500 flex items-center gap-1">
-                                        <AlertCircle size={16} /> Agotado
-                                    </span>
+                                    <span className="text-xs font-bold text-orange-500 truncate block">Variante no existe</span>
                                 )
                             ) : (
-                                <span className="text-xs font-bold text-orange-500">Variante no existe</span>
-                            )
-                        ) : (
-                            <span className="text-xs font-medium text-gray-400 italic">Seleccione opciones...</span>
-                        )}
+                                <span className="text-xs font-medium text-gray-400 italic truncate block">Seleccione opciones...</span>
+                            )}
+                        </div>
                     </div>
 
                     <Button

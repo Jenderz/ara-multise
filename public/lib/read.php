@@ -493,3 +493,158 @@ function handleGetSettings($pdo)
     jsonResponse(['settings' => $settings]);
 }
 
+function handleGetStagnantStock($pdo, $branchId)
+{
+    $authUser = getAuthUser($pdo);
+    $isStaff = ($authUser && in_array($authUser['role'] ?? '', ['admin', 'master', 'seller', 'cashier']));
+    if (!$isStaff) {
+        jsonResponse(['error' => 'No autorizado para ver estadísticas de inventario.'], 403);
+    }
+
+    $days = max(1, intval($_GET['days'] ?? 30));
+    $minAgeDays = 30; // Solo productos creados hace más de 30 días
+
+    $effectiveBranchId = isset($_GET['branch_id']) ? intval($_GET['branch_id']) : $branchId;
+    if ($effectiveBranchId < 0) $effectiveBranchId = 0;
+
+    $nowMs = intval(microtime(true) * 1000);
+    $sinceMs = $nowMs - ($days * 86400 * 1000);
+    $minCreatedAtMs = $nowMs - ($minAgeDays * 86400 * 1000);
+
+    // Consulta optimizada con tablas derivadas pre-agregadas
+    if ($effectiveBranchId > 0) {
+        $sql = "SELECT 
+                    p.id,
+                    p.code,
+                    p.title,
+                    p.category,
+                    p.cost,
+                    p.price,
+                    p.sale_price,
+                    p.images,
+                    p.created_at,
+                    COALESCE(inv.stock, 0) AS stock,
+                    ROUND(COALESCE(inv.stock, 0) * p.cost, 2) AS capital_retenido,
+                    COALESCE(sales.unidades_vendidas, 0) AS unidades_vendidas,
+                    sales.ultima_venta,
+                    FLOOR((:nowMs - COALESCE(sales.ultima_venta, p.created_at)) / 86400000) AS dias_sin_venta
+                FROM `products` p
+                INNER JOIN (
+                    SELECT product_id, SUM(stock) AS stock
+                    FROM `inventory`
+                    WHERE branch_id = :branchIdInv
+                    GROUP BY product_id
+                    HAVING stock > 0
+                ) inv ON p.id = inv.product_id
+                LEFT JOIN (
+                    SELECT 
+                        pm.product_id,
+                        SUM(CASE WHEN pm.date >= :sinceMs THEN pm.amount ELSE 0 END) AS unidades_vendidas,
+                        MAX(pm.date) AS ultima_venta
+                    FROM `product_movements` pm
+                    WHERE pm.type = 'sale'
+                      AND pm.branch_id = :branchIdSales
+                    GROUP BY pm.product_id
+                ) sales ON p.id = sales.product_id
+                WHERE p.created_at <= :minCreatedAtMs
+                ORDER BY capital_retenido DESC, unidades_vendidas ASC
+                LIMIT 250";
+
+        $params = [
+            ':nowMs' => $nowMs,
+            ':branchIdInv' => $effectiveBranchId,
+            ':sinceMs' => $sinceMs,
+            ':branchIdSales' => $effectiveBranchId,
+            ':minCreatedAtMs' => $minCreatedAtMs
+        ];
+    } else {
+        // Vista Global: Todas las sedes activas
+        $sql = "SELECT 
+                    p.id,
+                    p.code,
+                    p.title,
+                    p.category,
+                    p.cost,
+                    p.price,
+                    p.sale_price,
+                    p.images,
+                    p.created_at,
+                    COALESCE(inv.stock, 0) AS stock,
+                    ROUND(COALESCE(inv.stock, 0) * p.cost, 2) AS capital_retenido,
+                    COALESCE(sales.unidades_vendidas, 0) AS unidades_vendidas,
+                    sales.ultima_venta,
+                    FLOOR((:nowMs - COALESCE(sales.ultima_venta, p.created_at)) / 86400000) AS dias_sin_venta
+                FROM `products` p
+                INNER JOIN (
+                    SELECT i.product_id, SUM(i.stock) AS stock
+                    FROM `inventory` i
+                    JOIN `branches` b ON b.id = i.branch_id AND b.is_active = 1
+                    WHERE i.branch_id > 0
+                    GROUP BY i.product_id
+                    HAVING stock > 0
+                ) inv ON p.id = inv.product_id
+                LEFT JOIN (
+                    SELECT 
+                        pm.product_id,
+                        SUM(CASE WHEN pm.date >= :sinceMs THEN pm.amount ELSE 0 END) AS unidades_vendidas,
+                        MAX(pm.date) AS ultima_venta
+                    FROM `product_movements` pm
+                    WHERE pm.type = 'sale'
+                    GROUP BY pm.product_id
+                ) sales ON p.id = sales.product_id
+                WHERE p.created_at <= :minCreatedAtMs
+                ORDER BY capital_retenido DESC, unidades_vendidas ASC
+                LIMIT 250";
+
+        $params = [
+            ':nowMs' => $nowMs,
+            ':sinceMs' => $sinceMs,
+            ':minCreatedAtMs' => $minCreatedAtMs
+        ];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $items = [];
+    $totalRetainedCapital = 0;
+    $totalUnitsStagnant = 0;
+
+    foreach ($rows as $r) {
+        $cap = floatval($r['capital_retenido'] ?? 0);
+        $stk = intval($r['stock'] ?? 0);
+        $totalRetainedCapital += $cap;
+        $totalUnitsStagnant += $stk;
+
+        $items[] = [
+            'id' => strval($r['id']),
+            'code' => strval($r['code'] ?? ''),
+            'title' => strval($r['title'] ?? ''),
+            'category' => strval($r['category'] ?? 'General'),
+            'cost' => floatval($r['cost'] ?? 0),
+            'price' => floatval($r['price'] ?? 0),
+            'salePrice' => floatval($r['sale_price'] ?? 0),
+            'images' => safeJsonDecode($r['images'] ?? '[]'),
+            'createdAt' => intval($r['created_at'] ?? 0),
+            'stock' => $stk,
+            'capitalRetenido' => $cap,
+            'unidadesVendidas' => intval($r['unidades_vendidas'] ?? 0),
+            'ultimaVenta' => !empty($r['ultima_venta']) ? intval($r['ultima_venta']) : null,
+            'diasSinVenta' => max(0, intval($r['dias_sin_venta'] ?? 0)),
+        ];
+    }
+
+    jsonResponse([
+        'data' => $items,
+        'summary' => [
+            'totalRetainedCapital' => round($totalRetainedCapital, 2),
+            'totalUnitsStagnant' => $totalUnitsStagnant,
+            'totalProductsCount' => count($items),
+            'daysPeriod' => $days,
+            'branchId' => $effectiveBranchId
+        ]
+    ]);
+}
+
+

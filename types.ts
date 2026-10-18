@@ -152,6 +152,34 @@ export interface StockMovement {
   date: number;
 }
 
+export interface StagnantProduct {
+  id: string;
+  code: string;
+  title: string;
+  category: string;
+  cost: number;
+  price: number;
+  salePrice: number;
+  images: string[];
+  createdAt: number;
+  stock: number;
+  capitalRetenido: number;
+  unidadesVendidas: number;
+  ultimaVenta: number | null;
+  diasSinVenta: number;
+}
+
+export interface StagnantStockResponse {
+  data: StagnantProduct[];
+  summary: {
+    totalRetainedCapital: number;
+    totalUnitsStagnant: number;
+    totalProductsCount: number;
+    daysPeriod: number;
+    branchId: number;
+  };
+}
+
 export interface Category {
   id: string;
   name: string;

@@ -617,29 +617,34 @@ export const CategoriesModule = ({ categories, products, addCategory, updateCate
                                 {img ? (
                                     <div className="relative aspect-square w-24 h-24 rounded-2xl overflow-hidden border-2 border-ios-blue/30 group shadow-sm bg-zinc-900">
                                         <img src={img} alt="Portada" className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                            <label
-                                                className="p-2 bg-ios-blue text-white rounded-full cursor-pointer hover:bg-blue-600 transition shadow-lg"
-                                                title="Cambiar imagen"
-                                            >
-                                                <Edit2 size={13} />
-                                                <input
-                                                    type="file" accept="image/*" className="hidden"
-                                                    onChange={e => {
-                                                        const f = e.target.files?.[0];
-                                                        if (f) handleFileSelect(f);
-                                                        e.target.value = '';
-                                                    }}
-                                                />
-                                            </label>
-                                            <button
-                                                type="button" onClick={() => setImg('')}
-                                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-lg"
-                                                title="Quitar imagen"
-                                            >
-                                                <X size={13} />
-                                            </button>
-                                        </div>
+                                        
+                                        {/* Botón Eliminar: Siempre visible y accesible en móvil y PC */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setImg('')}
+                                            className="absolute top-1.5 right-1.5 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition z-10 border border-white/20"
+                                            title="Quitar imagen"
+                                            aria-label="Quitar imagen"
+                                        >
+                                            <X size={14} />
+                                        </button>
+
+                                        {/* Botón Cambiar foto: Siempre accesible en móvil y PC */}
+                                        <label
+                                            className="absolute bottom-1.5 right-1.5 w-7 h-7 bg-ios-blue hover:bg-blue-600 text-white rounded-full cursor-pointer flex items-center justify-center shadow-lg active:scale-90 transition z-10 border border-white/20"
+                                            title="Cambiar imagen"
+                                            aria-label="Cambiar imagen"
+                                        >
+                                            <Edit2 size={13} />
+                                            <input
+                                                type="file" accept="image/*" className="hidden"
+                                                onChange={e => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) handleFileSelect(f);
+                                                    e.target.value = '';
+                                                }}
+                                            />
+                                        </label>
                                     </div>
                                 ) : (
                                     <ImageUploader

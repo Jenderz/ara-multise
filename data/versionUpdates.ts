@@ -21,100 +21,74 @@ export const CURRENT_SYSTEM_VERSION = '2.1';
 
 export const LATEST_RELEASE: VersionRelease = {
     version: CURRENT_SYSTEM_VERSION,
-    releaseDate: 'Septiembre 2026',
+    releaseDate: 'Octubre 2026',
     title: '¡Te damos la bienvenida a ARA v2.1!',
     welcomeMessage: '¡Bienvenido! 👋 Te presentamos las principales mejoras y optimizaciones de la versión 2.1:',
-    subtitle: 'Experiencia Mobile-First refinada, migración a servidor Nginx en VPS, nuevo preloader de Tecnología Lyberate y navegación ampliada.',
+    subtitle: 'Módulo de Stock Estancado, Navegación Flotante Dinámica, PWA para iOS Safari, Tickets OKLCH y Migración a Nginx.',
     features: [
         {
-            id: 'nginx-vps-migration',
-            title: 'Migración a Servidor Nginx en VPS',
-            description: 'Nueva arquitectura de alto rendimiento con Nginx en servidor VPS: soporte HTTP/2, compresión Gzip ultraveloz, proxy inverso optimizado y pre-renderizado automático para bots de redes sociales (SEO dinámico).',
-            tag: 'OPTIMIZACIÓN',
-            tagColor: 'emerald',
-            iconName: 'Server',
-            highlight: 'Velocidad extrema, HTTP/2 y máxima estabilidad'
+            id: 'stagnant-stock-module',
+            title: 'Módulo de Stock Estancado y Baja Rotación',
+            description: 'Identificación inteligente de productos sin rotación o con días acumulados sin venta. Cálculo instantáneo de capital retenido por sede o global, y aplicación de ofertas relámpago protegidas con piso de costo.',
+            tag: 'NUEVO',
+            tagColor: 'amber',
+            iconName: 'Boxes',
+            highlight: 'Capital retenido y ofertas con piso de costo'
         },
         {
-            id: 'product-detail-mobile-first',
-            title: 'Ficha de Producto Mobile-First',
-            description: 'Rediseño completo de la vista de producto optimizado para teléfonos: tipografía balanceada, precios jerarquizados en dólares y bolívares, galería de fotos con esquinas suaves y botones de compra ergonómicos sin solapes.',
+            id: 'mobile-floating-nav',
+            title: 'Navegación Móvil Flotante Dinámica',
+            description: 'Barra de navegación ultraligera estilo iOS e Instagram con auto-compactación inteligente al hacer scroll hacia abajo y expansión al subir, con contador en vivo de lista de deseos.',
+            tag: 'NUEVO',
+            tagColor: 'purple',
+            iconName: 'Compass',
+            highlight: 'Auto-compactación al scroll y 60 FPS'
+        },
+        {
+            id: 'ios-pwa-bottom-sheet',
+            title: 'Instalador PWA para iPhone y iPad',
+            description: 'Nuevo modal instructivo estilo Bottom Sheet para iOS Safari, guiando al usuario paso a paso para añadir la tienda a su pantalla de inicio en un solo toque.',
             tag: 'MEJORA',
             tagColor: 'blue',
             iconName: 'Smartphone',
-            highlight: 'Títulos balanceados y ergonomía táctil'
+            highlight: 'Guía paso a paso para Safari en iOS'
         },
         {
-            id: 'catalog-search-mobile-first',
-            title: 'Catálogo & Búsqueda Mobile-First',
-            description: 'Optimizada la cuadrícula a 2 columnas con títulos legibles. El buscador inteligente previene el auto-zoom accidental en navegadores móviles (iOS Safari) para una navegación ágil y continua.',
+            id: 'thermal-receipt-oklch',
+            title: 'Tickets Térmicos y Compartir Robusto',
+            description: 'Motor de renderizado migrado a html2canvas-pro con soporte nativo de colores OKLCH. Generación y compartición directa por WhatsApp o menú nativo del móvil sin bloqueos ni distorsiones.',
             tag: 'OPTIMIZACIÓN',
             tagColor: 'emerald',
-            iconName: 'Layers',
-            highlight: 'Sin auto-zoom y lectura fluida'
-        },
-        {
-            id: 'preloader-lyberate',
-            title: 'Preloader Minimalista Lyberate',
-            description: 'Nueva pantalla de bienvenida instantánea con el isotipo oficial de Tecnología Lyberate, micro-reflejo de luz (shimmer) y barra milimétrica de progreso. Carga en 0ms y desaparece con suavidad.',
-            tag: 'NUEVO',
-            tagColor: 'purple',
-            iconName: 'Zap',
-            highlight: 'Identidad oficial Lyberate y 0ms de espera'
-        },
-        {
-            id: 'pill-dock-spacing',
-            title: 'Dock de Categorías Expandido',
-            description: 'Márgenes superiores, inferiores y laterales holgados en el selector flotante de categorías, permitiendo un desplazamiento táctil suave sin recortes visuales ni botones apretados.',
-            tag: 'MEJORA',
-            tagColor: 'amber',
-            iconName: 'Compass',
-            highlight: 'Mayor respiro visual y táctil'
-        },
-        {
-            id: 'home-streamlined',
-            title: 'Portada Principal Depurada',
-            description: 'Limpieza de bloques estáticos redundantes en el inicio, acelerando la carga inicial y dando protagonismo directo a los productos destacados, colecciones y ofertas.',
-            tag: 'OPTIMIZACIÓN',
-            tagColor: 'emerald',
-            iconName: 'LayoutDashboard',
-            highlight: 'Foco directo en productos y conversión'
-        },
-        {
-            id: 'dynamic-pill-dock',
-            title: 'Dynamic Glass Pill Dock',
-            description: 'Navegación ultrarrápida por categorías inspirada en la Dynamic Island, con conteo en vivo de artículos y píldora de promociones activas.',
-            tag: 'MEJORA',
-            tagColor: 'blue',
-            iconName: 'Compass',
-            highlight: 'Exploración instantánea a 120 FPS'
-        },
-        {
-            id: 'smart-wishlist',
-            title: 'Favoritos de Alta Tecnología',
-            description: 'Lista de deseos con 1-Tap checkout ("Mover todo al carrito"), compartir por WhatsApp, soporte para importar listas compartidas de regalos y cálculo de valor total acumulado.',
-            tag: 'MEJORA',
-            tagColor: 'rose',
-            iconName: 'Heart',
-            highlight: '1-Tap checkout y viralidad por WhatsApp'
-        },
-        {
-            id: 'sellers-analytics',
-            title: 'Panel de Asesores y Estadísticas',
-            description: 'Ranking con podio de mejores vendedores, métricas de ticket promedio y cálculo automático de comisiones.',
-            tag: 'MEJORA',
-            tagColor: 'purple',
-            iconName: 'Trophy',
-            highlight: 'Podio mensual y comisiones automáticas'
-        },
-        {
-            id: 'thermal-ticket',
-            title: 'Tickets Térmicos (58mm / 80mm)',
-            description: 'Impresión directa de recibos en POS y Pedidos, soporte multimoneda (USD / Bs) y envío directo por WhatsApp.',
-            tag: 'MEJORA',
-            tagColor: 'blue',
             iconName: 'Printer',
-            highlight: 'Impresión física y comprobante digital'
+            highlight: 'Compatibilidad OKLCH y descarga en 1 toque'
+        },
+        {
+            id: 'customers-module-cedula',
+            title: 'Módulo de Clientes 360° con Cédula',
+            description: 'Tarjetas táctiles ergonómicas con visualización destacada de la Cédula de Identidad, botón de 1-toque para copiar, acceso directo a llamada telefónica y chat de WhatsApp.',
+            tag: 'MEJORA',
+            tagColor: 'blue',
+            iconName: 'Store',
+            highlight: 'Cédula con 1-toque copiar y WhatsApp'
+        },
+        {
+            id: 'nginx-vps-migration',
+            title: 'Arquitectura Nginx & CloudPanel VPS',
+            description: 'Infraestructura de alto rendimiento con Nginx en VPS: HTTP/2, compresión Gzip ultraveloz, control estricto de caché para Service Worker y pre-renderizado SEO para redes sociales.',
+            tag: 'OPTIMIZACIÓN',
+            tagColor: 'emerald',
+            iconName: 'Zap',
+            highlight: 'HTTP/2, velocidad extrema y estabilidad'
+        },
+        {
+            id: 'mobile-form-controls',
+            title: 'Controles Táctiles en Edición de Productos',
+            description: 'Botones ergonómicos y permanentemente visibles en móvil para eliminar imágenes o designar portada en productos y categorías sin depender de eventos hover.',
+            tag: 'MEJORA',
+            tagColor: 'blue',
+            iconName: 'SlidersHorizontal',
+            highlight: 'Ergonomía táctil en móvil y tablet'
         }
     ]
 };
+

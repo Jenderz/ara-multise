@@ -4,7 +4,7 @@ import { Order, StoreSettings } from '../../../types';
 import { X, Printer, Download, Share2, Loader2 } from 'lucide-react';
 import { Button } from '../../UIComponents';
 import { useStore } from '../../../context/StoreContext';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 
 interface ReceiptModalProps {
     order: Order;
@@ -225,38 +225,67 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
         };
     };
 
-    // --- GENERADOR DE IMAGEN (CLONACIÓN) ---
+    // --- COMPARTIR POR TEXTO (FALLBACK DIRECTO Y ROBUSTO) ---
+    const shareViaWhatsappText = () => {
+        const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
+        const itemsText = order.items.map(i => `• ${i.quantity}x ${i.productTitle} - $${(i.price * i.quantity).toFixed(2)}`).join('\n');
+        const totalBs = (order.total * activeExchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 });
+        const message = `🛍️ *COMPROBANTE DE COMPRA*\n` +
+            `*${settings.storeName || 'Tienda'}*\n` +
+            (activeBranchName ? `Sede: ${activeBranchName}\n` : '') +
+            `Ticket: #${order.id.slice(0, 8)}\n` +
+            `Fecha: ${new Date(order.date || Date.now()).toLocaleString()}\n\n` +
+            `*Detalle:*\n${itemsText}\n\n` +
+            `Subtotal: $${financialData.subtotal.toFixed(2)}\n` +
+            (financialData.hasDiscount ? `Descuento: -$${financialData.discount.toFixed(2)}\n` : '') +
+            `*TOTAL: $${order.total.toFixed(2)} (${totalBs} Bs)*\n` +
+            `Método: ${order.paymentMethod}\n\n` +
+            `¡Gracias por su compra! 🙏`;
+        const encoded = encodeURIComponent(message);
+        const url = phone ? `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}` : `https://api.whatsapp.com/send?text=${encoded}`;
+        window.open(url, '_blank');
+    };
+
+    // --- GENERADOR DE IMAGEN (CLONACIÓN ROBUSTA COMPATIBLE CON OKLCH Y MÓVILES) ---
     const generateCanvas = async () => {
         if (!receiptRef.current) return null;
 
         const original = receiptRef.current;
         const clone = original.cloneNode(true) as HTMLElement;
 
-        // Estilos para el renderizado off-screen perfecto
+        // Estilos para renderizado seguro en viewport sin romper layouts en iOS Safari
         clone.style.position = 'fixed';
-        clone.style.left = '-9999px';
         clone.style.top = '0px';
-        clone.style.width = '320px'; // Un poco más ancho para evitar saltos de línea
+        clone.style.left = '0px';
+        clone.style.width = '320px'; // Ancho estándar térmico para evitar saltos de línea
         clone.style.height = 'auto';
-        clone.style.padding = '20px'; // Padding extra para la imagen
-        clone.style.zIndex = '-1';
+        clone.style.padding = '20px';
+        clone.style.zIndex = '-9999';
+        clone.style.pointerEvents = 'none';
         clone.style.backgroundColor = '#ffffff';
         clone.style.color = '#000000';
+        clone.style.boxShadow = 'none';
 
         document.body.appendChild(clone);
 
         try {
+            // html2canvas-pro soporta nativamente las funciones de color modernas como OKLCH (Tailwind v4)
             const canvas = await html2canvas(clone, {
-                scale: 3,
+                scale: 2, // Escala óptima y segura para alta resolución sin desbordar memoria en iOS
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true,
-                allowTaint: true,
+                allowTaint: false,
+                imageTimeout: 15000,
             });
-            document.body.removeChild(clone);
+            if (document.body.contains(clone)) {
+                document.body.removeChild(clone);
+            }
             return canvas;
         } catch (error) {
-            document.body.removeChild(clone);
+            if (document.body.contains(clone)) {
+                document.body.removeChild(clone);
+            }
             console.error("Error generando imagen:", error);
             return null;
         }
@@ -271,10 +300,17 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
             const image = canvas.toDataURL("image/png");
             const link = document.createElement('a');
             link.href = image;
-            link.download = `Recibo_${order.id}.png`;
+            link.download = `Recibo_${order.id.slice(0, 8)}.png`;
+            document.body.appendChild(link);
             link.click();
+            setTimeout(() => {
+                try {
+                    if (document.body.contains(link)) document.body.removeChild(link);
+                } catch (e) {}
+            }, 100);
         } catch (error) {
-            alert("Error al generar la imagen.");
+            console.error("Error al descargar ticket:", error);
+            alert("No se pudo generar la imagen del ticket en este navegador.");
         } finally {
             setIsGenerating(false);
         }
@@ -284,54 +320,47 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ order, settings, onC
         setIsGenerating(true);
         try {
             const canvas = await generateCanvas();
-            if (!canvas) throw new Error("Error Canvas");
+            if (!canvas) {
+                // Fallback automático por si el motor gráfico del navegador móvil falla
+                shareViaWhatsappText();
+                return;
+            }
 
-            const shareViaWhatsappText = () => {
-                const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
-                const itemsText = order.items.map(i => `• ${i.quantity}x ${i.productTitle} - $${(i.price * i.quantity).toFixed(2)}`).join('\n');
-                const totalBs = (order.total * activeExchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 });
-                const message = `🛍️ *COMPROBANTE DE COMPRA*\n` +
-                    `*${settings.storeName || 'Tienda'}*\n` +
-                    (activeBranchName ? `Sede: ${activeBranchName}\n` : '') +
-                    `Ticket: #${order.id.slice(0, 8)}\n` +
-                    `Fecha: ${new Date(order.date || Date.now()).toLocaleString()}\n\n` +
-                    `*Detalle:*\n${itemsText}\n\n` +
-                    `Subtotal: $${financialData.subtotal.toFixed(2)}\n` +
-                    (financialData.hasDiscount ? `Descuento: -$${financialData.discount.toFixed(2)}\n` : '') +
-                    `*TOTAL: $${order.total.toFixed(2)} (${totalBs} Bs)*\n` +
-                    `Método: ${order.paymentMethod}\n\n` +
-                    `¡Gracias por su compra! 🙏`;
-                const encoded = encodeURIComponent(message);
-                const url = phone ? `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}` : `https://api.whatsapp.com/send?text=${encoded}`;
-                window.open(url, '_blank');
-            };
+            // Conversión de canvas a Blob/File síncrona en memoria
+            // Esto preserva el "User Gesture Token" en iOS Safari evitando NotAllowedError
+            const dataUrl = canvas.toDataURL("image/png");
+            const arr = dataUrl.split(',');
+            const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            const blob = new Blob([u8arr], { type: mime });
+            const file = new File([blob], `ticket_${order.id.slice(0, 8)}.png`, { type: 'image/png' });
 
-            if (navigator.canShare) {
-                canvas.toBlob(async (blob) => {
-                    if (!blob) {
-                        shareViaWhatsappText();
-                        return;
-                    }
-                    const file = new File([blob], `ticket_${order.id}.png`, { type: 'image/png' });
-                    if (navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: `Recibo #${order.id.slice(0, 8)}`,
-                                text: `Gracias por tu compra en ${settings.storeName}!`
-                            });
-                        } catch (err) {
-                            shareViaWhatsappText();
-                        }
-                    } else {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: `Recibo #${order.id.slice(0, 8)}`,
+                        text: `Gracias por tu compra en ${settings.storeName}!`
+                    });
+                } catch (err: any) {
+                    // Si el usuario canceló la hoja nativa de compartir en iOS, no forzar WhatsApp
+                    if (err?.name !== 'AbortError') {
                         shareViaWhatsappText();
                     }
-                }, 'image/png');
+                }
             } else {
                 shareViaWhatsappText();
             }
-        } catch (e) {
-            alert("No soportado en este dispositivo.");
+        } catch (e: any) {
+            console.error("Error compartiendo comprobante:", e);
+            if (e?.name !== 'AbortError') {
+                shareViaWhatsappText();
+            }
         } finally {
             setIsGenerating(false);
         }

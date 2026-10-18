@@ -4,6 +4,7 @@ import { useStore } from '../context/StoreContext';
 import { ShoppingBag, LogOut, ArrowLeft, Home, Search, Heart, Lock, Instagram, Facebook, Twitter, MapPin, Mail, Phone, Moon, Sun, LayoutGrid, ArrowRight, ExternalLink, Store, ChevronDown, Check, MessageCircle, Clock, X, Tag, Sparkles, Copy } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { WishlistToast } from './WishlistToast';
+import { MobileFloatingNav } from './MobileFloatingNav';
 
 export const Navbar = () => {
   const { cart, setIsCartOpen, setIsSearchOpen, settings, updateSettings, localDarkMode, toggleLocalDarkMode } = useStore();
@@ -706,14 +707,6 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
     }
   }, [location]);
 
-  const getNavLinkClass = (path: string) => {
-    const isActive = location.pathname === path;
-    return `relative flex flex-col items-center justify-center flex-1 h-full transition-all duration-500 ${isActive
-      ? 'text-ios-blue'
-      : 'text-gray-400 dark:text-gray-500'
-      }`;
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-ios-bg dark:bg-black select-none overflow-x-hidden">
       <WishlistToast />
@@ -743,30 +736,8 @@ export const ShopLayout: React.FC<{ children?: React.ReactNode }> = ({ children 
         </a>
       )}
 
-      {/* Rediseño Menú Móvil Ultra-Slim para máxima ligereza */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[70%] max-w-[280px] z-50">
-        <div className="bg-white/70 dark:bg-zinc-900/80 backdrop-blur-2xl border border-white/40 dark:border-white/5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.06)] h-[54px] flex items-center px-1.5">
-
-          <Link to="/" className={getNavLinkClass('/')}>
-            <div className={`p-2 rounded-full transition-all duration-500 ${location.pathname === '/' ? 'bg-ios-blue/10 scale-105' : ''}`}>
-              <Home size={18} strokeWidth={location.pathname === '/' ? 2.5 : 1.5} />
-            </div>
-          </Link>
-
-          <Link to="/shop" className={getNavLinkClass('/shop')}>
-            <div className={`p-2 rounded-full transition-all duration-500 ${location.pathname === '/shop' ? 'bg-ios-blue/10 scale-105' : ''}`}>
-              <LayoutGrid size={18} strokeWidth={location.pathname === '/shop' ? 2.5 : 1.5} />
-            </div>
-          </Link>
-
-          <Link to="/wishlist" className={getNavLinkClass('/wishlist')}>
-            <div className={`p-2 rounded-full transition-all duration-500 ${location.pathname === '/wishlist' ? 'bg-ios-blue/10 scale-105' : ''}`}>
-              <Heart size={18} strokeWidth={location.pathname === '/wishlist' ? 2.5 : 1.5} className={location.pathname === '/wishlist' ? 'fill-ios-blue' : ''} />
-            </div>
-          </Link>
-
-        </div>
-      </div>
+      {/* Menú Móvil Flotante Dinámico (Estilo iOS / Instagram con Auto-Compactación al Scroll) */}
+      <MobileFloatingNav />
 
       {/* Estilos de animación para el botón flotante */}
       <style>{`

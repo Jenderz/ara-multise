@@ -44,13 +44,14 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       }
     }
 
-    // 2. iOS Detection
+    // 2. iOS Detection (iPhone, iPad, iPod y iPadOS con desktop user-agent)
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isIosDevice = /iphone|ipad|ipod/.test(userAgent) || 
+      (typeof navigator !== 'undefined' && (navigator as any).platform === 'MacIntel' && (navigator as any).maxTouchPoints > 1);
     setIsIOS(isIosDevice);
 
     // 3. Standalone Mode
-    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || Boolean((window.navigator as any).standalone);
     setIsStandalone(isStandaloneMode);
 
     // 4. Install Prompt Logic (Se centraliza el evento para la app completa)
@@ -186,6 +187,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           } finally {
               setDeferredPrompt(null);
           }
+      } else if (isIOS) {
+          setShowInstallModal(true);
       }
   };
 

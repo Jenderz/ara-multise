@@ -4,6 +4,7 @@ import { Product, StockMovement } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
 import { api } from '../../../services/api';
 import { StatCard, CustomTooltip, PIE_COLORS } from './SharedStatsComponents';
+import { StagnantStockAnalytics } from './StagnantStockAnalytics';
 import { DollarSign, Package, TrendingUp, Layers, CheckCircle2, XCircle, AlertTriangle, History, RotateCcw, Search, Filter, ArrowUpCircle, ArrowDownCircle, RefreshCcw, MapPin, Clock, Calendar, LayoutList, Table as TableIcon } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
@@ -25,6 +26,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
     const [selectedProductId, setSelectedProductId] = useState<string>(''); // Filtro por producto
     const [selectedBranchId, setSelectedBranchId] = useState<number | 'all'>(isGlobalView ? 'all' : (currentBranch?.id || 1));
     const [mobileViewMode, setMobileViewMode] = useState<'cards' | 'table'>('cards');
+    const [inventorySubTab, setInventorySubTab] = useState<'movements' | 'stagnant'>('movements');
 
     // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);
@@ -217,8 +219,39 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                 </div>
             </div>
 
-            {/* SECCIÓN DE AUDITORÍA Y MERMAS CON FILTROS */}
-            <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm max-w-full overflow-hidden">
+            {/* SUB-NAVEGACIÓN: Auditoría vs Stock Estancado */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-2 sm:p-2.5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                    <button
+                        onClick={() => setInventorySubTab('movements')}
+                        className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                            inventorySubTab === 'movements'
+                                ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 shadow-sm border border-purple-200/50 dark:border-purple-800/40'
+                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <History size={15} />
+                        <span>Auditoría de Movimientos</span>
+                    </button>
+                    <button
+                        onClick={() => setInventorySubTab('stagnant')}
+                        className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                            inventorySubTab === 'stagnant'
+                                ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 shadow-sm border border-orange-200/50 dark:border-orange-800/40'
+                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <AlertTriangle size={15} className="text-orange-500" />
+                        <span>Stock Estancado (Baja Rotación)</span>
+                    </button>
+                </div>
+            </div>
+
+            {inventorySubTab === 'stagnant' ? (
+                <StagnantStockAnalytics />
+            ) : (
+                /* SECCIÓN DE AUDITORÍA Y MERMAS CON FILTROS */
+                <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm max-w-full overflow-hidden">
                 <div className="flex flex-col gap-4 sm:gap-6 mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-2">
@@ -583,6 +616,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                     </div>
                 )}
             </div>
+            )}
         </div>
     );
 };

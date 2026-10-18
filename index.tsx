@@ -134,7 +134,7 @@ if ('serviceWorker' in navigator) {
     // Usamos './sw.js?v=...' para forzar a Nginx, proxies y navegadores
     // a descargar la versión válida sin quedar atrapados en cachés corruptas de borde.
     const SW_VERSION = 'v156';
-    navigator.serviceWorker.register(`./sw.js?v=${SW_VERSION}`).then(registration => {
+    navigator.serviceWorker.register(`/sw.js?v=${SW_VERSION}`, { scope: '/' }).then(registration => {
       console.log('PWA ServiceWorker registered with scope: ', registration.scope);
 
       // Detectar actualizaciones mientras la app está abierta

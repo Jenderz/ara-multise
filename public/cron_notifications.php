@@ -36,6 +36,16 @@ if (!$isCli && $providedToken !== 'AraEcom_v5_Secure') {
 try {
     $pdo = getDBConnection();
 
+    // Asegurar que las tablas existan si es una instalación limpia
+    $schemaLock = __DIR__ . '/.schema_version';
+    $currentSchemaVersion = 12;
+    if (!file_exists($schemaLock) || intval(@file_get_contents($schemaLock)) < $currentSchemaVersion) {
+        if (function_exists('checkAndMigrateDB')) {
+            checkAndMigrateDB($pdo);
+            @file_put_contents($schemaLock, strval($currentSchemaVersion));
+        }
+    }
+
     // 3. Ejecutar automatización de carritos abandonados (> 2 horas)
     $cartNotified = WebPushSender::sendAbandonedCartReminders($pdo);
 
@@ -56,7 +66,7 @@ try {
         header('Content-Type: application/json');
         echo json_encode($result);
     }
-} catch (Exception $e) {
+} catch (\Throwable $e) {
     if ($isCli) {
         echo "[ARA CRON ERROR] " . $e->getMessage() . "\n";
     } else {

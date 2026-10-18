@@ -1,6 +1,6 @@
 
 import { API_URL } from '../config';
-import { Product, Category, Order, Customer, StoreSettings, Coupon, StockMovement, Branch } from '../types';
+import { Product, Category, Order, Customer, StoreSettings, Coupon, StockMovement, Branch, StagnantStockResponse } from '../types';
 
 const TIMEOUT_MS = 60000;
 
@@ -190,6 +190,17 @@ export const api = {
         });
         return fetchApi(`get_movements&${params.toString()}`);
     },
+
+    getStagnantStock: (days: number = 30, branchId?: number | string): Promise<StagnantStockResponse> => {
+        const params = new URLSearchParams({ days: days.toString() });
+        if (branchId !== undefined && branchId !== 'all') {
+            params.append('branch_id', branchId.toString());
+        }
+        return fetchApi(`get_stagnant_stock&${params.toString()}`);
+    },
+
+    updateProductOffer: (id: string, salePrice: number) =>
+        fetchApi('update_product_offer', 'POST', { id, salePrice }),
 
     adjustStock: (pid: string, uid: string, uname: string, type: string, amt: number, ref: string, targetBranchId?: number) =>
         fetchApi('adjust_stock', 'POST', { productId: pid, userId: uid, userName: uname, type, amount: amt, reference: ref, targetBranchId }),

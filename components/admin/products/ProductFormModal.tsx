@@ -819,36 +819,31 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                 </span>
                                             )}
 
-                                            {/* BARRA DE ACCIONES TÁCTILES: Visible en móvil siempre */}
-                                            <div className="absolute inset-0 bg-black/30 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 pointer-events-none">
-                                                <div className="flex justify-between items-center w-full pointer-events-auto">
-                                                    {/* Botón Convertir en Portada */}
-                                                    {idx > 0 ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleSetMainImage(idx)}
-                                                            className="bg-black/75 hover:bg-ios-blue text-white text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-md transition shadow flex items-center gap-1 active:scale-95"
-                                                            title="Convertir en portada principal"
-                                                        >
-                                                            <Star size={10} /> Portada
-                                                        </button>
-                                                    ) : <div />}
+                                            {/* BOTÓN ELIMINAR FOTO: Siempre visible y táctil en esquina superior derecha */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveImage(idx);
+                                                }}
+                                                className="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform cursor-pointer z-10 border border-white/20"
+                                                title="Eliminar imagen"
+                                                aria-label="Eliminar imagen"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
 
-                                                    {/* BOTÓN ELIMINAR FOTO: Ergonómico, Visible y Táctil */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRemoveImage(idx);
-                                                        }}
-                                                        className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform cursor-pointer"
-                                                        title="Eliminar imagen"
-                                                        aria-label="Eliminar imagen"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            {/* Botón Convertir en Portada */}
+                                            {idx > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSetMainImage(idx)}
+                                                    className="absolute bottom-2 left-2 bg-black/75 hover:bg-ios-blue text-white text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-md transition shadow flex items-center gap-1 active:scale-95 z-10"
+                                                    title="Convertir en portada principal"
+                                                >
+                                                    <Star size={10} /> Portada
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
 
