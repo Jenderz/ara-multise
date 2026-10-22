@@ -25,6 +25,7 @@ interface CartContextType {
     setCoupons: (c: Coupon[]) => void;
     wishlist: string[];
     setWishlist: (w: string[]) => void;
+    clearWishlist: () => void;
 
     addToCart: (product: Product, selectedOptions: Record<string, string>, quantity: number) => void;
     removeFromCart: (cartId: string) => void;
@@ -148,6 +149,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
     const toggleWishlist = (productId: string) => setWishlist(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
+    const clearWishlist = () => setWishlist([]);
 
     const createOrder = async (
         customerName: string,
@@ -467,7 +469,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             cart, orders, setOrders, customers, setCustomers, coupons, setCoupons, wishlist, setWishlist,
             addToCart, removeFromCart, updateCartQuantity, clearCart,
             createOrder, updateOrder, deleteOrder, updateCustomer, deleteCustomer,
-            addCoupon, toggleCoupon, deleteCoupon, toggleWishlist,
+            addCoupon, toggleCoupon, deleteCoupon, toggleWishlist, clearWishlist,
             isCartOpen, setIsCartOpen, isSearchOpen, setIsSearchOpen
         }}>
             {children}

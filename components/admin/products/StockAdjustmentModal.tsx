@@ -59,6 +59,10 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({ isOp
         }
 
         const targetProductId = selectedVariantId || product.id;
+        const variantSuffix = selectedVariant && selectedVariant.selections
+            ? ` (${Object.values(selectedVariant.selections).join(' / ')})`
+            : '';
+        const finalReference = `${reference.trim()}${variantSuffix}`;
 
         setIsSubmitting(true);
         try {
@@ -66,7 +70,7 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({ isOp
                 targetProductId,
                 adjustmentType,
                 parsedAmount,
-                reference.trim(),
+                finalReference,
                 selectedBranchId
             );
 

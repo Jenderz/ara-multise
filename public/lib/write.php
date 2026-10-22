@@ -148,18 +148,70 @@ function handleSaveProduct($pdo, $input, $branchId)
                         $bId = intval($bId);
                         if ($bId <= 0) continue;
                         $stkVal = max(0, intval($bStock));
+                        $vLabel = '';
+                        if (!empty($variant['selections']) && is_array($variant['selections'])) {
+                            $vLabel = ' (' . implode(' / ', $variant['selections']) . ')';
+                        } elseif (!empty($variant['name'])) {
+                            $vLabel = ' (' . $variant['name'] . ')';
+                        }
+
                         if ($isNew) {
                             $overwriteStmt->execute([$vId, $bId, $stkVal, time()]);
+                            if ($stkVal > 0) {
+                                $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                    ->execute([generateUniqueId(), $vId, $bId, $p['userId'] ?? 'system', $p['userName'] ?? 'Creador', 'entry', $stkVal, $stkVal, 'Stock Inicial Variante' . $vLabel, time() * 1000]);
+                            }
                         } else {
-                            $insertInitialStmt->execute([$vId, $bId, $stkVal, time()]);
+                            $stmtCheckVar = $pdo->prepare("SELECT stock FROM `inventory` WHERE product_id = ? AND branch_id = ?");
+                            $stmtCheckVar->execute([$vId, $bId]);
+                            $cVarStk = $stmtCheckVar->fetchColumn();
+                            if ($cVarStk === false) {
+                                $overwriteStmt->execute([$vId, $bId, $stkVal, time()]);
+                                if ($stkVal > 0) {
+                                    $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                        ->execute([generateUniqueId(), $vId, $bId, $p['userId'] ?? 'system', $p['userName'] ?? 'Editor', 'entry', $stkVal, $stkVal, 'Stock Inicial Variante' . $vLabel, time() * 1000]);
+                                }
+                            } else if (intval($cVarStk) !== $stkVal) {
+                                $overwriteStmt->execute([$vId, $bId, $stkVal, time()]);
+                                $diff = $stkVal - intval($cVarStk);
+                                $mType = $diff > 0 ? 'entry' : 'exit';
+                                $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                    ->execute([generateUniqueId(), $vId, $bId, $p['userId'] ?? 'system', $p['userName'] ?? 'Editor', $mType, abs($diff), $stkVal, 'Ajuste Directo Variante' . $vLabel, time() * 1000]);
+                            }
                         }
                     }
                 } else if ($effectiveBranchId > 0) {
                     $vStock = max(0, intval($variant['stock'] ?? 0));
+                    $vLabel = '';
+                    if (!empty($variant['selections']) && is_array($variant['selections'])) {
+                        $vLabel = ' (' . implode(' / ', $variant['selections']) . ')';
+                    } elseif (!empty($variant['name'])) {
+                        $vLabel = ' (' . $variant['name'] . ')';
+                    }
+
                     if ($isNew) {
                         $overwriteStmt->execute([$vId, $effectiveBranchId, $vStock, time()]);
+                        if ($vStock > 0) {
+                            $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                ->execute([generateUniqueId(), $vId, $effectiveBranchId, $p['userId'] ?? 'system', $p['userName'] ?? 'Creador', 'entry', $vStock, $vStock, 'Stock Inicial Variante' . $vLabel, time() * 1000]);
+                        }
                     } else {
-                        $insertInitialStmt->execute([$vId, $effectiveBranchId, $vStock, time()]);
+                        $stmtCheckVar = $pdo->prepare("SELECT stock FROM `inventory` WHERE product_id = ? AND branch_id = ?");
+                        $stmtCheckVar->execute([$vId, $effectiveBranchId]);
+                        $cVarStk = $stmtCheckVar->fetchColumn();
+                        if ($cVarStk === false) {
+                            $overwriteStmt->execute([$vId, $effectiveBranchId, $vStock, time()]);
+                            if ($vStock > 0) {
+                                $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                    ->execute([generateUniqueId(), $vId, $effectiveBranchId, $p['userId'] ?? 'system', $p['userName'] ?? 'Editor', 'entry', $vStock, $vStock, 'Stock Inicial Variante' . $vLabel, time() * 1000]);
+                            }
+                        } else if (intval($cVarStk) !== $vStock) {
+                            $overwriteStmt->execute([$vId, $effectiveBranchId, $vStock, time()]);
+                            $diff = $vStock - intval($cVarStk);
+                            $mType = $diff > 0 ? 'entry' : 'exit';
+                            $pdo->prepare("INSERT INTO `product_movements` (id, product_id, branch_id, user_id, user_name, type, amount, stock_after, reference, date) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                                ->execute([generateUniqueId(), $vId, $effectiveBranchId, $p['userId'] ?? 'system', $p['userName'] ?? 'Editor', $mType, abs($diff), $vStock, 'Ajuste Directo Variante' . $vLabel, time() * 1000]);
+                        }
                     }
                 }
             }
@@ -182,21 +234,11 @@ function handleSaveProduct($pdo, $input, $branchId)
                     $bId = intval($bId);
                     if ($bId <= 0) continue;
                     $stkVal = max(0, intval($bStock));
-                    if ($isNew) {
-                        $overwriteStmt->execute([$p['id'], $bId, $stkVal, time()]);
-                    } else {
-                        $insertInitialStmt->execute([$p['id'], $bId, $stkVal, time()]);
-                    }
+                    $overwriteStmt->execute([$p['id'], $bId, $stkVal, time()]);
                 }
             } else if ($effectiveBranchId > 0) {
                 $newStockParent = max(0, intval($p['stock'] ?? 0));
-                if ($isNew) {
-                    $overwriteStmt->execute([$p['id'], $effectiveBranchId, $newStockParent, time()]);
-                } else if ($hasExpectedStock && $expectedStockVal !== null && $newStockParent !== $expectedStockVal) {
-                    $overwriteStmt->execute([$p['id'], $effectiveBranchId, $newStockParent, time()]);
-                } else {
-                    $insertInitialStmt->execute([$p['id'], $effectiveBranchId, $newStockParent, time()]);
-                }
+                $overwriteStmt->execute([$p['id'], $effectiveBranchId, $newStockParent, time()]);
             }
         }
 
@@ -555,8 +597,15 @@ function handleSaveOrder($pdo, $input, $branchId)
                     $stockFetch->execute([$targetId, $branchToRestore]);
                     $currentStock = $stockFetch->fetchColumn() ?: 0;
 
+                    $vDetail = '';
+                    if (!empty($item['selectedOptions']) && is_array($item['selectedOptions'])) {
+                        $vDetail = ' (' . implode(' / ', $item['selectedOptions']) . ')';
+                    } elseif (!empty($item['variantSku'])) {
+                        $vDetail = " ({$item['variantSku']})";
+                    }
+
                     $refAction = $newStatus === 'cancelled' ? 'Anulación' : 'Retorno a Pendiente';
-                    $movementInsert->execute([generateUniqueId(), $targetId, $branchToRestore, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refAction Venta #" . $o['id'], time() * 1000]);
+                    $movementInsert->execute([generateUniqueId(), $targetId, $branchToRestore, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refAction Venta #" . $o['id'] . $vDetail, time() * 1000]);
                 }
             }
             $isDeducted = 0;
@@ -584,8 +633,15 @@ function handleSaveOrder($pdo, $input, $branchId)
                     $stockFetch->execute([$targetId, $oldBranchId]);
                     $currentStock = $stockFetch->fetchColumn() ?: 0;
 
+                    $vDetail = '';
+                    if (!empty($item['selectedOptions']) && is_array($item['selectedOptions'])) {
+                        $vDetail = ' (' . implode(' / ', $item['selectedOptions']) . ')';
+                    } elseif (!empty($item['variantSku'])) {
+                        $vDetail = " ({$item['variantSku']})";
+                    }
+
                     $refReason = $branchChanged ? "Reversión por Cambio de Sede (#{$oldBranchId} -> #{$activeBranchId})" : "Reversión por Edición";
-                    $movementInsert->execute([generateUniqueId(), $targetId, $oldBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refReason Venta #" . $o['id'], time() * 1000]);
+                    $movementInsert->execute([generateUniqueId(), $targetId, $oldBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'entry', $qty, intval($currentStock), "$refReason Venta #" . $o['id'] . $vDetail, time() * 1000]);
                 }
             }
 
@@ -627,7 +683,14 @@ function handleSaveOrder($pdo, $input, $branchId)
                     $stockFetch->execute([$targetId, $activeBranchId]);
                     $currentStock = $stockFetch->fetchColumn() ?: 0;
 
-                    $movementInsert->execute([generateUniqueId(), $targetId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'sale', $qty, intval($currentStock), "Re-Descuento Edición Venta #" . $o['id'], time() * 1000]);
+                    $vDetail = '';
+                    if (!empty($item['selectedOptions']) && is_array($item['selectedOptions'])) {
+                        $vDetail = ' (' . implode(' / ', $item['selectedOptions']) . ')';
+                    } elseif (!empty($item['variantSku'])) {
+                        $vDetail = " ({$item['variantSku']})";
+                    }
+
+                    $movementInsert->execute([generateUniqueId(), $targetId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'POS', 'sale', $qty, intval($currentStock), "Re-Descuento Edición Venta #" . $o['id'] . $vDetail, time() * 1000]);
                 }
             }
             $o['processStock'] = false;
@@ -727,7 +790,13 @@ function handleSaveOrder($pdo, $input, $branchId)
                     }
 
                     $saleType = (!empty($o['deliveryMethod']) && $o['deliveryMethod'] === 'pos') ? 'POS' : 'Web';
-                    $refStr = "Venta $saleType #" . $o['id'];
+                    $vDetail = '';
+                    if (!empty($item['selectedOptions']) && is_array($item['selectedOptions'])) {
+                        $vDetail = ' (' . implode(' / ', $item['selectedOptions']) . ')';
+                    } elseif (!empty($item['variantSku'])) {
+                        $vDetail = " ({$item['variantSku']})";
+                    }
+                    $refStr = "Venta $saleType #" . $o['id'] . $vDetail;
                     $movementInsert->execute([generateUniqueId(), $targetId, $activeBranchId, $o['sellerId'] ?? 'system', $o['sellerName'] ?? 'Sistema', 'sale', $qty, intval($currentStock), $refStr, time() * 1000]);
                 }
             }

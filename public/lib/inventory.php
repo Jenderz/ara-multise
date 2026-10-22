@@ -35,7 +35,7 @@ function handleAdjustStock($pdo, $input, $branchId)
             $after = $newStock;
             $loggedAmount = abs($diff);
             $refStr = $p['reference'] . " (Conteo Físico: $before -> $newStock)";
-            $movType = $diff >= 0 ? 'entry' : 'exit';
+            $movType = 'adjustment';
         } else {
             $mod = ($p['type'] === 'entry' || $p['type'] === 'transfer_in' || $p['type'] === 'return') ? intval($p['amount']) : -intval($p['amount']);
 
@@ -236,8 +236,33 @@ function handleGetMovements($pdo)
     }
 
     if (!empty($productId)) {
-        $whereConditions[] = "m.product_id = ?";
-        $params[] = $productId;
+        // Buscar si el producto tiene variantes para incluir sus movimientos
+        $stmtParent = $pdo->prepare("SELECT variants FROM `products` WHERE id = ?");
+        $stmtParent->execute([$productId]);
+        $rowParent = $stmtParent->fetch(PDO::FETCH_ASSOC);
+
+        $idsToMatch = [strval($productId)];
+        if ($rowParent && !empty($rowParent['variants'])) {
+            $vars = safeJsonDecode($rowParent['variants']);
+            if (is_array($vars)) {
+                foreach ($vars as $v) {
+                    if (!empty($v['id'])) {
+                        $idsToMatch[] = strval($v['id']);
+                    }
+                }
+            }
+        }
+
+        if (count($idsToMatch) === 1) {
+            $whereConditions[] = "m.product_id = ?";
+            $params[] = $idsToMatch[0];
+        } else {
+            $inQ = implode(',', array_fill(0, count($idsToMatch), '?'));
+            $whereConditions[] = "m.product_id IN ($inQ)";
+            foreach ($idsToMatch as $idm) {
+                $params[] = $idm;
+            }
+        }
     }
     
     if (!empty($movementType) && $movementType !== 'all') {
@@ -246,12 +271,42 @@ function handleGetMovements($pdo)
     }
     
     if (!empty($searchText)) {
-        $whereConditions[] = "(m.reference LIKE ? OR m.user_name LIKE ? OR p.title LIKE ? OR p.code LIKE ?)";
         $searchParam = '%' . $searchText . '%';
-        $params[] = $searchParam;
-        $params[] = $searchParam;
-        $params[] = $searchParam;
-        $params[] = $searchParam;
+        // Encontrar productos o variantes que coincidan por nombre, código o atributos de variante
+        $stmtMatch = $pdo->prepare("SELECT id, variants FROM `products` WHERE title LIKE ? OR code LIKE ? OR variants LIKE ? LIMIT 50");
+        $stmtMatch->execute([$searchParam, $searchParam, $searchParam]);
+        $matchedIds = [];
+        while ($mp = $stmtMatch->fetch(PDO::FETCH_ASSOC)) {
+            $matchedIds[] = strval($mp['id']);
+            if (!empty($mp['variants'])) {
+                $vars = safeJsonDecode($mp['variants']);
+                if (is_array($vars)) {
+                    foreach ($vars as $v) {
+                        if (!empty($v['id'])) {
+                            $matchedIds[] = strval($v['id']);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($matchedIds)) {
+            $inIds = implode(',', array_fill(0, count($matchedIds), '?'));
+            $whereConditions[] = "(m.reference LIKE ? OR m.user_name LIKE ? OR p.title LIKE ? OR p.code LIKE ? OR m.product_id IN ($inIds))";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            foreach ($matchedIds as $mid) {
+                $params[] = $mid;
+            }
+        } else {
+            $whereConditions[] = "(m.reference LIKE ? OR m.user_name LIKE ? OR p.title LIKE ? OR p.code LIKE ?)";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+        }
     }
     
     $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
@@ -260,7 +315,7 @@ function handleGetMovements($pdo)
     $countSql = "SELECT COUNT(*) as total FROM `product_movements` m LEFT JOIN `products` p ON m.product_id = p.id $whereClause";
     $countStmt = $pdo->prepare($countSql);
     $countStmt->execute($params);
-    $totalRecords = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $totalRecords = intval($countStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
     
     // Query principal con paginación y alias camelCase para frontend
     $sql = "SELECT m.*, m.user_name as `userName`, m.branch_id as `branchId`, p.title as `product_title`, p.code as `product_code` 
@@ -285,19 +340,51 @@ function handleGetMovements($pdo)
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // POST-PROCESSING: Resolver títulos para IDs de Variantes que no cruzaron con products
+    // POST-PROCESSING: Resolver títulos y detalles específicos de variantes
+    $parentCache = [];
     foreach ($rows as &$r) {
+        $pId = strval($r['product_id']);
+        
+        // Si no trajo título del JOIN directo, o si p.id != product_id (es una variante)
         if (empty($r['product_title'])) {
-            // Intento de recuperación por Variante
-            // Buscamos algún producto que contenga este ID en su JSON de variantes
-            $stmtV = $pdo->prepare("SELECT title, variants FROM products WHERE variants LIKE ? LIMIT 1");
-            $stmtV->execute(['%' . $r['product_id'] . '%']);
-            $parent = $stmtV->fetch();
+            if (!isset($parentCache[$pId])) {
+                $stmtV = $pdo->prepare("SELECT id, title, code, variants FROM `products` WHERE variants LIKE ? LIMIT 1");
+                $stmtV->execute(['%' . $pId . '%']);
+                $parentCache[$pId] = $stmtV->fetch(PDO::FETCH_ASSOC) ?: false;
+            }
+            $parent = $parentCache[$pId];
 
             if ($parent) {
-                $r['product_title'] = $parent['title']; // Título del Padre
+                $r['product_title'] = $parent['title'];
+                $r['product_code'] = $parent['code'] ?: 'S/C';
+                $r['parent_id'] = $parent['id'];
+
+                if (!empty($parent['variants'])) {
+                    $vars = safeJsonDecode($parent['variants']);
+                    if (is_array($vars)) {
+                        foreach ($vars as $v) {
+                            if (isset($v['id']) && strval($v['id']) === $pId) {
+                                $r['variant_id'] = $v['id'];
+                                if (!empty($v['sku'])) {
+                                    $r['product_code'] = $v['sku'];
+                                }
+                                if (!empty($v['selections']) && is_array($v['selections'])) {
+                                    $selParts = [];
+                                    foreach ($v['selections'] as $k => $val) {
+                                        $selParts[] = "$k: $val";
+                                    }
+                                    $r['variant_details'] = implode(' / ', $selParts);
+                                } elseif (!empty($v['name'])) {
+                                    $r['variant_details'] = $v['name'];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             } else {
-                $r['product_title'] = "Producto Eliminado o ID Desconocido";
+                $r['product_title'] = "Producto o Variante Eliminada";
+                $r['product_code'] = "S/C";
             }
         }
     }

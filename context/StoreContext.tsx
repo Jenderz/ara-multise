@@ -411,6 +411,8 @@ const DataSynchronizer = ({ children }: { children?: ReactNode }) => {
             customers: useCart().customers,
             coupons: useCart().coupons,
             wishlist: useCart().wishlist,
+            setWishlist: useCart().setWishlist,
+            clearWishlist: useCart().clearWishlist,
             addToCart: useCart().addToCart,
             removeFromCart: useCart().removeFromCart,
             updateCartQuantity: useCart().updateCartQuantity,

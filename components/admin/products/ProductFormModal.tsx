@@ -16,6 +16,81 @@ import { StockAdjustmentModal } from './StockAdjustmentModal';
 import { ProductJewelryFields, calculateJewelryPrice, isJewelryPluginEnabled as checkJewelryPlugin } from '../../../plugins/jewelry';
 import { now } from '../../../utils/serverClock';
 
+interface OptionValuesTagInputProps {
+    values: string[];
+    onChange: (values: string[]) => void;
+}
+
+const OptionValuesTagInput: React.FC<OptionValuesTagInputProps> = ({ values, onChange }) => {
+    const [draft, setDraft] = useState('');
+
+    const addValues = (raw: string) => {
+        const parts = raw
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean);
+        if (parts.length > 0) {
+            const combined = Array.from(new Set([...values, ...parts]));
+            onChange(combined);
+            setDraft('');
+        }
+    };
+
+    const removeValue = (valIdx: number) => {
+        onChange(values.filter((_, i) => i !== valIdx));
+    };
+
+    return (
+        <div className="flex-1 flex flex-wrap items-center gap-1.5 min-h-[42px] p-1.5 bg-white/70 dark:bg-black/20 rounded-2xl border border-gray-200/80 dark:border-white/10 focus-within:border-ios-blue transition-colors">
+            {values.map((val, vIdx) => (
+                <span
+                    key={vIdx}
+                    className="inline-flex items-center gap-1 bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-100 text-xs font-bold px-2.5 py-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-xs"
+                >
+                    {val}
+                    <button
+                        type="button"
+                        onClick={() => removeValue(vIdx)}
+                        className="text-gray-400 hover:text-red-500 rounded-full p-0.5 transition-colors"
+                        title="Eliminar valor"
+                    >
+                        <X size={12} />
+                    </button>
+                </span>
+            ))}
+            <input
+                className="flex-1 min-w-[140px] bg-transparent text-xs outline-none px-2 py-1 dark:text-white placeholder-gray-400 font-medium"
+                placeholder={values.length === 0 ? "Escribe valores y pulsa Enter o coma (,)..." : "+ Añadir..."}
+                value={draft}
+                onChange={e => {
+                    const text = e.target.value;
+                    if (text.includes(',')) {
+                        addValues(text);
+                    } else {
+                        setDraft(text);
+                    }
+                }}
+                onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        if (draft.trim()) {
+                            addValues(draft);
+                        }
+                    } else if (e.key === 'Backspace' && draft === '' && values.length > 0) {
+                        e.preventDefault();
+                        removeValue(values.length - 1);
+                    }
+                }}
+                onBlur={() => {
+                    if (draft.trim()) {
+                        addValues(draft);
+                    }
+                }}
+            />
+        </div>
+    );
+};
+
 interface ProductFormModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -136,6 +211,24 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     values: opt.values.filter(val => cleanedVariants.some(v => v.selections && v.selections[opt.name] === val))
                 }))
                 .filter(opt => opt.values.length > 0);
+
+            // Si cleanedOptions quedó vacío pero hay variantes (ej. variantes manuales o creadas individualmente)
+            if (cleanedOptions.length === 0) {
+                const reconstructed: Record<string, Set<string>> = {};
+                cleanedVariants.forEach(v => {
+                    if (v.selections) {
+                        Object.entries(v.selections).forEach(([k, val]) => {
+                            if (!reconstructed[k]) reconstructed[k] = new Set();
+                            if (val) reconstructed[k].add(val);
+                        });
+                    }
+                });
+                cleanedOptions = Object.entries(reconstructed).map(([name, vals]) => ({
+                    name,
+                    values: Array.from(vals),
+                    type: 'text'
+                }));
+            }
         }
 
         onSave({
@@ -222,38 +315,55 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             .join('|');
 
     const generateVariants = () => {
-        if (formData.variantOptions.length === 0) {
-            setFormData(prev => ({ ...prev, variants: [] }));
+        // Filtrar y limpiar opciones válidas
+        const validOptions = formData.variantOptions
+            .map(opt => ({
+                ...opt,
+                name: opt.name.trim(),
+                values: Array.from(new Set(opt.values.map(v => v.trim()).filter(Boolean)))
+            }))
+            .filter(opt => opt.name !== '' && opt.values.length > 0);
+
+        if (validOptions.length === 0) {
+            if (formData.variants.length > 0) {
+                if (window.confirm('No hay atributos válidos con valores. ¿Deseas eliminar las variantes actuales?')) {
+                    setFormData(prev => ({ ...prev, variants: [], variantOptions: [] }));
+                }
+            } else {
+                alert('Ingresa al menos un atributo con su nombre y al menos un valor para generar combinaciones.');
+            }
             return;
         }
 
-        const existingMap = new Map<string, ProductVariant>(
-            formData.variants.map(v => {
-                const key = v.combinationKey ?? buildCombinationKey(v.selections);
-                return [key, v];
-            })
-        );
+        // Mapa de variantes existentes para preservar datos (precio, oferta, stock, sku, imagen, barcode, id)
+        const existingMap = new Map<string, ProductVariant>();
+        formData.variants.forEach(v => {
+            const key = v.combinationKey ?? buildCombinationKey(v.selections);
+            existingMap.set(key, v);
+            existingMap.set(key.toLowerCase(), v);
+        });
 
         const generate = (
             optIdx: number,
             currentSelections: Record<string, string>
         ): ProductVariant[] => {
-            if (optIdx === formData.variantOptions.length) {
+            if (optIdx === validOptions.length) {
                 const key = buildCombinationKey(currentSelections);
-                const existing = existingMap.get(key);
+                const existing = existingMap.get(key) || existingMap.get(key.toLowerCase());
 
                 if (existing) {
                     return [{
                         ...existing,
                         combinationKey: key,
-                        sku: `${formData.code}-${Object.values(currentSelections).join('-')}`,
+                        selections: { ...currentSelections },
+                        sku: existing.sku || `${formData.code ? formData.code + '-' : ''}${Object.values(currentSelections).join('-')}`,
                     }];
                 }
 
                 return [{
                     id: generateId(),
                     combinationKey: key,
-                    sku: `${formData.code}-${Object.values(currentSelections).join('-')}`,
+                    sku: `${formData.code ? formData.code + '-' : ''}${Object.values(currentSelections).join('-')}`,
                     selections: { ...currentSelections },
                     price: formData.price,
                     salePrice: formData.salePrice,
@@ -263,11 +373,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                 }];
             }
 
-            const option = formData.variantOptions[optIdx];
-            if (option.values.length === 0) {
-                return generate(optIdx + 1, currentSelections);
-            }
-
+            const option = validOptions[optIdx];
             return option.values.reduce<ProductVariant[]>((acc, val) => [
                 ...acc,
                 ...generate(optIdx + 1, { ...currentSelections, [option.name]: val })
@@ -275,7 +381,44 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
         };
 
         const mergedVariants = generate(0, {});
-        setFormData(prev => ({ ...prev, variants: mergedVariants }));
+        setFormData(prev => ({
+            ...prev,
+            variantOptions: validOptions,
+            variants: mergedVariants
+        }));
+    };
+
+    const handleAddManualVariant = () => {
+        const initialSelections: Record<string, string> = {};
+        formData.variantOptions.forEach(opt => {
+            if (opt.name && opt.values.length > 0) {
+                initialSelections[opt.name] = opt.values[0];
+            } else if (opt.name) {
+                initialSelections[opt.name] = 'Opción';
+            }
+        });
+
+        if (Object.keys(initialSelections).length === 0) {
+            initialSelections['Variante'] = `Variante ${formData.variants.length + 1}`;
+        }
+
+        const key = buildCombinationKey(initialSelections);
+        const newV: ProductVariant = {
+            id: generateId(),
+            combinationKey: key,
+            sku: `${formData.code ? formData.code + '-' : ''}${Object.values(initialSelections).join('-')}`,
+            selections: initialSelections,
+            price: formData.price,
+            salePrice: formData.salePrice,
+            stock: 0,
+            branchStock: {},
+            image: ''
+        };
+
+        setFormData(prev => ({
+            ...prev,
+            variants: [...prev.variants, newV]
+        }));
     };
 
     const removeVariant = (idx: number) => {
@@ -718,7 +861,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                 </div>
 
                                 {/* Control de Stock */}
-                                <div className={`bg-gray-50 dark:bg-black/30 p-4 rounded-2xl border border-gray-100 dark:border-white/5 ${(hasVariants || isExistingProduct || isGlobalView) ? 'opacity-90' : ''}`}>
+                                <div className={`bg-gray-50 dark:bg-black/30 p-4 rounded-2xl border border-gray-100 dark:border-white/5 ${(hasVariants || isGlobalView) ? 'opacity-90' : ''}`}>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className="text-xs font-bold text-gray-500 uppercase">
                                             Stock {isGlobalView ? 'Total Global' : currentBranch?.name}
@@ -728,8 +871,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     <div className="flex items-center justify-between gap-3 bg-white dark:bg-zinc-800/80 p-1.5 rounded-2xl border border-gray-200/80 dark:border-white/10 shadow-xs">
                                         <button
                                             type="button"
-                                            disabled={hasVariants || isExistingProduct || isGlobalView}
-                                            onClick={() => setFormData({ ...formData, stock: Math.max(0, (formData.stock || 0) - 1) })}
+                                            disabled={hasVariants || isGlobalView}
+                                            onClick={() => setFormData(prev => ({ ...prev, stock: Math.max(0, (Number(prev.stock) || 0) - 1) }))}
                                             className="w-12 h-12 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-white rounded-xl shadow-xs hover:bg-gray-200 dark:hover:bg-zinc-600 disabled:opacity-40 active:scale-90 transition border border-black/5 dark:border-white/5"
                                             title="Restar 1 unidad"
                                         >
@@ -738,16 +881,23 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         <div className="flex-1 min-w-0 flex items-center justify-center">
                                             <input
                                                 type="number"
-                                                disabled={hasVariants || isExistingProduct || isGlobalView}
+                                                min="0"
+                                                disabled={hasVariants || isGlobalView}
                                                 className="w-full text-center bg-transparent text-2xl sm:text-3xl font-black outline-none dark:text-white disabled:opacity-50 py-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                value={formData.stock}
-                                                onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                                                placeholder="0"
+                                                value={formData.stock === 0 ? '0' : formData.stock}
+                                                onFocus={e => e.target.select()}
+                                                onChange={e => {
+                                                    const raw = e.target.value.replace(/^0+(?=\d)/, '');
+                                                    const val = raw === '' ? 0 : Math.max(0, parseInt(raw, 10) || 0);
+                                                    setFormData(prev => ({ ...prev, stock: val }));
+                                                }}
                                             />
                                         </div>
                                         <button
                                             type="button"
-                                            disabled={hasVariants || isExistingProduct || isGlobalView}
-                                            onClick={() => setFormData({ ...formData, stock: (formData.stock || 0) + 1 })}
+                                            disabled={hasVariants || isGlobalView}
+                                            onClick={() => setFormData(prev => ({ ...prev, stock: (Number(prev.stock) || 0) + 1 }))}
                                             className="w-12 h-12 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-ios-blue text-white rounded-xl shadow-md shadow-ios-blue/20 hover:bg-blue-600 disabled:opacity-40 active:scale-90 transition"
                                             title="Sumar 1 unidad"
                                         >
@@ -760,14 +910,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         </p>
                                     )}
                                     {isExistingProduct && !hasVariants && !isGlobalView && (
-                                        <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
-                                            <span className="flex items-center gap-1.5"><Lock size={13} /> El stock existente no se edita directamente para mantener la trazabilidad.</span>
+                                        <div className="mt-2.5 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-800/40 text-[11px] text-blue-700 dark:text-blue-300 flex items-center justify-between gap-2">
+                                            <span className="flex items-center gap-1.5"><Info size={13} /> Modifica directamente o registra un ajuste con motivo.</span>
                                             <button
                                                 type="button"
                                                 onClick={() => setShowStockAdjustment(true)}
                                                 className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[10px] shrink-0 active:scale-95 transition flex items-center gap-1 shadow-sm"
                                             >
-                                                <SlidersHorizontal size={11} /> Ajustar Stock
+                                                <SlidersHorizontal size={11} /> Ajustar con Kardex
                                             </button>
                                         </div>
                                     )}
@@ -909,24 +1059,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                 </div>
 
                                 {formData.variantOptions.map((opt, idx) => (
-                                    <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3.5 bg-gray-50 dark:bg-black/30 rounded-2xl border border-gray-100 dark:border-white/5">
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3.5 bg-gray-50 dark:bg-black/30 rounded-2xl border border-gray-100 dark:border-white/5 items-start sm:items-center">
                                         <input
-                                            className="bg-transparent font-bold text-sm outline-none w-full sm:w-36 dark:text-white border-b border-gray-200 dark:border-white/10 sm:border-b-0 pb-1 sm:pb-0"
-                                            placeholder="Nombre (Ej: Talla)"
+                                            className="bg-transparent font-bold text-sm outline-none w-full sm:w-40 dark:text-white border-b border-gray-200 dark:border-white/10 sm:border-b-0 pb-1 sm:pb-0"
+                                            placeholder="Nombre (Ej: Talla, Color)"
                                             value={opt.name}
                                             onChange={e => updateOption(idx, 'name', e.target.value)}
                                         />
                                         <div className="hidden sm:block h-6 w-[1px] bg-gray-300 dark:bg-zinc-700 self-center" />
-                                        <input
-                                            className="flex-1 bg-transparent text-sm outline-none dark:text-gray-300"
-                                            placeholder="Valores separados por coma (S, M, L, XL...)"
-                                            value={opt.values.join(', ')}
-                                            onChange={e => updateOption(idx, 'values', e.target.value.split(',').map(v => v.trim()))}
+                                        <OptionValuesTagInput
+                                            values={opt.values}
+                                            onChange={newVals => updateOption(idx, 'values', newVals)}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => removeOption(idx)}
-                                            className="text-red-400 hover:text-red-600 p-1 self-end sm:self-center transition"
+                                            className="text-red-400 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 self-end sm:self-center transition"
                                             title="Eliminar atributo"
                                         >
                                             <Trash2 size={16} />
@@ -936,17 +1084,20 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
 
                                 <div className="flex gap-2.5 items-center flex-wrap pt-1">
                                     <Button variant="secondary" onClick={addOption} className="text-xs h-10 px-4">
-                                        <Plus size={14} className="mr-1" /> Agregar Opción
+                                        <Plus size={14} className="mr-1" /> Agregar Atributo
                                     </Button>
                                     <Button onClick={generateVariants} className="text-xs h-10 bg-ios-blue text-white px-4">
-                                        {formData.variantOptions.length === 0 ? 'Limpiar Variantes' : 'Generar Combinaciones'}
+                                        {formData.variants.length === 0 ? 'Generar Combinaciones' : 'Actualizar Combinaciones'}
+                                    </Button>
+                                    <Button variant="secondary" onClick={handleAddManualVariant} className="text-xs h-10 px-3.5 border-dashed border-gray-300 dark:border-zinc-700">
+                                        <Plus size={14} className="mr-1" /> Variante Manual
                                     </Button>
                                     {(formData.variants.length > 0 || formData.variantOptions.length > 0) && (
                                         <button
                                             type="button"
                                             onClick={handleClearAllVariants}
                                             className="text-xs h-10 px-3.5 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold flex items-center gap-1.5 transition ml-auto"
-                                            title="Eliminar todas las variantes y opciones"
+                                            title="Eliminar todas las variantes y atributos"
                                         >
                                             <Trash2 size={13} /> Limpiar Todo
                                         </button>
@@ -966,10 +1117,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         {formData.variants.map((v, idx) => (
                                             <div key={idx} className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-150 dark:border-white/5 shadow-sm space-y-3 relative">
                                                 <div className="flex items-start justify-between gap-2 pr-8">
-                                                    <div className="flex flex-wrap gap-1.5">
+                                                    <div className="flex flex-wrap gap-1.5 items-center">
                                                         {Object.entries(v.selections).map(([k, val]) => (
-                                                            <span key={k} className="text-xs bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-lg text-gray-700 dark:text-gray-200 font-bold">
-                                                                {val}
+                                                            <span key={k} className="inline-flex items-center gap-1 text-xs bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-lg text-gray-700 dark:text-gray-200 font-bold border border-black/5 dark:border-white/5">
+                                                                <span className="text-[10px] uppercase text-gray-400 font-normal">{k}:</span>
+                                                                <input
+                                                                    className="bg-transparent outline-none w-auto max-w-[90px] font-bold text-xs text-gray-800 dark:text-white"
+                                                                    value={val}
+                                                                    onChange={e => {
+                                                                        const newVal = e.target.value;
+                                                                        const newSelections = { ...v.selections, [k]: newVal };
+                                                                        const newKey = buildCombinationKey(newSelections);
+                                                                        const updated = [...formData.variants];
+                                                                        updated[idx] = { ...v, selections: newSelections, combinationKey: newKey };
+                                                                        setFormData(prev => ({ ...prev, variants: updated }));
+                                                                    }}
+                                                                />
                                                             </span>
                                                         ))}
                                                     </div>
@@ -1040,6 +1203,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                             type="number"
                                                             className="w-full bg-gray-50 dark:bg-black/30 rounded-xl p-2.5 text-xs font-bold dark:text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border border-gray-150 dark:border-white/5 focus:border-ios-blue"
                                                             value={v.price}
+                                                            onFocus={e => e.target.select()}
                                                             onChange={e => updateVariant(idx, 'price', Number(e.target.value))}
                                                         />
                                                     </div>
@@ -1050,6 +1214,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                             placeholder="-"
                                                             className="w-full bg-gray-50 dark:bg-black/30 rounded-xl p-2.5 text-xs font-bold text-red-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border border-gray-150 dark:border-white/5 focus:border-ios-blue placeholder-gray-400"
                                                             value={v.salePrice || ''}
+                                                            onFocus={e => e.target.select()}
                                                             onChange={e => updateVariant(idx, 'salePrice', parseFloat(e.target.value))}
                                                         />
                                                     </div>
@@ -1066,11 +1231,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        <div className={`flex items-center justify-between gap-1.5 bg-gray-50 dark:bg-black/30 rounded-xl p-1 border border-gray-150 dark:border-white/5 ${(isExistingProduct || isGlobalView) ? 'opacity-80' : ''}`}>
+                                                        <div className={`flex items-center justify-between gap-1.5 bg-gray-50 dark:bg-black/30 rounded-xl p-1 border border-gray-150 dark:border-white/5 ${isGlobalView ? 'opacity-80' : ''}`}>
                                                             <button
                                                                 type="button"
-                                                                disabled={isExistingProduct || isGlobalView}
-                                                                onClick={() => updateVariant(idx, 'stock', Math.max(0, (v.stock || 0) - 1))}
+                                                                disabled={isGlobalView}
+                                                                onClick={() => updateVariant(idx, 'stock', Math.max(0, (Number(v.stock) || 0) - 1))}
                                                                 className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 rounded-lg shadow-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10 disabled:opacity-40"
                                                                 title="Restar 1 unidad"
                                                             >
@@ -1078,15 +1243,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                             </button>
                                                             <input
                                                                 type="number"
-                                                                disabled={isExistingProduct || isGlobalView}
-                                                                className="flex-1 w-0 min-w-0 text-center bg-transparent text-sm sm:text-xs font-black dark:text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-1 disabled:opacity-70"
-                                                                value={v.stock}
-                                                                onChange={e => updateVariant(idx, 'stock', Number(e.target.value) || 0)}
+                                                                min="0"
+                                                                disabled={isGlobalView}
+                                                                className="flex-1 w-0 min-w-0 text-center bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 focus:border-ios-blue rounded-lg text-sm sm:text-xs font-black dark:text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-1.5 disabled:opacity-70 transition-all"
+                                                                placeholder="0"
+                                                                value={v.stock === 0 ? '0' : v.stock}
+                                                                onFocus={e => e.target.select()}
+                                                                onChange={e => {
+                                                                    const raw = e.target.value.replace(/^0+(?=\d)/, '');
+                                                                    const val = raw === '' ? 0 : Math.max(0, parseInt(raw, 10) || 0);
+                                                                    updateVariant(idx, 'stock', val);
+                                                                }}
                                                             />
                                                             <button
                                                                 type="button"
-                                                                disabled={isExistingProduct || isGlobalView}
-                                                                onClick={() => updateVariant(idx, 'stock', (v.stock || 0) + 1)}
+                                                                disabled={isGlobalView}
+                                                                onClick={() => updateVariant(idx, 'stock', (Number(v.stock) || 0) + 1)}
                                                                 className="w-9 h-9 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center bg-white dark:bg-zinc-800 text-ios-blue dark:text-blue-400 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-zinc-700 active:scale-90 transition border border-black/5 dark:border-white/10 disabled:opacity-40"
                                                                 title="Sumar 1 unidad"
                                                             >
@@ -1104,19 +1276,18 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-xs text-blue-700 dark:text-blue-300 font-medium flex items-center justify-between gap-2">
                                             <div>
                                                 <b>Sede Activa:</b> Estás editando el inventario de <b>{currentBranch?.name || 'Sede Principal'}</b>.
-                                                {isExistingProduct && !isGlobalView && (
-                                                    <span className="ml-2 text-amber-700 dark:text-amber-300 font-medium">
-                                                        (Stock de variantes existentes gestionado vía Ajuste).
-                                                    </span>
-                                                )}
+                                                <span className="ml-2 text-gray-500 dark:text-gray-400">
+                                                    (Escribe el stock directamente con el teclado o usa los botones +/-).
+                                                </span>
                                             </div>
                                             {isExistingProduct && !isGlobalView && (
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowStockAdjustment(true)}
                                                     className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shrink-0 active:scale-95 transition flex items-center gap-1 shadow-sm"
+                                                    title="Ajuste formal con motivo o documento"
                                                 >
-                                                    <SlidersHorizontal size={12} /> Ajustar Stock
+                                                    <SlidersHorizontal size={12} /> Registrar Ajuste Formal
                                                 </button>
                                             )}
                                         </div>
@@ -1130,7 +1301,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                     )}
                                                     <th className="p-3 w-20">Precio</th>
                                                     <th className="p-3 w-20">Oferta</th>
-                                                    <th className="p-3 w-28">Stock Local</th>
+                                                    <th className="p-3 w-32">Stock Local</th>
                                                     <th className="p-3 w-24">SKU</th>
                                                     <th className="p-3 w-32">Barcode / Fábrica</th>
                                                     <th className="p-3 w-16 text-center">Imagen</th>
@@ -1149,10 +1320,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                             </button>
                                                         </td>
                                                         <td className="p-3">
-                                                            <div className="flex gap-1 flex-wrap">
+                                                            <div className="flex gap-1.5 flex-wrap items-center">
                                                                 {Object.entries(v.selections).map(([k, val]) => (
-                                                                    <span key={k} className="text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300 font-medium">
-                                                                        {val}
+                                                                    <span key={k} className="inline-flex items-center gap-1 text-[11px] bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-lg text-gray-700 dark:text-gray-300 font-medium border border-black/5 dark:border-white/5">
+                                                                        <span className="text-[9px] uppercase text-gray-400 font-bold">{k}:</span>
+                                                                        <input
+                                                                            className="bg-transparent outline-none w-auto max-w-[85px] font-bold text-xs text-gray-800 dark:text-white"
+                                                                            value={val}
+                                                                            onChange={e => {
+                                                                                const newVal = e.target.value;
+                                                                                const newSelections = { ...v.selections, [k]: newVal };
+                                                                                const newKey = buildCombinationKey(newSelections);
+                                                                                const updated = [...formData.variants];
+                                                                                updated[idx] = { ...v, selections: newSelections, combinationKey: newKey };
+                                                                                setFormData(prev => ({ ...prev, variants: updated }));
+                                                                            }}
+                                                                        />
                                                                     </span>
                                                                 ))}
                                                             </div>
@@ -1188,6 +1371,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 disabled={isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (v.weightGram ?? 0) > 0}
                                                                 className={`w-full bg-transparent border-b border-gray-200 dark:border-white/10 focus:border-ios-blue outline-none text-xs py-1 dark:text-white font-mono ${isJewelryPluginEnabled && formData.pricingType === 'by_weight' && (v.weightGram ?? 0) > 0 ? 'opacity-70 cursor-not-allowed' : ''}`}
                                                                 value={v.price}
+                                                                onFocus={e => e.target.select()}
                                                                 onChange={e => updateVariant(idx, 'price', Number(e.target.value))}
                                                             />
                                                         </td>
@@ -1197,33 +1381,43 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                                                 placeholder="-"
                                                                 className="w-full bg-transparent border-b border-gray-200 dark:border-white/10 focus:border-ios-blue outline-none text-xs py-1 dark:text-white font-mono text-red-500 placeholder-gray-300"
                                                                 value={v.salePrice || ''}
+                                                                onFocus={e => e.target.select()}
                                                                 onChange={e => updateVariant(idx, 'salePrice', parseFloat(e.target.value))}
                                                             />
                                                         </td>
                                                         <td className="p-3">
-                                                            <div className={`flex items-center gap-1 bg-gray-50 dark:bg-black/30 rounded-lg p-1 border border-gray-150 dark:border-white/5 ${(isExistingProduct || isGlobalView) ? 'opacity-80' : ''}`}>
+                                                            <div className={`flex items-center gap-1.5 bg-gray-50 dark:bg-black/30 rounded-xl p-1 border border-gray-150 dark:border-white/5 ${isGlobalView ? 'opacity-80' : ''}`}>
                                                                 <button
                                                                     type="button"
-                                                                    disabled={isExistingProduct || isGlobalView}
-                                                                    onClick={() => updateVariant(idx, 'stock', Math.max(0, (v.stock || 0) - 1))}
-                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition disabled:opacity-30"
+                                                                    disabled={isGlobalView}
+                                                                    onClick={() => updateVariant(idx, 'stock', Math.max(0, (Number(v.stock) || 0) - 1))}
+                                                                    className="w-7 h-7 shrink-0 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition text-gray-700 dark:text-white disabled:opacity-30 border border-black/5 dark:border-white/5"
+                                                                    title="Restar 1 unidad"
                                                                 >
-                                                                    <Minus size={11} />
+                                                                    <Minus size={11} className="stroke-[2.5]" />
                                                                 </button>
                                                                 <input
                                                                     type="number"
-                                                                    disabled={isExistingProduct || isGlobalView}
-                                                                    className="w-10 text-center bg-transparent outline-none text-xs font-bold dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-70"
-                                                                    value={v.stock}
-                                                                    onChange={e => updateVariant(idx, 'stock', Number(e.target.value) || 0)}
+                                                                    min="0"
+                                                                    disabled={isGlobalView}
+                                                                    className="w-16 text-center bg-white dark:bg-black/40 border border-gray-200 dark:border-white/10 focus:border-ios-blue rounded-lg outline-none text-xs font-black dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-1 disabled:opacity-70 transition-all"
+                                                                    placeholder="0"
+                                                                    value={v.stock === 0 ? '0' : v.stock}
+                                                                    onFocus={e => e.target.select()}
+                                                                    onChange={e => {
+                                                                        const raw = e.target.value.replace(/^0+(?=\d)/, '');
+                                                                        const val = raw === '' ? 0 : Math.max(0, parseInt(raw, 10) || 0);
+                                                                        updateVariant(idx, 'stock', val);
+                                                                    }}
                                                                 />
                                                                 <button
                                                                     type="button"
-                                                                    disabled={isExistingProduct || isGlobalView}
-                                                                    onClick={() => updateVariant(idx, 'stock', (v.stock || 0) + 1)}
-                                                                    className="w-6 h-6 shrink-0 rounded bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition disabled:opacity-30"
+                                                                    disabled={isGlobalView}
+                                                                    onClick={() => updateVariant(idx, 'stock', (Number(v.stock) || 0) + 1)}
+                                                                    className="w-7 h-7 shrink-0 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 active:scale-90 transition text-ios-blue dark:text-blue-400 disabled:opacity-30 border border-black/5 dark:border-white/5"
+                                                                    title="Sumar 1 unidad"
                                                                 >
-                                                                    <Plus size={11} />
+                                                                    <Plus size={11} className="stroke-[2.5]" />
                                                                 </button>
                                                             </div>
                                                         </td>

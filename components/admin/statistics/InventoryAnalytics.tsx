@@ -1,16 +1,264 @@
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Product, StockMovement } from '../../../types';
 import { useStore } from '../../../context/StoreContext';
 import { api } from '../../../services/api';
 import { StatCard, CustomTooltip, PIE_COLORS } from './SharedStatsComponents';
 import { StagnantStockAnalytics } from './StagnantStockAnalytics';
-import { DollarSign, Package, TrendingUp, Layers, CheckCircle2, XCircle, AlertTriangle, History, RotateCcw, Search, Filter, ArrowUpCircle, ArrowDownCircle, RefreshCcw, MapPin, Clock, Calendar, LayoutList, Table as TableIcon } from 'lucide-react';
+import { DollarSign, Package, TrendingUp, Layers, CheckCircle2, XCircle, AlertTriangle, History, RotateCcw, Search, Filter, ArrowUpCircle, ArrowDownCircle, RefreshCcw, MapPin, Clock, Calendar, LayoutList, Table as TableIcon, ChevronDown, Check, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 interface InventoryAnalyticsProps {
     products: Product[];
 }
+
+interface SearchableProductSelectProps {
+    products: Product[];
+    selectedProductId: string;
+    onSelect: (productId: string) => void;
+}
+
+const SearchableProductSelect: React.FC<SearchableProductSelectProps> = ({
+    products,
+    selectedProductId,
+    onSelect,
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Cerrar al hacer clic fuera del componente
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            setTimeout(() => inputRef.current?.focus(), 60);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    // Cerrar con tecla Escape
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsOpen(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    const selectedProduct = useMemo(
+        () => products.find(p => p.id === selectedProductId),
+        [products, selectedProductId]
+    );
+
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm.trim()) {
+            return products.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        }
+        const q = searchTerm.toLowerCase().trim();
+        return products.filter(p => {
+            const matchTitle = (p.title || '').toLowerCase().includes(q);
+            const matchCode = (p.code || '').toLowerCase().includes(q);
+            const matchCat = (p.category || '').toLowerCase().includes(q);
+            const matchVar = p.variants?.some(v => 
+                (v.sku || '').toLowerCase().includes(q) ||
+                (v.name || '').toLowerCase().includes(q) ||
+                Object.values(v.selections || {}).some(val => (val || '').toLowerCase().includes(q))
+            );
+            return matchTitle || matchCode || matchCat || matchVar;
+        }).sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    }, [products, searchTerm]);
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onSelect('');
+        setSearchTerm('');
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="relative w-full" ref={dropdownRef}>
+            {/* Botón Disparador */}
+            <button
+                type="button"
+                onClick={() => setIsOpen(prev => !prev)}
+                className={`w-full flex items-center justify-between gap-2 bg-white dark:bg-black/20 px-3 py-2 rounded-xl text-xs outline-none dark:text-white border transition-all text-left ${
+                    isOpen 
+                        ? 'border-ios-blue ring-2 ring-ios-blue/10 shadow-sm' 
+                        : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
+                }`}
+                title="Filtrar por producto con buscador inteligente"
+            >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Package size={14} className="text-gray-400 shrink-0" />
+                    {selectedProduct ? (
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            {selectedProduct.images?.[0] && (
+                                <img
+                                    src={selectedProduct.images[0]}
+                                    alt=""
+                                    className="w-4 h-4 rounded object-cover shrink-0 border border-black/5 dark:border-white/10"
+                                />
+                            )}
+                            <span className="font-bold truncate text-gray-900 dark:text-white text-xs">
+                                {selectedProduct.title}
+                            </span>
+                            {selectedProduct.variants && selectedProduct.variants.length > 0 && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 shrink-0">
+                                    {selectedProduct.variants.length} var
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <span className="text-gray-500 dark:text-gray-400 truncate text-xs font-medium">
+                            Todos los Productos
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                    {selectedProduct && (
+                        <span
+                            role="button"
+                            onClick={handleClear}
+                            className="p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Quitar filtro de producto"
+                        >
+                            <X size={12} />
+                        </span>
+                    )}
+                    <ChevronDown size={13} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180 text-ios-blue' : ''}`} />
+                </div>
+            </button>
+
+            {/* Popover Desplegable */}
+            {isOpen && (
+                <div className="absolute left-0 top-full mt-1.5 w-full sm:w-[340px] max-w-[92vw] z-[70] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-150 dark:border-white/10 overflow-hidden flex flex-col animate-scale-in">
+                    {/* Buscador Integrado */}
+                    <div className="p-2.5 border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-white/5 flex items-center gap-2">
+                        <Search size={14} className="text-gray-400 shrink-0 ml-1" />
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            placeholder="Buscar por nombre, código o variante..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full bg-transparent text-xs outline-none dark:text-white placeholder-gray-400 font-medium py-1"
+                        />
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm('')}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-0.5"
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Lista con Scroll */}
+                    <div className="max-h-64 overflow-y-auto divide-y divide-gray-50 dark:divide-white/5 p-1 no-scrollbar">
+                        {/* Opción Todos los Productos */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onSelect('');
+                                setIsOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-colors text-xs font-semibold ${
+                                !selectedProductId 
+                                    ? 'bg-ios-blue/10 text-ios-blue dark:bg-ios-blue/20' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
+                            }`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Package size={14} className={!selectedProductId ? 'text-ios-blue' : 'text-gray-400'} />
+                                Todos los Productos
+                            </span>
+                            {!selectedProductId && <Check size={14} className="text-ios-blue" />}
+                        </button>
+
+                        {/* Listado de Productos Coincidentes */}
+                        {filteredProducts.length > 0 ? (
+                            filteredProducts.map(p => {
+                                const isSelected = p.id === selectedProductId;
+                                const hasVars = p.variants && p.variants.length > 0;
+                                return (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => {
+                                            onSelect(p.id);
+                                            setIsOpen(false);
+                                        }}
+                                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors gap-2 ${
+                                            isSelected 
+                                                ? 'bg-ios-blue/10 text-ios-blue dark:bg-ios-blue/20' 
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 shrink-0 border border-gray-200/50 dark:border-white/10 flex items-center justify-center">
+                                                {p.images?.[0] ? (
+                                                    <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Package size={14} className="text-gray-400" />
+                                                )}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className={`text-xs font-bold truncate leading-tight ${isSelected ? 'text-ios-blue' : 'dark:text-white text-gray-900'}`}>
+                                                    {p.title}
+                                                </p>
+                                                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                                    <span className="text-[10px] text-gray-400 font-mono">
+                                                        {p.code}
+                                                    </span>
+                                                    {hasVars && (
+                                                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                                                            {p.variants.length} variantes
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] text-gray-400">
+                                                        • Stock: {p.stock ?? 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {isSelected && <Check size={14} className="text-ios-blue shrink-0" />}
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <div className="py-8 text-center text-xs text-gray-400 flex flex-col items-center justify-center gap-1.5">
+                                <Search size={20} className="text-gray-300 dark:text-gray-600 mb-1" />
+                                <span>No se encontraron productos para "{searchTerm}"</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer con Contador */}
+                    <div className="p-2 px-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 flex items-center justify-between text-[10px] text-gray-400 font-medium">
+                        <span>{filteredProducts.length} de {products.length} productos</span>
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm('')}
+                                className="text-ios-blue hover:underline font-bold"
+                            >
+                                Limpiar búsqueda
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products }) => {
     // Agregamos 'branches' del contexto para hacer el cruce de nombres sin tocar backend
@@ -251,7 +499,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                 <StagnantStockAnalytics />
             ) : (
                 /* SECCIÓN DE AUDITORÍA Y MERMAS CON FILTROS */
-                <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm max-w-full overflow-hidden">
+                <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm max-w-full relative">
                 <div className="flex flex-col gap-4 sm:gap-6 mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-2">
@@ -295,25 +543,15 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
 
                     {/* Filtros */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 bg-gray-50 dark:bg-white/5 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
-                        {/* Selector de Producto */}
-                        <div className="relative">
-                            <Package size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            <select
-                                className="w-full bg-white dark:bg-black/20 pl-9 pr-3 py-2 rounded-xl text-xs outline-none dark:text-white border border-gray-200 dark:border-white/10 appearance-none cursor-pointer focus:border-ios-blue transition-colors"
-                                value={selectedProductId}
-                                onChange={e => { setSelectedProductId(e.target.value); setCurrentPage(1); }}
-                            >
-                                <option value="">Todos los Productos</option>
-                                {products
-                                    .slice()
-                                    .sort((a, b) => a.title.localeCompare(b.title))
-                                    .map(p => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.title} ({p.code})
-                                        </option>
-                                    ))}
-                            </select>
-                        </div>
+                        {/* Selector Inteligente de Producto con Buscador */}
+                        <SearchableProductSelect
+                            products={products}
+                            selectedProductId={selectedProductId}
+                            onSelect={(pid) => {
+                                setSelectedProductId(pid);
+                                setCurrentPage(1);
+                            }}
+                        />
 
                         {/* Selector de Sede */}
                         <div className="relative">
@@ -345,10 +583,10 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                 onChange={e => { setAuditType(e.target.value); setCurrentPage(1); }}
                             >
                                 <option value="all">Todos los Tipos</option>
-                                <option value="entry">Entradas</option>
-                                <option value="exit">Salidas</option>
-                                <option value="sale">Ventas</option>
-                                <option value="adjustment">Ajustes / Variantes</option>
+                                <option value="exit">Salidas / Mermas</option>
+                                <option value="sale">Ventas (Descuento Stock)</option>
+                                <option value="entry">Entradas / Compras</option>
+                                <option value="adjustment">Ajustes / Conteo Físico</option>
                             </select>
                         </div>
 
@@ -413,7 +651,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                                 </span>
                                             ) : isExit ? (
                                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 dark:bg-rose-950/50 dark:text-rose-300 px-2 py-0.5 rounded-md">
-                                                    <ArrowDownCircle size={11} /> Salida
+                                                    <ArrowDownCircle size={11} /> Salida / Merma
                                                 </span>
                                             ) : (
                                                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${isPositiveAdj ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-amber-700 bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300'}`}>
@@ -431,14 +669,21 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                         </span>
                                     </div>
 
-                                    {/* Fila 2: Título y Código del Producto */}
+                                    {/* Fila 2: Título, Código y Variante */}
                                     <div className="min-w-0">
                                         <p className="text-xs font-bold text-gray-900 dark:text-white leading-snug">
                                             {mov.product_title || 'Producto Eliminado'}
                                         </p>
-                                        <p className="text-[10px] text-gray-400 font-mono mt-0.5">
-                                            Cód: {mov.product_code || 'S/C'}
-                                        </p>
+                                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                            {mov.variant_details && (
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/30">
+                                                    {mov.variant_details}
+                                                </span>
+                                            )}
+                                            <span className="text-[10px] text-gray-400 font-mono">
+                                                {mov.product_code ? `Cód: ${mov.product_code}` : 'S/C'}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* Fila 3: Fecha/Hora y Detalle/Usuario */}
@@ -504,8 +749,15 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                                 {fullDateTime}
                                             </td>
                                             <td className="py-3 px-3.5">
-                                                <p className="text-xs font-bold dark:text-white truncate max-w-[220px]">{mov.product_title || 'Producto Eliminado'}</p>
-                                                <p className="text-[9px] text-gray-400 font-mono">{mov.product_code}</p>
+                                                <p className="text-xs font-bold dark:text-white truncate max-w-[240px]">{mov.product_title || 'Producto Eliminado'}</p>
+                                                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                                    {mov.variant_details && (
+                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/30">
+                                                            {mov.variant_details}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[9px] text-gray-400 font-mono">{mov.product_code ? `Cód: ${mov.product_code}` : 'S/C'}</span>
+                                                </div>
                                             </td>
                                             <td className="py-3 px-3.5">
                                                 <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-white/10 px-2 py-1 rounded w-fit whitespace-nowrap">
@@ -523,7 +775,7 @@ export const InventoryAnalytics: React.FC<InventoryAnalyticsProps> = ({ products
                                                     </span>
                                                 ) : isExit ? (
                                                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 dark:bg-rose-950/50 dark:text-rose-300 px-2 py-1 rounded-md">
-                                                        <ArrowDownCircle size={10} /> Salida
+                                                        <ArrowDownCircle size={10} /> Salida / Merma
                                                     </span>
                                                 ) : (
                                                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md ${isPositiveAdj ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300' : 'text-amber-700 bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300'}`}>

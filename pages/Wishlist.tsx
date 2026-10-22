@@ -5,19 +5,32 @@ import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/UIComponents';
 import { 
     Heart, ArrowLeft, ShoppingBag, Share2, Trash2, 
-    Copy, Check, Sparkles, Gift, ArrowRight, Zap 
+    Copy, Check, Gift, ArrowRight, Zap, X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { showWishlistToast } from '../components/WishlistToast';
+import { isOutOfStock } from '../utils/stock';
 
 export const Wishlist = () => {
-    const { products, wishlist, setWishlist, addToCart, setIsCartOpen, settings, activeExchangeRate, activeCurrencySymbol } = useStore();
+    const { 
+        products, 
+        wishlist, 
+        setWishlist, 
+        clearWishlist, 
+        addToCart, 
+        setIsCartOpen, 
+        settings, 
+        activeExchangeRate, 
+        activeCurrencySymbol 
+    } = useStore();
+    
     const navigate = useNavigate();
     const location = useLocation();
 
     const [copied, setCopied] = useState(false);
     const [isMovingAll, setIsMovingAll] = useState(false);
+    const [showClearModal, setShowClearModal] = useState(false);
 
     // Detección Ultra-Robusta de Lista Compartida (soporta hash router, search params y window location)
     const sharedParam = useMemo(() => {
@@ -44,19 +57,15 @@ export const Wishlist = () => {
         return products.filter(p => activeIds.includes(p.id) && p.isVisible);
     }, [products, activeIds]);
 
-    // Cálculo del Valor Total Acumulado y Ahorro en Ofertas
+    // Cálculo del Valor Total Acumulado, Ahorro en Ofertas y Disponibilidad Real
     const { totalUsd, totalSavings, inStockCount } = useMemo(() => {
         let total = 0;
         let savings = 0;
         let inStock = 0;
 
         wishlistProducts.forEach(p => {
-            const hasStock = p.globalStock !== undefined ? p.globalStock > 0 :
-                (p.branchStock && Object.keys(p.branchStock).length > 0)
-                    ? Number(Object.values(p.branchStock).reduce((acc: number, qty: any) => acc + (Number(qty) || 0), 0)) > 0
-                    : (p.stock || 0) > 0;
-
-            if (hasStock) inStock++;
+            const available = !isOutOfStock(p);
+            if (available) inStock++;
 
             const regularPrice = p.price || 0;
             const salePrice = (p.salePrice && p.salePrice > 0 && p.salePrice < p.price) ? p.salePrice : regularPrice;
@@ -71,10 +80,9 @@ export const Wishlist = () => {
     }, [wishlistProducts]);
 
     const rate = Number(activeExchangeRate) || 1;
-    const totalVes = totalUsd * rate;
-    const formatVes = (usd: number) => `Bs ${(usd * rate).toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    const formatVes = (usd: number) => `Bs ${(usd * rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-    // 1-Tap: Mover todos los productos en stock al carrito
+    // 1-Tap: Mover todos los productos con stock disponible al carrito
     const handleMoveAllToCart = () => {
         if (wishlistProducts.length === 0 || inStockCount === 0) return;
 
@@ -85,12 +93,7 @@ export const Wishlist = () => {
         setIsMovingAll(true);
 
         wishlistProducts.forEach(product => {
-            const hasStock = product.globalStock !== undefined ? product.globalStock > 0 :
-                (product.branchStock && Object.keys(product.branchStock).length > 0)
-                    ? Number(Object.values(product.branchStock).reduce((acc: number, qty: any) => acc + (Number(qty) || 0), 0)) > 0
-                    : (product.stock || 0) > 0;
-
-            if (hasStock) {
+            if (!isOutOfStock(product)) {
                 addToCart(product, {}, 1);
             }
         });
@@ -98,7 +101,7 @@ export const Wishlist = () => {
         setTimeout(() => {
             setIsMovingAll(false);
             setIsCartOpen(true);
-        }, 500);
+        }, 400);
     };
 
     // Generar enlace compartible adaptado a HashRouter
@@ -107,26 +110,25 @@ export const Wishlist = () => {
         return `${window.location.origin}/#/wishlist?shared=${idsToShare.join(',')}`;
     };
 
-    // Compartir por WhatsApp
+    // Compartir por WhatsApp con texto elegante y conciso
     const handleShareWhatsApp = () => {
         const shareUrl = getShareableUrl();
         const storeTitle = settings.storeName || 'ARA';
         
-        let message = `🎁 *¡Hola! Te comparto mi lista de deseos en ${storeTitle}*\n\n`;
+        let message = `✨ *Mi lista de deseos en ${storeTitle}*\n\n`;
         wishlistProducts.slice(0, 5).forEach(p => {
             const price = p.salePrice && p.salePrice < p.price ? p.salePrice : p.price;
             message += `• *${p.title}* (${activeCurrencySymbol}${price.toFixed(2)})\n`;
         });
 
         if (wishlistProducts.length > 5) {
-            message += `... y ${wishlistProducts.length - 5} artículos más.\n\n`;
+            message += `... y ${wishlistProducts.length - 5} artículo(s) más.\n\n`;
         } else {
             message += `\n`;
         }
 
         message += `👉 *Mírala completa aquí:* ${shareUrl}`;
 
-        // Usar api.whatsapp.com en lugar de wa.me para preservar codificación UTF-8 sin fallos de redirección 302
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
     };
 
@@ -164,7 +166,9 @@ export const Wishlist = () => {
     // Importar lista compartida a mis propios favoritos
     const handleImportShared = () => {
         const merged = Array.from(new Set([...wishlist, ...sharedIds]));
-        setWishlist(merged);
+        if (setWishlist) {
+            setWishlist(merged);
+        }
         showWishlistToast({
             productTitle: `${sharedIds.length} artículos importados`,
             action: 'added',
@@ -173,63 +177,83 @@ export const Wishlist = () => {
         navigate('/wishlist');
     };
 
-    // Vaciar lista
-    const handleClearWishlist = () => {
-        if (window.confirm('¿Deseas vaciar tu lista de deseos?')) {
+    // Confirmación y vaciado seguro de la lista
+    const handleConfirmClear = () => {
+        if (clearWishlist) {
+            clearWishlist();
+        } else if (setWishlist) {
             setWishlist([]);
         }
+        setShowClearModal(false);
+        showWishlistToast({
+            productTitle: 'Lista de deseos vaciada',
+            action: 'removed',
+            count: 0
+        });
     };
 
     return (
         <ShopLayout>
             <SEO title="Lista de Deseos" description="Tus productos favoritos guardados para comprar después." noindex={true} />
 
-            <div className="mb-16 max-w-7xl mx-auto px-2">
-                {/* Header con botón de retorno y título */}
-                <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="mb-16 max-w-7xl mx-auto px-2 sm:px-4">
+                {/* Header Superior Ergonómico */}
+                <div className="flex items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-3">
                         <button 
                             onClick={() => navigate(-1)} 
-                            className="w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 transition-colors"
+                            className="w-10 h-10 flex items-center justify-center bg-white dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 transition-colors shadow-sm"
+                            title="Regresar"
                         >
-                            <ArrowLeft size={20} className="text-ios-text dark:text-white" />
+                            <ArrowLeft size={18} className="text-ios-text dark:text-white" />
                         </button>
                         <div>
-                            <h1 className="text-2xl sm:text-4xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-2.5">
-                                <Heart className="fill-red-500 text-red-500 animate-heart-burst" size={28} />
+                            <h1 className="text-xl sm:text-3xl font-serif font-bold text-ios-text dark:text-white flex items-center gap-2">
+                                <Heart className="fill-rose-500 text-rose-500 animate-heart-burst" size={24} />
                                 {isSharedMode ? 'Lista Compartida' : 'Lista de Deseos'}
                             </h1>
-                            <p className="text-xs text-ios-subtext dark:text-gray-400 mt-0.5">
-                                {wishlistProducts.length} {wishlistProducts.length === 1 ? 'artículo guardado' : 'artículos guardados'}
-                            </p>
+                            <div className="flex items-center gap-2 text-xs text-ios-subtext dark:text-gray-400 mt-0.5">
+                                <span>{wishlistProducts.length} {wishlistProducts.length === 1 ? 'producto' : 'productos'}</span>
+                                {wishlistProducts.length > 0 && inStockCount > 0 && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                            {inStockCount} con stock
+                                        </span>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
 
+                    {/* Botón Vaciar Lista Visible y Accesible */}
                     {!isSharedMode && wishlistProducts.length > 0 && (
                         <button
-                            onClick={handleClearWishlist}
-                            className="text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30"
+                            onClick={() => setShowClearModal(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-200/60 dark:border-rose-500/20 rounded-xl transition-all active:scale-95 shadow-sm"
+                            title="Vaciar toda la lista de deseos"
                         >
-                            <Trash2 size={14} /> <span className="hidden sm:inline">Vaciar</span>
+                            <Trash2 size={14} />
+                            <span>Vaciar</span>
                         </button>
                     )}
                 </div>
 
                 {/* BANNER ESPECIAL: MODO LISTA COMPARTIDA */}
                 {isSharedMode && (
-                    <div className="mb-8 p-5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-ios-blue/20 rounded-3xl backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-ios-blue/20 rounded-2xl backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-3 text-center sm:text-left">
-                            <div className="w-12 h-12 rounded-2xl bg-ios-blue text-white flex items-center justify-center shrink-0 shadow-lg shadow-ios-blue/30">
-                                <Gift size={24} />
+                            <div className="w-10 h-10 rounded-xl bg-ios-blue text-white flex items-center justify-center shrink-0 shadow-md shadow-ios-blue/30">
+                                <Gift size={20} />
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold text-ios-text dark:text-white">¡Alguien compartió sus deseos contigo!</h3>
-                                <p className="text-xs text-ios-subtext dark:text-gray-400">Puedes comprar estos artículos para un regalo o guardarlos en tus propios favoritos.</p>
+                                <p className="text-xs text-ios-subtext dark:text-gray-400">Puedes agregarlos al carrito para regalarlos o guardarlos en tus propios favoritos.</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                            <Button onClick={handleImportShared} className="!py-2.5 !px-4 text-xs font-bold rounded-2xl">
-                                Guardar en mis Favoritos
+                            <Button onClick={handleImportShared} className="!py-2 !px-4 text-xs font-bold rounded-xl shadow-sm">
+                                Guardar en mis favoritos
                             </Button>
                         </div>
                     </div>
@@ -237,65 +261,69 @@ export const Wishlist = () => {
 
                 {wishlistProducts.length > 0 ? (
                     <>
-                        {/* PANEL DE CONTROL DE ALTA TECNOLOGÍA (Resumen de Valor y Acciones 1-Tap) */}
-                        <div className="mb-8 p-5 sm:p-6 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-2xl border border-white/60 dark:border-white/10 rounded-3xl shadow-xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
-                            {/* Valor Estimado */}
-                            <div className="flex items-center gap-6">
-                                <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-ios-subtext dark:text-gray-400 block mb-1">
-                                        Valor Total Estimado
+                        {/* PANEL DE CONTROL REDISEÑADO: Ergonomía, Tipografía Equilibrada y Acciones Directas */}
+                        <div className="mb-8 p-4 sm:p-5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-gray-200/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+                            {/* Resumen de Valor Económico */}
+                            <div className="w-full lg:w-auto">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-ios-subtext dark:text-gray-400 block mb-0.5">
+                                    Valor estimado de tu lista
+                                </span>
+                                <div className="flex items-baseline gap-2.5 flex-wrap">
+                                    <span className="text-2xl sm:text-3xl font-extrabold text-ios-text dark:text-white tracking-tight">
+                                        {activeCurrencySymbol}{totalUsd.toFixed(2)}
                                     </span>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-2xl sm:text-3xl font-black text-ios-text dark:text-white">
-                                            {activeCurrencySymbol}{totalUsd.toFixed(2)}
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-400">
-                                            {formatVes(totalUsd)}
-                                        </span>
-                                    </div>
-                                    {totalSavings > 0 && (
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 mt-1">
-                                            <Zap size={12} className="fill-red-500" /> Ahorras {activeCurrencySymbol}{totalSavings.toFixed(2)} en ofertas activas
-                                        </span>
-                                    )}
+                                    <span className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-400">
+                                        {formatVes(totalUsd)}
+                                    </span>
                                 </div>
+                                {totalSavings > 0 && (
+                                    <div className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-500 mt-1 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-100 dark:border-rose-500/20">
+                                        <Zap size={12} className="fill-rose-500" /> Ahorras {activeCurrencySymbol}{totalSavings.toFixed(2)} en ofertas
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Botones de Acción Masiva */}
-                            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                                {/* Mover todo al carrito */}
+                            {/* Barra de Acciones con Botones Armoniosos */}
+                            <div className="w-full lg:w-auto flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5">
+                                {/* Botón Primario: Añadir al Carrito */}
                                 <button
                                     onClick={handleMoveAllToCart}
                                     disabled={isMovingAll || inStockCount === 0}
-                                    className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider text-white shadow-lg transition-all active:scale-95
+                                    className={`flex-1 sm:flex-none h-11 px-4 sm:px-5 inline-flex items-center justify-center gap-2 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm text-white shadow-md transition-all active:scale-95
                                         ${inStockCount === 0 
-                                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                                            : 'bg-ios-blue hover:brightness-110 shadow-ios-blue/30'
+                                            ? 'bg-gray-400 dark:bg-zinc-700 cursor-not-allowed opacity-60'
+                                            : 'bg-ios-blue hover:brightness-105 shadow-ios-blue/25'
                                         }
                                     `}
+                                    title="Añadir los productos disponibles al carrito"
                                 >
                                     <ShoppingBag size={16} />
-                                    <span>{isMovingAll ? 'Añadiendo...' : `Mover Todo al Carrito (${inStockCount})`}</span>
+                                    <span>{isMovingAll ? 'Añadiendo...' : 'Añadir al carrito'}</span>
+                                    {inStockCount > 0 && (
+                                        <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold">
+                                            {inStockCount}
+                                        </span>
+                                    )}
                                 </button>
 
-                                {/* Compartir por WhatsApp */}
+                                {/* Botón Secundario: WhatsApp */}
                                 <button
                                     onClick={handleShareWhatsApp}
-                                    className="flex items-center justify-center gap-1.5 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-green-500/20 transition-all active:scale-95"
-                                    title="Compartir por WhatsApp"
+                                    className="h-11 px-3.5 sm:px-4 inline-flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm shadow-md shadow-[#25D366]/20 transition-all active:scale-95"
+                                    title="Compartir lista por WhatsApp"
                                 >
-                                    <Share2 size={16} />
-                                    <span className="hidden sm:inline">Mandar indirecta</span>
+                                    <Share2 size={15} />
+                                    <span>Compartir</span>
                                 </button>
 
-                                {/* Copiar Enlace */}
+                                {/* Botón Terciario: Copiar Enlace */}
                                 <button
                                     onClick={handleCopyLink}
-                                    className="flex items-center justify-center gap-1.5 px-4 py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/15 text-ios-text dark:text-white rounded-2xl font-semibold text-xs transition-all active:scale-95 border border-black/5 dark:border-white/5"
-                                    title="Copiar enlace de mi lista"
+                                    className="h-11 px-3.5 sm:px-4 inline-flex items-center justify-center gap-1.5 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/15 text-ios-text dark:text-white rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm transition-all active:scale-95 border border-black/5 dark:border-white/10"
+                                    title="Copiar enlace para compartir"
                                 >
-                                    {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                                    <span className="hidden sm:inline">{copied ? '¡Copiado!' : 'Copiar link'}</span>
+                                    {copied ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}
+                                    <span>{copied ? '¡Copiado!' : 'Copiar enlace'}</span>
                                 </button>
                             </div>
                         </div>
@@ -309,25 +337,65 @@ export const Wishlist = () => {
                     </>
                 ) : (
                     /* Estado Vacío de Alta Estética */
-                    <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10">
-                        <div className="w-24 h-24 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-6 shadow-inner animate-pulse-slow">
-                            <Heart size={44} className="fill-red-500/20" />
+                    <div className="flex flex-col items-center justify-center py-16 sm:py-24 px-4 text-center bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-5 shadow-inner animate-pulse-slow">
+                            <Heart size={38} className="fill-rose-500/20" />
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-serif font-bold text-ios-text dark:text-white mb-2">
+                        <h2 className="text-xl sm:text-2xl font-serif font-bold text-ios-text dark:text-white mb-2">
                             Tu lista de deseos está vacía
                         </h2>
-                        <p className="text-ios-subtext dark:text-gray-400 text-sm max-w-md mb-8 leading-relaxed">
-                            Guarda los productos que más te gusten tocando el corazón ❤️ en cualquier tarjeta para no perderlos de vista o compartirlos con amigos.
+                        <p className="text-ios-subtext dark:text-gray-400 text-xs sm:text-sm max-w-sm mb-6 leading-relaxed">
+                            Guarda los artículos que más te gusten tocando el corazón ❤️ en las tarjetas para no perderlos de vista o compartirlos con amigos.
                         </p>
                         <Button 
                             onClick={() => navigate('/shop')}
-                            className="!px-8 !py-4 rounded-full font-bold shadow-xl shadow-ios-blue/20 gap-2 flex items-center"
+                            className="!px-6 !py-3 rounded-xl font-bold shadow-lg shadow-ios-blue/20 gap-2 flex items-center text-xs sm:text-sm"
                         >
-                            Explorar Catálogo <ArrowRight size={16} />
+                            Explorar catálogo <ArrowRight size={15} />
                         </Button>
                     </div>
                 )}
             </div>
+
+            {/* MODAL DE CONFIRMACIÓN ULTRA-ELEGANTE PARA VACIAR */}
+            {showClearModal && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+                    onClick={() => setShowClearModal(false)}
+                >
+                    <div 
+                        className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl animate-scale-up"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Ícono de Alerta */}
+                        <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-500/20">
+                            <Trash2 size={22} />
+                        </div>
+
+                        <h3 className="text-lg font-bold text-ios-text dark:text-white mb-1.5">
+                            ¿Vaciar lista de deseos?
+                        </h3>
+                        <p className="text-xs text-ios-subtext dark:text-gray-400 mb-6 leading-relaxed">
+                            Se quitarán todos los artículos guardados ({wishlistProducts.length}). Podrás volver a agregarlos cuando quieras desde el catálogo.
+                        </p>
+
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                onClick={() => setShowClearModal(false)}
+                                className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 dark:border-white/10 text-ios-text dark:text-gray-300 font-semibold text-xs hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmClear}
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/25 transition-all active:scale-95"
+                            >
+                                Sí, vaciar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </ShopLayout>
     );
 };

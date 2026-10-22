@@ -150,6 +150,11 @@ export interface StockMovement {
   stockAfter: number;
   reference: string;
   date: number;
+  variant_details?: string;
+  variant_id?: string;
+  parent_id?: string;
+  product_title?: string;
+  product_code?: string;
 }
 
 export interface StagnantProduct {
@@ -438,6 +443,8 @@ export interface StoreContextType {
   toggleCoupon: (code: string) => void;
   deleteCoupon: (code: string) => void;
   toggleWishlist: (productId: string) => void;
+  setWishlist: (wishlist: string[]) => void;
+  clearWishlist: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
   isSearchOpen: boolean;

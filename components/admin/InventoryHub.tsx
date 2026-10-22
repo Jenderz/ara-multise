@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ProductsModule } from './ProductsModule';
 import { CategoriesModule } from './CategoriesModule';
-import { InventoryAnalyticsModule } from './InventoryAnalyticsModule';
+import { InventoryAnalytics } from './statistics/InventoryAnalytics';
 import { Product, Category } from '../../types';
 import { Package, Tags, BarChart2 } from 'lucide-react';
 
@@ -81,7 +81,7 @@ export const InventoryHub: React.FC<InventoryHubProps> = (props) => {
                 )}
 
                 {activeTab === 'analytics' && (
-                    <InventoryAnalyticsModule products={props.products} />
+                    <InventoryAnalytics products={props.products} />
                 )}
             </div>
         </div>
